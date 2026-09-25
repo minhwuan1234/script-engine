@@ -1,2227 +1,734 @@
-      
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Magnetic Script Studio</title>
+<style>html,body{margin:0;padding:0}
+/* USAGE */
+.tony-pixel-widget .tpw-usage-line { margin-top: 10px; font-size: 12px; font-weight: 700; color: #000; text-align: right; }
+.tony-pixel-widget .tpw-usage-line:empty { display: none; }
+.tony-pixel-widget button.tpw-usage-btn {
+    position: absolute; right: 14px; bottom: 14px; z-index: 6; padding: 6px 12px; border: 1.5px solid #000 !important; border-radius: 999px !important;
+    background: #ffedd5 !important; color: #000 !important; font-size: 12px; font-weight: 800; cursor: pointer; box-shadow: 1px 2px 0 #000 !important;
+}
+.tony-pixel-widget button.tpw-usage-btn:hover { background: #ffdcae !important; }
+.tony-pixel-widget .tpw-usage-panel {
+    position: absolute; right: 14px; bottom: 56px; z-index: 7; width: min(360px, calc(100% - 28px)); max-height: 70%; overflow-y: auto;
+    padding: 12px; background: #fff; border: 2px solid #000; border-radius: 16px; box-shadow: 2px 3px 0 #000; font-size: 12.5px; color: #22252a;
+}
+.tony-pixel-widget .tpw-usage-panel[hidden] { display: none; }
+.tony-pixel-widget .tpw-usage-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 14px; }
+.tony-pixel-widget button.tpw-usage-close { border: 0 !important; background: none !important; color: #000 !important; font-size: 18px; font-weight: bold; cursor: pointer; padding: 0 !important; }
+.tony-pixel-widget .tpw-usage-auth { display: flex; gap: 6px; margin-bottom: 8px; }
+.tony-pixel-widget input.tpw-usage-key { flex: 1; min-width: 0; padding: 6px 10px; border: 1.5px solid #000; border-radius: 10px; font: inherit; font-size: 12.5px; background: #fff; }
+.tony-pixel-widget button.tpw-usage-load { padding: 6px 12px; border: 1.5px solid #000 !important; border-radius: 10px !important; background: #ff9436 !important; color: #000 !important; font-weight: 800; cursor: pointer; }
+.tony-pixel-widget .tpw-usage-msg { color: #b91c1c; font-weight: 600; margin-bottom: 6px; }
+.tony-pixel-widget .tpw-usage-msg:empty { display: none; }
+.tony-pixel-widget .tpw-usage-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+.tony-pixel-widget .tpw-usage-table th, .tony-pixel-widget .tpw-usage-table td { padding: 4px 6px; border-bottom: 1px solid #e2e8f0; text-align: right; }
+.tony-pixel-widget .tpw-usage-table th:first-child, .tony-pixel-widget .tpw-usage-table td:first-child { text-align: left; font-weight: 700; }
+.tony-pixel-widget .tpw-usage-sub { font-weight: 800; margin: 8px 0 4px; }
+.tony-pixel-widget .tpw-usage-latest { font-size: 11.5px; line-height: 1.5; }
+.tony-pixel-widget .tpw-usage-note { margin-top: 6px; color: #64748b; font-size: 11px; }
+</style>
+</head>
+<body>
+
 <div class="tony-pixel-widget">
     <canvas class="tpw-canvas"></canvas>
 
     <div class="tpw-content">
-        <!-- MAIN CONTAINER (TÍCH HỢP CẢ INPUT LẪN OUTPUT) -->
         <div class="tpw-main-container">
 
             <div class="tpw-files"></div>
 
-            <!-- INPUT WRAPPER (NẰM Ở TRÊN CÙNG) -->
             <div class="tpw-input-wrapper">
                 <div class="tpw-dropzone">
 
-                    <input
-                        class="tpw-file-input"
-                        type="file"
-                        multiple
-                        hidden
-                        accept=".pdf,.txt,.jpg,.jpeg,.png,.md,.doc,.docx,.xlsx"
-                    >
+                    <input class="tpw-file-input" type="file" multiple hidden accept=".pdf,.txt,.jpg,.jpeg,.png,.md,.doc,.docx,.xlsx">
 
-                    <textarea
-                        class="tpw-input"
-                        rows="1"
-                        placeholder="Ask anything or drag files here..."
-                    ></textarea>
+                    <textarea class="tpw-input" rows="1" placeholder="Paste text or drag files here..."></textarea>
 
                     <div class="tpw-actions">
 
                         <div class="tpw-plus-wrap">
                             <button class="tpw-plus" type="button" aria-label="Thêm tệp">
-                                <svg viewBox="0 0 24 24">
-                                    <path d="M12 4.5v15m7.5-7.5h-15"/>
-                                </svg>
+                                <svg viewBox="0 0 24 24"><path d="M12 4.5v15m7.5-7.5h-15"/></svg>
                             </button>
 
                             <div class="tpw-menu">
                                 <button class="tpw-upload" type="button">
                                     <span class="tpw-upload-icon">
-                                        <svg viewBox="0 0 24 24">
-                                            <path d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
-                                        </svg>
+                                        <svg viewBox="0 0 24 24"><path d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
                                     </span>
-
                                     <span>
                                         <strong>Tải tệp lên</strong>
-                                        <small>PDF, TXT, JPG, PNG, MD, DOC, XLSX</small>
+                                        <small>PDF, TXT, MD (DOC/XLSX/ảnh: sắp có)</small>
                                     </span>
                                 </button>
                             </div>
                         </div>
 
                         <button class="tpw-submit" type="button" aria-label="Gửi">
-                            <svg viewBox="0 0 24 24">
-                                <path d="M5 10l7-7m0 0l7 7m-7-7v18"/>
-                            </svg>
+                            <svg viewBox="0 0 24 24"><path d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
                         </button>
 
                     </div>
 
-                    <div class="tpw-drag-hint">
-                        Thả tệp vào đây
-                    </div>
+                    <div class="tpw-drag-hint">Thả tệp vào đây</div>
 
                 </div>
             </div>
 
-            <!-- OUTPUT SECTION (VERSION A & B NẰM PHÍA DƯỚI INPUT) -->
             <div class="tpw-output-section">
-                <!-- LOADING STATE -->
                 <div class="tpw-loading-overlay">
                     <div class="tpw-spinner"></div>
-                    <span class="tpw-loading-text">Đang xử lý nội dung...</span>
+                    <span class="tpw-loading-text">Đang xử lý nội dung... (có thể mất 1–3 phút)</span>
                 </div>
 
-                <!-- OUTPUT GRID -->
-                <div class="tpw-output-grid">
-                    <div class="tpw-output-card">
-                        <div class="tpw-output-badge">VERSION A</div>
-                        <div class="tpw-output-title">First-person journey</div>
-                        <div class="tpw-output-meta">YouTube · 3:00 · Series · high-pull</div>
-                        <div class="tpw-output-body" id="tpw-output-a">
-                            <!-- Nội dung A sẽ hiển thị ở đây -->
+                <div class="tpw-output-result">
+                    <details class="tpw-preface" hidden>
+                        <summary>Doc diagnosis &amp; setup</summary>
+                        <div class="tpw-preface-body" id="tpw-preface"></div>
+                    </details>
+
+                    <div class="tpw-output-grid">
+                        <div class="tpw-output-card">
+                            <div class="tpw-output-badge">VERSION A</div>
+                            <div class="tpw-output-title" id="tpw-title-a">-</div>
+                            <div class="tpw-output-meta" id="tpw-meta-a"></div>
+                            <div class="tpw-output-body" id="tpw-output-a"></div>
+                        </div>
+
+                        <div class="tpw-output-card">
+                            <div class="tpw-output-badge">VERSION B</div>
+                            <div class="tpw-output-title" id="tpw-title-b">-</div>
+                            <div class="tpw-output-meta" id="tpw-meta-b"></div>
+                            <div class="tpw-output-body" id="tpw-output-b"></div>
                         </div>
                     </div>
 
-                    <div class="tpw-output-card">
-                        <div class="tpw-output-badge">VERSION B</div>
-                        <div class="tpw-output-title">Myth-buster</div>
-                        <div class="tpw-output-meta">YouTube · 3:00 · Series · high-pull</div>
-                        <div class="tpw-output-body" id="tpw-output-b">
-                            <!-- Nội dung B sẽ hiển thị ở đây -->
-                        </div>
-                    </div>
+                    <div class="tpw-usage-line" id="tpw-usage-line"></div>
                 </div>
             </div>
 
         </div>
     </div>
+    <button class="tpw-usage-btn" type="button" aria-label="Usage">Usage</button>
+    <div class="tpw-usage-panel" hidden>
+        <div class="tpw-usage-head">
+            <strong>Usage</strong>
+            <button class="tpw-usage-close" type="button" aria-label="Close">×</button>
+        </div>
+        <div class="tpw-usage-auth">
+            <input class="tpw-usage-key" type="password" placeholder="Admin key" autocomplete="off">
+            <button class="tpw-usage-load" type="button">Load</button>
+        </div>
+        <div class="tpw-usage-msg"></div>
+        <div class="tpw-usage-body"></div>
+    </div>
 </div>
 
 <style>
-/* =========================================================
-   ELEMENTOR PIXEL INPUT WIDGET
-   ========================================================= */
-
-.tony-pixel-widget,
-.tony-pixel-widget * {
-    box-sizing: border-box;
-}
+.tony-pixel-widget, .tony-pixel-widget * { box-sizing: border-box; }
 
 .tony-pixel-widget {
     --tpw-orange: #ff9436;
     --tpw-orange-hover: #ff8318;
     --tpw-text: #22252a;
     --tpw-muted: #64748b;
-
     position: relative;
-
     width: 100%;
     min-height: 750px;
-
+    height: 100vh;
     overflow: hidden;
-
     font-family: Inter, Arial, sans-serif;
-
     background: #fcfbfa;
-
     isolation: isolate;
 }
 
-
-/* =========================================================
-   CANVAS
-   ========================================================= */
-
-.tony-pixel-widget .tpw-canvas {
-    position: absolute;
-
-    inset: 0;
-
-    width: 100%;
-    height: 100%;
-
-    display: block;
-
-    z-index: 0;
-
-    pointer-events: none;
-}
-
-
-/* =========================================================
-   MAIN CONTENT & CONTAINER WITH EXPANSION ANIMATION
-   ========================================================= */
+.tony-pixel-widget .tpw-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; z-index: 0; pointer-events: none; }
 
 .tony-pixel-widget .tpw-content {
-    position: absolute;
-
-    inset: 0;
-
-    z-index: 2;
-
-    display: flex;
-    flex-direction: column;
-
-    justify-content: center;
-    align-items: center;
-
-    padding: 20px;
-
-    pointer-events: none;
-    overflow-y: auto;
+    position: absolute; inset: 0; z-index: 2;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    padding: 20px; pointer-events: none; overflow-y: auto;
 }
 
-/* CONTAINER BAN ĐẦU CHỈ CHỨA INPUT (TRONG SUỐT) */
 .tony-pixel-widget .tpw-main-container {
     width: min(100%, 672px);
-
-    position: relative;
-
-    pointer-events: auto;
-
-    background: transparent;
-
-    border: 2px solid transparent;
-
-    border-radius: 28px;
-
-    box-shadow: none;
-
-    padding: 0;
-
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 0;
-
-    transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, padding 0.3s ease, gap 0.3s ease;
+    position: relative; pointer-events: auto;
+    background: transparent; border: 2px solid transparent; border-radius: 28px; box-shadow: none; padding: 0;
+    display: flex; flex-direction: column; gap: 0;
+    transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, padding 0.3s ease, gap 0.3s ease, width 0.3s ease;
 }
 
-/* KHI CÓ OUTPUT -> CONTAINER HIỂN THỊ NỀN CAM VÀ ĐỔ BÓNG */
 .tony-pixel-widget .tpw-main-container.has-output {
-    background: #ff9436;
-
-    border-color: #000000;
-
-    box-shadow: 3px 4px 0px #000000;
-
-    padding: 12px;
-
-    gap: 16px;
+    width: min(100%, 980px);
+    background: #ff9436; border-color: #000000; box-shadow: 3px 4px 0px #000000; padding: 12px; gap: 16px;
 }
 
+/* OUTPUT */
+.tony-pixel-widget .tpw-output-section { display: none; width: 100%; animation: tpw-fade-in 0.3s ease-out forwards; }
+.tony-pixel-widget .tpw-main-container.has-output .tpw-output-section { display: block; }
 
-/* =========================================================
-   OUTPUT SECTION
-   ========================================================= */
+@keyframes tpw-fade-in { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
 
-.tony-pixel-widget .tpw-output-section {
-    display: none;
-    width: 100%;
-    animation: tpw-fade-in 0.3s ease-out forwards;
+.tony-pixel-widget .tpw-output-result { display: none; }
+.tony-pixel-widget .tpw-output-result.is-ready { display: block; }
+
+.tony-pixel-widget .tpw-preface {
+    margin-bottom: 12px; border: 2px solid #000; border-radius: 16px; background: #fff; box-shadow: 2px 3px 0 #000; padding: 10px 14px;
 }
+.tony-pixel-widget .tpw-preface summary { cursor: pointer; font-weight: 800; font-size: 13px; }
+.tony-pixel-widget .tpw-preface-body { margin-top: 8px; max-height: 260px; overflow-y: auto; font-size: 12.5px; line-height: 1.55; white-space: pre-wrap; color: var(--tpw-text); }
 
-.tony-pixel-widget .tpw-main-container.has-output .tpw-output-section {
-    display: block;
-}
-
-@keyframes tpw-fade-in {
-    from {
-        opacity: 0;
-        transform: translateY(-8px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.tony-pixel-widget .tpw-output-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    width: 100%;
-}
+.tony-pixel-widget .tpw-output-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; }
 
 .tony-pixel-widget .tpw-output-card {
-    position: relative;
-
-    border: 2px solid #000000;
-
-    border-radius: 20px;
-
-    background: #ffffff;
-
-    padding: 16px;
-
-    min-height: 220px;
-    max-height: 380px;
-
-    display: flex;
-    flex-direction: column;
-
-    overflow: hidden;
-
-    box-shadow: 2px 3px 0px #000000;
+    position: relative; border: 2px solid #000000; border-radius: 20px; background: #ffffff; padding: 16px;
+    min-height: 220px; max-height: 480px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 2px 3px 0px #000000;
 }
 
 .tony-pixel-widget .tpw-output-badge {
-    align-self: flex-start;
-
-    padding: 4px 12px;
-
-    border-radius: 999px;
-
-    border: 1.5px solid #000000;
-
-    background: #ffedd5;
-
-    color: #000000;
-
-    font-size: 11px;
-
-    font-weight: 800;
-
-    letter-spacing: 0.5px;
-
-    text-transform: uppercase;
-
-    margin-bottom: 12px;
+    align-self: flex-start; padding: 4px 12px; border-radius: 999px; border: 1.5px solid #000000; background: #ffedd5; color: #000000;
+    font-size: 11px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 12px;
 }
+.tony-pixel-widget .tpw-output-title { font-size: 18px; font-weight: 800; color: #000000; margin-bottom: 4px; }
+.tony-pixel-widget .tpw-output-meta { font-size: 12px; font-weight: 500; color: #64748b; margin-bottom: 12px; }
+.tony-pixel-widget .tpw-output-body { flex: 1; overflow-y: auto; font-size: 13.5px; line-height: 1.6; color: var(--tpw-text); white-space: pre-wrap; padding-right: 4px; }
+.tony-pixel-widget .tpw-output-body.is-error { color: #b91c1c; font-weight: 600; }
 
-.tony-pixel-widget .tpw-output-title {
-    font-size: 18px;
+.tony-pixel-widget .tpw-output-body::-webkit-scrollbar { width: 4px; }
+.tony-pixel-widget .tpw-output-body::-webkit-scrollbar-thumb { background: #000000; border-radius: 4px; }
 
-    font-weight: 800;
-
-    color: #000000;
-
-    margin-bottom: 4px;
-}
-
-.tony-pixel-widget .tpw-output-meta {
-    font-size: 12px;
-
-    font-weight: 500;
-
-    color: #64748b;
-
-    margin-bottom: 12px;
-}
-
-.tony-pixel-widget .tpw-output-body {
-    flex: 1;
-
-    overflow-y: auto;
-
-    font-size: 13.5px;
-
-    line-height: 1.6;
-
-    color: var(--tpw-text);
-
-    white-space: pre-wrap;
-
-    padding-right: 4px;
-}
-
-.tony-pixel-widget .tpw-script-item {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 12px;
-    align-items: flex-start;
-}
-
-.tony-pixel-widget .tpw-script-time {
-    color: #d97706;
-    font-weight: 700;
-    font-size: 12px;
-    font-family: monospace;
-    flex-shrink: 0;
-    padding-top: 2px;
-}
-
-.tony-pixel-widget .tpw-script-text {
-    flex: 1;
-    color: #000000;
-}
-
-.tony-pixel-widget .tpw-output-body::-webkit-scrollbar {
-    width: 4px;
-}
-
-.tony-pixel-widget .tpw-output-body::-webkit-scrollbar-thumb {
-    background: #000000;
-    border-radius: 4px;
-}
-
-
-/* =========================================================
-   LOADING CIRCLE MOTION
-   ========================================================= */
-
+/* LOADING */
 .tony-pixel-widget .tpw-loading-overlay {
-    position: relative;
-
-    width: 100%;
-
-    padding: 24px 20px;
-
-    display: none;
-
-    flex-direction: column;
-
-    align-items: center;
-
-    justify-content: center;
-
-    gap: 12px;
-
-    background: #ffffff;
-
-    border: 2px solid #000000;
-
-    border-radius: 20px;
-
-    box-shadow: 2px 3px 0px #000000;
+    position: relative; width: 100%; padding: 24px 20px; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+    background: #ffffff; border: 2px solid #000000; border-radius: 20px; box-shadow: 2px 3px 0px #000000;
 }
+.tony-pixel-widget .tpw-loading-overlay.is-loading { display: flex; }
+.tony-pixel-widget .tpw-spinner { width: 32px; height: 32px; border: 3px solid #ffedd5; border-top-color: #000000; border-radius: 50%; animation: tpw-spin 0.8s linear infinite; }
+@keyframes tpw-spin { to { transform: rotate(360deg); } }
+.tony-pixel-widget .tpw-loading-text { font-size: 13px; font-weight: 700; color: #000000; }
 
-.tony-pixel-widget .tpw-loading-overlay.is-loading {
-    display: flex;
-}
-
-.tony-pixel-widget .tpw-spinner {
-    width: 32px;
-    height: 32px;
-
-    border: 3px solid #ffedd5;
-
-    border-top-color: #000000;
-
-    border-radius: 50%;
-
-    animation: tpw-spin 0.8s linear infinite;
-}
-
-@keyframes tpw-spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-.tony-pixel-widget .tpw-loading-text {
-    font-size: 13px;
-
-    font-weight: 700;
-
-    color: #000000;
-}
-
-
-/* =========================================================
-   FILE CHIPS
-   ========================================================= */
-
-.tony-pixel-widget .tpw-files {
-    width: 100%;
-
-    display: flex;
-    flex-wrap: wrap;
-
-    gap: 8px;
-
-    margin-bottom: 8px;
-
-    pointer-events: auto;
-}
-
-.tony-pixel-widget .tpw-files:empty {
-    display: none;
-    margin-bottom: 0;
-}
-
+/* FILE CHIPS */
+.tony-pixel-widget .tpw-files { width: 100%; display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; pointer-events: auto; }
+.tony-pixel-widget .tpw-files:empty { display: none; margin-bottom: 0; }
 .tony-pixel-widget .tpw-chip {
-    display: inline-flex;
-
-    align-items: center;
-
-    gap: 6px;
-
-    max-width: 180px;
-
-    padding: 4px 10px;
-
-    border: 1.5px solid #000000;
-
-    border-radius: 999px;
-
-    background: #ffffff;
-
-    box-shadow: 1px 2px 0px #000000;
-
-    font-size: 12px;
-    font-weight: 700;
-
-    color: #000000;
+    display: inline-flex; align-items: center; gap: 6px; max-width: 180px; padding: 4px 10px; border: 1.5px solid #000000; border-radius: 999px;
+    background: #ffffff; box-shadow: 1px 2px 0px #000000; font-size: 12px; font-weight: 700; color: #000000;
 }
+.tony-pixel-widget .tpw-chip-name { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.tony-pixel-widget button.tpw-chip-remove { padding: 0 !important; margin: 0; border: 0 !important; background: none !important; color: #000000 !important; cursor: pointer; font-size: 16px; line-height: 1; font-weight: bold; }
+.tony-pixel-widget button.tpw-chip-remove:hover { background: none !important; color: #ef4444 !important; }
 
-.tony-pixel-widget .tpw-chip-name {
-    overflow: hidden;
-
-    white-space: nowrap;
-    text-overflow: ellipsis;
-}
-
-.tony-pixel-widget button.tpw-chip-remove {
-    padding: 0 !important;
-    margin: 0;
-
-    border: 0 !important;
-
-    background: none !important;
-
-    color: #000000 !important;
-
-    cursor: pointer;
-
-    font-size: 16px;
-    line-height: 1;
-    font-weight: bold;
-}
-
-.tony-pixel-widget button.tpw-chip-remove:hover {
-    background: none !important;
-
-    color: #ef4444 !important;
-}
-
-
-/* =========================================================
-   INPUT WRAPPER (SỬA THÀNH DẠNG CHỮ NHẬT BO TRÒN GÓC)
-   ========================================================= */
-
+/* INPUT */
 .tony-pixel-widget .tpw-input-wrapper {
-    width: 100%;
-
-    position: relative;
-
-    pointer-events: auto;
-
-    border: 2px solid #000000;
-
-    /* Sửa bo góc dạng Chữ nhật thay vì dạng Pill tròn */
-    border-radius: 18px;
-
-    background: #ffffff;
-
-    box-shadow: 2px 3px 0px #000000;
-
-    transform: none;
-
-    transition: box-shadow .18s ease;
+    width: 100%; position: relative; pointer-events: auto; border: 2px solid #000000; border-radius: 18px; background: #ffffff;
+    box-shadow: 2px 3px 0px #000000; transform: none; transition: box-shadow .18s ease;
 }
+.tony-pixel-widget .tpw-input-wrapper:hover { box-shadow: 2px 3px 0px #000000; }
+.tony-pixel-widget .tpw-input-wrapper:focus-within { box-shadow: 3px 4px 0px #000000; }
 
-
-.tony-pixel-widget .tpw-input-wrapper:hover {
-    box-shadow: 2px 3px 0px #000000;
-}
-
-
-.tony-pixel-widget .tpw-input-wrapper:focus-within {
-    box-shadow: 3px 4px 0px #000000;
-}
-
-
-/* =========================================================
-   DROPZONE
-   ========================================================= */
-
-.tony-pixel-widget .tpw-dropzone {
-    position: relative;
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 8px;
-
-    width: 100%;
-
-    padding: 8px 14px;
-
-    border-radius: inherit;
-}
-
-
-/* =========================================================
-   TEXTAREA
-   ========================================================= */
+.tony-pixel-widget .tpw-dropzone { position: relative; display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 14px; border-radius: inherit; }
 
 .tony-pixel-widget .tpw-input {
-    flex: 1;
-
-    min-width: 0;
-
-    max-height: 100px;
-
-    padding: 6px 0;
-
-    margin: 0;
-
-    border: 0 !important;
-    outline: 0 !important;
-
-    background: transparent !important;
-
-    box-shadow: none !important;
-
-    resize: none;
-
-    overflow-y: auto;
-
-    font: inherit;
-
-    font-size: 15px;
-    font-weight: 600;
-
-    line-height: 1.45;
-
-    color: #000000;
-
-    transform: none !important;
+    flex: 1; min-width: 0; max-height: 100px; padding: 6px 0; margin: 0; border: 0 !important; outline: 0 !important; background: transparent !important;
+    box-shadow: none !important; resize: none; overflow-y: auto; font: inherit; font-size: 15px; font-weight: 600; line-height: 1.45; color: #000000; transform: none !important;
 }
-
-.tony-pixel-widget .tpw-input:hover,
-.tony-pixel-widget .tpw-input:focus,
-.tony-pixel-widget .tpw-input:focus-visible {
-    border: 0 !important;
-    outline: 0 !important;
-
-    background: transparent !important;
-
-    box-shadow: none !important;
-
-    transform: none !important;
+.tony-pixel-widget .tpw-input:hover, .tony-pixel-widget .tpw-input:focus, .tony-pixel-widget .tpw-input:focus-visible {
+    border: 0 !important; outline: 0 !important; background: transparent !important; box-shadow: none !important; transform: none !important;
 }
+.tony-pixel-widget .tpw-input::placeholder { color: #475569; font-weight: 500; }
+.tony-pixel-widget .tpw-input::-webkit-scrollbar { display: none; }
 
-.tony-pixel-widget .tpw-input::placeholder {
-    color: #475569;
-    font-weight: 500;
-}
-
-.tony-pixel-widget .tpw-input::-webkit-scrollbar {
-    display: none;
-}
+.tony-pixel-widget .tpw-actions { position: relative; display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.tony-pixel-widget button { font-family: inherit; }
 
 
-/* =========================================================
-   ACTIONS
-   ========================================================= */
-
-.tony-pixel-widget .tpw-actions {
-    position: relative;
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 6px;
-
-    flex-shrink: 0;
-}
-
-.tony-pixel-widget button {
-    font-family: inherit;
-}
-
-
-/* =========================================================
-   PLUS BUTTON
-   ========================================================= */
-
-.tony-pixel-widget .tpw-plus-wrap {
-    position: relative;
-}
-
+/* PLUS */
+.tony-pixel-widget .tpw-plus-wrap { position: relative; }
 .tony-pixel-widget button.tpw-plus {
-    width: 34px;
-    height: 34px;
-
-    min-width: 34px;
-    min-height: 34px;
-
-    flex: 0 0 34px;
-
-    padding: 0 !important;
-    margin: 0;
-
-    border: 1.5px solid #000000 !important;
-    border-radius: 50% !important;
-
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
-    background: #ffedd5 !important;
-
-    color: #000000 !important;
-
-    box-shadow: none !important;
-
-    cursor: pointer;
-
-    appearance: none;
-    -webkit-appearance: none;
-
-    transform: none !important;
-
-    transition: background-color .15s ease, color .15s ease;
+    width: 34px; height: 34px; min-width: 34px; min-height: 34px; flex: 0 0 34px; padding: 0 !important; margin: 0;
+    border: 1.5px solid #000000 !important; border-radius: 50% !important; display: flex; align-items: center; justify-content: center;
+    background: #ffedd5 !important; color: #000000 !important; box-shadow: none !important; cursor: pointer; appearance: none; -webkit-appearance: none;
+    transform: none !important; transition: background-color .15s ease, color .15s ease;
 }
+.tony-pixel-widget button.tpw-plus:hover { background: #ffebd2 !important; color: #000000 !important; }
+.tony-pixel-widget button.tpw-plus:focus, .tony-pixel-widget button.tpw-plus:focus-visible { outline: none !important; }
+.tony-pixel-widget button.tpw-plus svg { width: 18px; height: 18px; margin: 0; padding: 0; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; pointer-events: none; }
 
-.tony-pixel-widget button.tpw-plus:hover {
-    background: #ffebd2 !important;
-
-    color: #000000 !important;
-}
-
-.tony-pixel-widget button.tpw-plus:focus,
-.tony-pixel-widget button.tpw-plus:focus-visible {
-    outline: none !important;
-}
-
-.tony-pixel-widget button.tpw-plus svg {
-    width: 18px;
-    height: 18px;
-
-    margin: 0;
-    padding: 0;
-
-    fill: none;
-
-    stroke: currentColor;
-
-    stroke-width: 2.5;
-
-    stroke-linecap: round;
-
-    pointer-events: none;
-}
-
-
-/* =========================================================
-   SUBMIT BUTTON
-   ========================================================= */
-
+/* SUBMIT */
 .tony-pixel-widget button.tpw-submit {
-    width: 34px;
-    height: 34px;
-
-    min-width: 34px;
-    min-height: 34px;
-
-    flex: 0 0 34px;
-
-    padding: 0 !important;
-    margin: 0;
-
-    border: 1.5px solid #000000 !important;
-    border-radius: 50% !important;
-
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
-    background: #e2e8f0 !important;
-
-    color: #000000 !important;
-
-    cursor: pointer;
-
-    box-shadow: none;
-
-    overflow: hidden;
-
-    appearance: none;
-    -webkit-appearance: none;
-
-    transform: none !important;
-
-    transition: background-color .15s ease, color .15s ease;
+    width: 34px; height: 34px; min-width: 34px; min-height: 34px; flex: 0 0 34px; padding: 0 !important; margin: 0;
+    border: 1.5px solid #000000 !important; border-radius: 50% !important; display: flex; align-items: center; justify-content: center;
+    background: #e2e8f0 !important; color: #000000 !important; cursor: pointer; box-shadow: none; overflow: hidden; appearance: none; -webkit-appearance: none;
+    transform: none !important; transition: background-color .15s ease, color .15s ease;
 }
-
-
-/* Có text/file */
-
-.tony-pixel-widget button.tpw-submit.is-active {
-    background: #ff9436 !important;
-
-    color: #000000 !important;
-}
-
-
-.tony-pixel-widget button.tpw-submit:hover,
-.tony-pixel-widget button.tpw-submit.is-active:hover {
-    background: #ff8318 !important;
-
-    color: #000000 !important;
-}
-
-
-.tony-pixel-widget button.tpw-submit:focus,
-.tony-pixel-widget button.tpw-submit:focus-visible {
-    outline: none !important;
-}
-
-
-/* Arrow */
-
+.tony-pixel-widget button.tpw-submit.is-active { background: #ff9436 !important; color: #000000 !important; }
+.tony-pixel-widget button.tpw-submit:hover, .tony-pixel-widget button.tpw-submit.is-active:hover { background: #ff8318 !important; color: #000000 !important; }
+.tony-pixel-widget button.tpw-submit:focus, .tony-pixel-widget button.tpw-submit:focus-visible { outline: none !important; }
 .tony-pixel-widget button.tpw-submit svg {
-    width: 16px;
-    height: 16px;
-
-    flex: 0 0 16px;
-
-    margin: 0;
-    padding: 0;
-
-    fill: none;
-
-    stroke: currentColor !important;
-
-    stroke-width: 2.8;
-
-    stroke-linecap: round;
-    stroke-linejoin: round;
-
-    pointer-events: none;
-
-    transform: none !important;
+    width: 16px; height: 16px; flex: 0 0 16px; margin: 0; padding: 0; fill: none; stroke: currentColor !important; stroke-width: 2.8;
+    stroke-linecap: round; stroke-linejoin: round; pointer-events: none; transform: none !important;
 }
 
-
-/* =========================================================
-   MENU
-   ========================================================= */
-
+/* MENU */
 .tony-pixel-widget .tpw-menu {
-    position: absolute;
-
-    right: 0;
-    bottom: 44px;
-
-    width: 256px;
-
-    padding: 8px;
-
-    z-index: 20;
-
-    border: 2px solid #000000;
-
-    border-radius: 16px;
-
-    background: #ffffff;
-
-    box-shadow: 2px 3px 0px #000000;
-
-    opacity: 0;
-
-    visibility: hidden;
-
-    transform: translateY(5px) scale(.96);
-
-    transform-origin: bottom right;
-
+    position: absolute; right: 0; bottom: 44px; width: 256px; padding: 8px; z-index: 20; border: 2px solid #000000; border-radius: 16px; background: #ffffff;
+    box-shadow: 2px 3px 0px #000000; opacity: 0; visibility: hidden; transform: translateY(5px) scale(.96); transform-origin: bottom right;
     transition: opacity .18s ease, transform .18s ease, visibility .18s;
 }
-
-.tony-pixel-widget .tpw-menu.is-open {
-    opacity: 1;
-
-    visibility: visible;
-
-    transform: translateY(0) scale(1);
-}
-
-
-/* =========================================================
-   UPLOAD
-   ========================================================= */
+.tony-pixel-widget .tpw-menu.is-open { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
 
 .tony-pixel-widget button.tpw-upload {
-    width: 100%;
-
-    padding: 8px 10px;
-
-    border: 0 !important;
-
-    border-radius: 10px !important;
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 12px;
-
-    text-align: left;
-
-    background: transparent !important;
-
-    color: #000000 !important;
-
-    cursor: pointer;
+    width: 100%; padding: 8px 10px; border: 0 !important; border-radius: 10px !important; display: flex; align-items: center; gap: 12px; text-align: left;
+    background: transparent !important; color: #000000 !important; cursor: pointer;
 }
-
-.tony-pixel-widget button.tpw-upload:hover {
-    background: #fff7ed !important;
-
-    color: #000000 !important;
-}
-
-.tony-pixel-widget .tpw-upload strong,
-.tony-pixel-widget .tpw-upload small {
-    display: block;
-}
-
-.tony-pixel-widget .tpw-upload strong {
-    font-size: 12px;
-}
-
-.tony-pixel-widget .tpw-upload small {
-    margin-top: 2px;
-
-    font-size: 10px;
-
-    color: #64748b;
-}
-
+.tony-pixel-widget button.tpw-upload:hover { background: #fff7ed !important; color: #000000 !important; }
+.tony-pixel-widget .tpw-upload strong, .tony-pixel-widget .tpw-upload small { display: block; }
+.tony-pixel-widget .tpw-upload strong { font-size: 12px; }
+.tony-pixel-widget .tpw-upload small { margin-top: 2px; font-size: 10px; color: #64748b; }
 .tony-pixel-widget .tpw-upload-icon {
-    width: 30px;
-    height: 30px;
-
-    flex-shrink: 0;
-
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
-    border-radius: 8px;
-
-    border: 1px solid #000000;
-
-    background: #ffedd5;
-
-    color: #000000;
+    width: 30px; height: 30px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: 1px solid #000000; background: #ffedd5; color: #000000;
 }
+.tony-pixel-widget .tpw-upload-icon svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.2; }
 
-.tony-pixel-widget .tpw-upload-icon svg {
-    width: 16px;
-    height: 16px;
-
-    fill: none;
-
-    stroke: currentColor;
-
-    stroke-width: 2.2;
-}
-
-
-/* =========================================================
-   DRAG HINT
-   ========================================================= */
-
+/* DRAG HINT */
 .tony-pixel-widget .tpw-drag-hint {
-    position: absolute;
-
-    inset: 0;
-
-    z-index: 30;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    border: 2px dashed #000000;
-
-    border-radius: inherit;
-
-    background: #ffedd5;
-
-    color: #000000;
-
-    font-size: 13px;
-    font-weight: 700;
-
-    pointer-events: none;
-
-    opacity: 0;
-
-    visibility: hidden;
-
-    transition: opacity .15s ease;
+    position: absolute; inset: 0; z-index: 30; display: flex; align-items: center; justify-content: center; border: 2px dashed #000000; border-radius: inherit;
+    background: #ffedd5; color: #000000; font-size: 13px; font-weight: 700; pointer-events: none; opacity: 0; visibility: hidden; transition: opacity .15s ease;
 }
+.tony-pixel-widget.is-dragging .tpw-drag-hint { opacity: 1; visibility: visible; }
 
-.tony-pixel-widget.is-dragging .tpw-drag-hint {
-    opacity: 1;
-
-    visibility: visible;
-}
-
-
-/* =========================================================
-   RESPONSIVE (TABLET & MOBILE OPTIMIZATIONS)
-   ========================================================= */
-
-/* Tablet & iPad Viewports (<= 1024px) */
+/* RESPONSIVE */
 @media (max-width: 1024px) {
-    .tony-pixel-widget {
-        min-height: 600px;
-    }
-
-    .tony-pixel-widget .tpw-content {
-        padding: 16px;
-    }
-
-    .tony-pixel-widget .tpw-main-container {
-        width: 100%;
-        max-width: 600px;
-    }
-
-    .tony-pixel-widget .tpw-output-card {
-        max-height: 320px;
-        min-height: 200px;
-    }
+    .tony-pixel-widget .tpw-content { padding: 16px; }
+    .tony-pixel-widget .tpw-main-container { width: 100%; max-width: 600px; }
+    .tony-pixel-widget .tpw-main-container.has-output { max-width: 900px; }
+    .tony-pixel-widget .tpw-output-card { max-height: 420px; min-height: 200px; }
 }
-
-/* Mobile Devices (<= 767px) */
 @media (max-width: 767px) {
-
-    .tony-pixel-widget {
-        min-height: 500px;
-    }
-
-    .tony-pixel-widget .tpw-content {
-        padding: 10px;
-        justify-content: flex-start;
-        padding-top: 16px;
-    }
-
-    .tony-pixel-widget .tpw-main-container {
-        border-radius: 20px;
-    }
-
-    .tony-pixel-widget .tpw-main-container.has-output {
-        padding: 10px;
-        gap: 12px;
-    }
-
-    .tony-pixel-widget .tpw-dropzone {
-        padding: 6px 10px;
-        gap: 6px;
-    }
-
-    .tony-pixel-widget .tpw-input {
-        font-size: 14px;
-    }
-
-    .tony-pixel-widget button.tpw-plus,
-    .tony-pixel-widget button.tpw-submit {
-        width: 30px;
-        height: 30px;
-        min-width: 30px;
-        min-height: 30px;
-        flex: 0 0 30px;
-    }
-
-    .tony-pixel-widget button.tpw-plus svg {
-        width: 16px;
-        height: 16px;
-    }
-
-    .tony-pixel-widget button.tpw-submit svg {
-        width: 14px;
-        height: 14px;
-    }
-
-    /* Output Grid chuyển sang 1 cột trên Mobile */
-    .tony-pixel-widget .tpw-output-grid {
-        grid-template-columns: 1fr;
-        gap: 10px;
-    }
-
-    .tony-pixel-widget .tpw-output-card {
-        padding: 12px;
-        max-height: 280px;
-        min-height: 180px;
-        border-radius: 16px;
-    }
-
-    .tony-pixel-widget .tpw-output-title {
-        font-size: 16px;
-    }
-
-    .tony-pixel-widget .tpw-output-meta {
-        font-size: 11px;
-        margin-bottom: 8px;
-    }
-
-    .tony-pixel-widget .tpw-output-body {
-        font-size: 12.5px;
-    }
-
-    .tony-pixel-widget .tpw-script-item {
-        gap: 8px;
-        margin-bottom: 8px;
-    }
-
-    .tony-pixel-widget .tpw-menu {
-        width: 220px;
-        right: -10px;
-    }
-
-    .tony-pixel-widget .tpw-chip {
-        max-width: 140px;
-        font-size: 11px;
-        padding: 2px 8px;
-    }
+    .tony-pixel-widget .tpw-content { padding: 10px; justify-content: flex-start; padding-top: 16px; }
+    .tony-pixel-widget .tpw-main-container { border-radius: 20px; }
+    .tony-pixel-widget .tpw-main-container.has-output { padding: 10px; gap: 12px; }
+    .tony-pixel-widget .tpw-dropzone { padding: 6px 10px; gap: 6px; }
+    .tony-pixel-widget .tpw-input { font-size: 14px; }
+    .tony-pixel-widget button.tpw-plus, .tony-pixel-widget button.tpw-submit { width: 30px; height: 30px; min-width: 30px; min-height: 30px; flex: 0 0 30px; }
+    .tony-pixel-widget button.tpw-plus svg { width: 16px; height: 16px; }
+    .tony-pixel-widget button.tpw-submit svg { width: 14px; height: 14px; }
+    .tony-pixel-widget .tpw-output-grid { grid-template-columns: 1fr; gap: 10px; }
+    .tony-pixel-widget .tpw-output-card { padding: 12px; max-height: 380px; min-height: 180px; border-radius: 16px; }
+    .tony-pixel-widget .tpw-output-title { font-size: 16px; }
+    .tony-pixel-widget .tpw-output-meta { font-size: 11px; margin-bottom: 8px; }
+    .tony-pixel-widget .tpw-output-body { font-size: 12.5px; }
+    .tony-pixel-widget .tpw-menu { width: 220px; right: -10px; }
+    .tony-pixel-widget .tpw-chip { max-width: 140px; font-size: 11px; padding: 2px 8px; }
 }
-
-/* Small Mobile Screens (<= 380px) */
 @media (max-width: 380px) {
-    .tony-pixel-widget .tpw-dropzone {
-        padding: 4px 8px;
-    }
-
-    .tony-pixel-widget .tpw-actions {
-        gap: 4px;
-    }
-
-    .tony-pixel-widget .tpw-output-title {
-        font-size: 15px;
-    }
+    .tony-pixel-widget .tpw-dropzone { padding: 4px 8px; }
+    .tony-pixel-widget .tpw-actions { gap: 4px; }
+    .tony-pixel-widget .tpw-output-title { font-size: 15px; }
 }
 </style>
 
 <script>
+/* ===== API CONFIG =====
+ * API_URL     : backend endpoint that holds the Claude API key (NEVER put the key in this file).
+ * CRAZY_LEVEL : 'Low' | 'Medium' | 'High' (fixed for now, UI slider comes later)
+ */
+const API_URL = '/api/generate';
+const CRAZY_LEVEL = 'Medium';
+const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the server)
+
 (() => {
-
-    const widgets =
-        document.querySelectorAll('.tony-pixel-widget');
-
-    widgets.forEach(initPixelWidget);
-
-
-    function initPixelWidget(root) {
-
-        if (root.dataset.initialized === 'true') {
-            return;
-        }
-
-        root.dataset.initialized = 'true';
-
-
-        /* =====================================================
-           ELEMENTS
-           ===================================================== */
-
-        const canvas =
-            root.querySelector('.tpw-canvas');
-
-        const ctx =
-            canvas.getContext('2d', {
-                alpha: false
-            });
-
-        const mainContainer =
-            root.querySelector('.tpw-main-container');
-
-        const inputWrapper =
-            root.querySelector('.tpw-input-wrapper');
-
-        const input =
-            root.querySelector('.tpw-input');
-
-        const fileInput =
-            root.querySelector('.tpw-file-input');
-
-        const filesContainer =
-            root.querySelector('.tpw-files');
-
-        const plusBtn =
-            root.querySelector('.tpw-plus');
-
-        const menu =
-            root.querySelector('.tpw-menu');
-
-        const uploadBtn =
-            root.querySelector('.tpw-upload');
-
-        const submitBtn =
-            root.querySelector('.tpw-submit');
-
-        const loadingOverlay =
-            root.querySelector('.tpw-loading-overlay');
-
-        const outputGrid =
-            root.querySelector('.tpw-output-grid');
-
-        const outputA =
-            root.querySelector('#tpw-output-a');
-
-        const outputB =
-            root.querySelector('#tpw-output-b');
-
-
-        /* =====================================================
-           FILE STATE
-           ===================================================== */
-
-        let attachedFiles = [];
-
-        const allowedTypes = [
-            'pdf',
-            'txt',
-            'jpg',
-            'jpeg',
-            'png',
-            'md',
-            'doc',
-            'docx',
-            'xlsx'
-        ];
-
-
-        /* =====================================================
-           CANVAS
-           ===================================================== */
-
-        const PIXEL_SIZE = 44;
-
-        let width = 0;
-        let height = 0;
-
-        let cols = 0;
-        let rows = 0;
-
-        let grid = [];
-
-        let frame = 0;
-
-        const mouse = {
-            x: -9999,
-            y: -9999,
-            radius: 220
-        };
-
-
-        const ambientPalette = [
-
-            { r:255, g:255, b:255 },
-
-            { r:254, g:250, b:246 },
-
-            { r:254, g:243, b:232 },
-
-            { r:253, g:230, b:210 },
-
-            { r:253, g:212, b:175 }
-
-        ];
-
-
-        const highlightPalette = [
-
-            { r:251, g:146, b:60 },
-
-            { r:249, g:115, b:22 },
-
-            { r:234, g:88, b:12 },
-
-            { r:194, g:65, b:12 }
-
-        ];
-
-
-        /* =====================================================
-           PIXEL
-           ===================================================== */
-
-        class Pixel {
-
-            constructor(col, row) {
-
-                this.col = col;
-                this.row = row;
-
-                this.x =
-                    col * PIXEL_SIZE;
-
-                this.y =
-                    row * PIXEL_SIZE;
-
-                this.cx =
-                    this.x +
-                    PIXEL_SIZE / 2;
-
-                this.cy =
-                    this.y +
-                    PIXEL_SIZE / 2;
-
-                this.seedX =
-                    Math.random() * 10;
-
-                this.seedY =
-                    Math.random() * 10;
-
-                this.speed =
-                    .015 +
-                    Math.random() * .02;
-
-                this.ambient = 0;
-
-                this.highlight = 0;
-            }
-
-
-            update(time) {
-
-                const vertical =
-                    this.row /
-                    Math.max(
-                        1,
-                        rows - 1
-                    );
-
-
-                const wave1 =
-                    Math.sin(
-                        time * this.speed +
-                        this.col * .12 +
-                        this.seedX
-                    );
-
-
-                const wave2 =
-                    Math.cos(
-                        time *
-                        (this.speed * .7) +
-                        this.row * .15 +
-                        this.seedY
-                    );
-
-
-                const wave3 =
-                    Math.sin(
-                        time * .02 +
-                        (this.col + this.row) *
-                        .08
-                    );
-
-
-                const normalized =
-                    (
-                        (
-                            wave1 +
-                            wave2 +
-                            wave3
-                        ) / 3 +
-                        1
-                    ) / 2;
-
-
-                this.ambient =
-                    Math.min(
-                        1,
-                        vertical * .65 +
-                        normalized * .35
-                    );
-
-
-                const dx =
-                    mouse.x -
-                    this.cx;
-
-                const dy =
-                    mouse.y -
-                    this.cy;
-
-                const distance =
-                    Math.hypot(dx, dy);
-
-
-                if (
-                    distance <
-                    mouse.radius
-                ) {
-
-                    const proximity =
-                        1 -
-                        distance /
-                        mouse.radius;
-
-                    const target =
-                        Math.pow(
-                            proximity,
-                            1.4
-                        );
-
-                    this.highlight +=
-                        (
-                            target -
-                            this.highlight
-                        ) * .2;
-
-                } else {
-
-                    this.highlight +=
-                        (
-                            0 -
-                            this.highlight
-                        ) * .08;
-
-                }
-            }
-
-
-            draw() {
-
-                const ambient =
-                    interpolatePalette(
-                        ambientPalette,
-                        this.ambient
-                    );
-
-
-                let color =
-                    ambient;
-
-
-                if (
-                    this.highlight >
-                    .02
-                ) {
-
-                    const highlight =
-                        interpolatePalette(
-                            highlightPalette,
-                            this.highlight
-                        );
-
-
-                    const blend =
-                        Math.min(
-                            1,
-                            this.highlight *
-                            1.2
-                        );
-
-
-                    color = {
-
-                        r:
-                            ambient.r +
-                            (
-                                highlight.r -
-                                ambient.r
-                            ) * blend,
-
-                        g:
-                            ambient.g +
-                            (
-                                highlight.g -
-                                ambient.g
-                            ) * blend,
-
-                        b:
-                            ambient.b +
-                            (
-                                highlight.b -
-                                ambient.b
-                            ) * blend
-                    };
-
-                }
-
-
-                ctx.fillStyle =
-                    `rgb(
-                        ${Math.round(color.r)},
-                        ${Math.round(color.g)},
-                        ${Math.round(color.b)}
-                    )`;
-
-
-                ctx.fillRect(
-                    this.x,
-                    this.y,
-                    PIXEL_SIZE - .8,
-                    PIXEL_SIZE - .8
-                );
-            }
-
-        }
-
-
-        function interpolatePalette(
-            palette,
-            value
-        ) {
-
-            const normalized =
-                Math.max(
-                    0,
-                    Math.min(
-                        1,
-                        value
-                    )
-                );
-
-
-            const position =
-                normalized *
-                (
-                    palette.length -
-                    1
-                );
-
-
-            const first =
-                Math.floor(position);
-
-            const second =
-                Math.min(
-                    first + 1,
-                    palette.length - 1
-                );
-
-
-            const ratio =
-                position - first;
-
-
-            const a =
-                palette[first];
-
-            const b =
-                palette[second];
-
-
-            return {
-
-                r:
-                    a.r +
-                    (b.r - a.r) *
-                    ratio,
-
-                g:
-                    a.g +
-                    (b.g - a.g) *
-                    ratio,
-
-                b:
-                    a.b +
-                    (b.b - a.b) *
-                    ratio
-            };
-
-        }
-
-
-        /* =====================================================
-           RESIZE
-           ===================================================== */
-
-        function resizeCanvas() {
-
-            const rect =
-                root.getBoundingClientRect();
-
-
-            const newWidth =
-                Math.max(
-                    1,
-                    Math.round(
-                        rect.width
-                    )
-                );
-
-
-            const newHeight =
-                Math.max(
-                    1,
-                    Math.round(
-                        rect.height
-                    )
-                );
-
-
-            if (
-                width === newWidth &&
-                height === newHeight
-            ) {
-                return;
-            }
-
-
-            width =
-                newWidth;
-
-            height =
-                newHeight;
-
-
-            const dpr =
-                Math.min(
-                    window.devicePixelRatio || 1,
-                    2
-                );
-
-
-            canvas.width =
-                Math.round(
-                    width * dpr
-                );
-
-
-            canvas.height =
-                Math.round(
-                    height * dpr
-                );
-
-
-            canvas.style.width =
-                width + 'px';
-
-            canvas.style.height =
-                height + 'px';
-
-
-            ctx.setTransform(
-                dpr,
-                0,
-                0,
-                dpr,
-                0,
-                0
-            );
-
-
-            cols =
-                Math.ceil(
-                    width /
-                    PIXEL_SIZE
-                );
-
-
-            rows =
-                Math.ceil(
-                    height /
-                    PIXEL_SIZE
-                );
-
-
-            grid = [];
-
-
-            for (
-                let row = 0;
-                row < rows;
-                row++
-            ) {
-
-                for (
-                    let col = 0;
-                    col < cols;
-                    col++
-                ) {
-
-                    grid.push(
-                        new Pixel(
-                            col,
-                            row
-                        )
-                    );
-
-                }
-
-            }
-
-        }
-
-
-        const resizeObserver =
-            new ResizeObserver(
-                resizeCanvas
-            );
-
-
-        resizeObserver.observe(root);
-
-
-        /* =====================================================
-           ANIMATION
-           ===================================================== */
-
-        function animate() {
-
-            frame++;
-
-
-            ctx.fillStyle =
-                '#ffffff';
-
-
-            ctx.fillRect(
-                0,
-                0,
-                width,
-                height
-            );
-
-
-            for (
-                let i = 0;
-                i < grid.length;
-                i++
-            ) {
-
-                grid[i].update(frame);
-
-                grid[i].draw();
-
-            }
-
-
-            requestAnimationFrame(
-                animate
-            );
-
-        }
-
-
-        /* =====================================================
-           POINTER
-           ===================================================== */
-
-        function updatePointer(
-            clientX,
-            clientY
-        ) {
-
-            const rect =
-                root.getBoundingClientRect();
-
-
-            mouse.x =
-                clientX -
-                rect.left;
-
-
-            mouse.y =
-                clientY -
-                rect.top;
-
-        }
-
-
-        root.addEventListener(
-            'pointermove',
-            e => {
-
-                updatePointer(
-                    e.clientX,
-                    e.clientY
-                );
-
-            }
-        );
-
-
-        root.addEventListener(
-            'pointerleave',
-            () => {
-
-                mouse.x =
-                    -9999;
-
-                mouse.y =
-                    -9999;
-
-            }
-        );
-
-
-        /* =====================================================
-           PLUS MENU
-           ===================================================== */
-
-        plusBtn.addEventListener(
-            'click',
-            e => {
-
-                e.stopPropagation();
-
-                menu.classList.toggle(
-                    'is-open'
-                );
-
-            }
-        );
-
-
-        root.addEventListener(
-            'click',
-            e => {
-
-                if (
-                    !menu.contains(
-                        e.target
-                    ) &&
-                    !plusBtn.contains(
-                        e.target
-                    )
-                ) {
-
-                    menu.classList.remove(
-                        'is-open'
-                    );
-
-                }
-
-            }
-        );
-
-
-        uploadBtn.addEventListener(
-            'click',
-            () => {
-
-                menu.classList.remove(
-                    'is-open'
-                );
-
-                fileInput.click();
-
-            }
-        );
-
-
-        /* =====================================================
-           FILE INPUT
-           ===================================================== */
-
-        fileInput.addEventListener(
-            'change',
-            e => {
-
-                processFiles(
-                    e.target.files
-                );
-
-                fileInput.value = '';
-
-            }
-        );
-
-
-        function processFiles(files) {
-
-            Array.from(files)
-                .forEach(file => {
-
-                    const ext =
-                        file.name
-                            .split('.')
-                            .pop()
-                            .toLowerCase();
-
-
-                    if (
-                        !allowedTypes.includes(
-                            ext
-                        )
-                    ) {
-                        return;
-                    }
-
-
-                    const duplicate =
-                        attachedFiles.some(
-                            item =>
-                                item.name ===
-                                file.name &&
-                                item.size ===
-                                file.size
-                        );
-
-
-                    if (!duplicate) {
-
-                        attachedFiles.push(
-                            file
-                        );
-
-                    }
-
-                });
-
-
-            renderFiles();
-
-            updateSubmit();
-
-        }
-
-
-        /* =====================================================
-           DRAG / DROP
-           ===================================================== */
-
-        let dragDepth = 0;
-
-
-        root.addEventListener(
-            'dragenter',
-            e => {
-
-                e.preventDefault();
-
-                dragDepth++;
-
-                root.classList.add(
-                    'is-dragging'
-                );
-
-            }
-        );
-
-
-        root.addEventListener(
-            'dragover',
-            e => {
-
-                e.preventDefault();
-
-            }
-        );
-
-
-        root.addEventListener(
-            'dragleave',
-            e => {
-
-                e.preventDefault();
-
-                dragDepth--;
-
-
-                if (
-                    dragDepth <= 0
-                ) {
-
-                    dragDepth = 0;
-
-                    root.classList.remove(
-                        'is-dragging'
-                    );
-
-                }
-
-            }
-        );
-
-
-        root.addEventListener(
-            'drop',
-            e => {
-
-                e.preventDefault();
-
-                dragDepth = 0;
-
-                root.classList.remove(
-                    'is-dragging'
-                );
-
-
-                if (
-                    e.dataTransfer &&
-                    e.dataTransfer.files
-                ) {
-
-                    processFiles(
-                        e.dataTransfer.files
-                    );
-
-                }
-
-            }
-        );
-
-
-        /* =====================================================
-           FILE CHIPS
-           ===================================================== */
-
-        function renderFiles() {
-
-            filesContainer.innerHTML = '';
-
-
-            attachedFiles.forEach(
-                (file, index) => {
-
-                    const chip =
-                        document.createElement(
-                            'div'
-                        );
-
-
-                    chip.className =
-                        'tpw-chip';
-
-
-                    const name =
-                        document.createElement(
-                            'span'
-                        );
-
-
-                    name.className =
-                        'tpw-chip-name';
-
-
-                    name.textContent =
-                        file.name;
-
-
-                    const remove =
-                        document.createElement(
-                            'button'
-                        );
-
-
-                    remove.type =
-                        'button';
-
-
-                    remove.className =
-                        'tpw-chip-remove';
-
-
-                    remove.setAttribute(
-                        'aria-label',
-                        'Remove file'
-                    );
-
-
-                    remove.textContent =
-                        '×';
-
-
-                    remove.addEventListener(
-                        'click',
-                        () => {
-
-                            attachedFiles.splice(
-                                index,
-                                1
-                            );
-
-                            renderFiles();
-
-                            updateSubmit();
-
-                        }
-                    );
-
-
-                    chip.append(
-                        name,
-                        remove
-                    );
-
-
-                    filesContainer.appendChild(
-                        chip
-                    );
-
-                }
-            );
-
-        }
-
-
-        /* =====================================================
-           TEXTAREA
-           ===================================================== */
-
-        input.addEventListener(
-            'input',
-            () => {
-
-                input.style.height =
-                    'auto';
-
-
-                input.style.height =
-                    Math.min(
-                        input.scrollHeight,
-                        100
-                    ) + 'px';
-
-
-                updateSubmit();
-
-            }
-        );
-
-
-        /* Enter = Submit
-           Shift + Enter = New line
-        */
-
-        input.addEventListener(
-            'keydown',
-            e => {
-
-                if (
-                    e.key === 'Enter' &&
-                    !e.shiftKey
-                ) {
-
-                    e.preventDefault();
-
-                    submit();
-
-                }
-
-            }
-        );
-
-
-        /* =====================================================
-           SUBMIT
-           ===================================================== */
-
-        function updateSubmit() {
-
-            const active =
-                input.value
-                    .trim()
-                    .length > 0 ||
-                attachedFiles.length > 0;
-
-
-            submitBtn.classList.toggle(
-                'is-active',
-                active
-            );
-
-        }
-
-
-        submitBtn.addEventListener(
-            'click',
-            submit
-        );
-
-
-        function submit() {
-
-            const text =
-                input.value.trim();
-
-
-            if (
-                !text &&
-                attachedFiles.length === 0
-            ) {
-                return;
-            }
-
-
-            /*
-             * CONNECT API / N8N / WEBHOOK HERE
-             *
-             * text          = User prompt
-             * attachedFiles = File[]
-             */
-
-
-            console.log({
-                text,
-                files: attachedFiles
-            });
-
-            // Mở rộng Main Container cam khi nhấn submit
-            mainContainer.classList.add('has-output');
-
-            // Bật trạng thái Loading
-            loadingOverlay.classList.add('is-loading');
-            outputGrid.style.display = 'none';
-
-            // Reset nội dung cũ
-            outputA.innerHTML = '';
-            outputB.innerHTML = '';
-
-            // Giả lập thời gian xử lý và hiển thị đúng định dạng Script theo ảnh mẫu
-            setTimeout(() => {
-                loadingOverlay.classList.remove('is-loading');
-                outputGrid.style.display = 'grid';
-
-                const dataA = [
-                    { time: "0:00", text: "You just got home from the hospital. A clock you can't see is already ticking." },
-                    { time: "0:03", text: "1 in 4 people with heart failure are back within 30 days — and the reason is almost stupidly small." },
-                    { time: "0:08", text: "It's not your meds. It's not your heart. It's a number you're not checking..." }
-                ];
-
-                const dataB = [
-                    { time: "0:00", text: "Your doctor said \"rest.\" That advice could put you right back in a hospital bed." },
-                    { time: "0:04", text: "Almost everything you think you know about surviving heart failure at home is about to flip." },
-                    { time: "0:09", text: "And myth number one is the one that wrecks recovery the fastest..." }
-                ];
-
-                dataA.forEach(item => {
-                    const el = document.createElement('div');
-                    el.className = 'tpw-script-item';
-                    el.innerHTML = `<span class="tpw-script-time">${item.time}</span><span class="tpw-script-text">${item.text}</span>`;
-                    outputA.appendChild(el);
-                });
-
-                dataB.forEach(item => {
-                    const el = document.createElement('div');
-                    el.className = 'tpw-script-item';
-                    el.innerHTML = `<span class="tpw-script-time">${item.time}</span><span class="tpw-script-text">${item.text}</span>`;
-                    outputB.appendChild(el);
-                });
-
-            }, 1800);
-
-        }
-
-
-        /* =====================================================
-           START
-           ===================================================== */
-
-        resizeCanvas();
-
-        animate();
-
-        updateSubmit();
-
+  document.querySelectorAll('.tony-pixel-widget').forEach(initPixelWidget);
+
+  function initPixelWidget(root) {
+    if (root.dataset.initialized === 'true') return;
+    root.dataset.initialized = 'true';
+
+    /* ---------- elements ---------- */
+    const $ = (s) => root.querySelector(s);
+    const canvas = $('.tpw-canvas');
+    const ctx = canvas.getContext('2d', { alpha: false });
+    const mainContainer = $('.tpw-main-container');
+    const input = $('.tpw-input');
+    const fileInput = $('.tpw-file-input');
+    const filesContainer = $('.tpw-files');
+    const plusBtn = $('.tpw-plus');
+    const menu = $('.tpw-menu');
+    const uploadBtn = $('.tpw-upload');
+    const submitBtn = $('.tpw-submit');
+    const loadingOverlay = $('.tpw-loading-overlay');
+    const loadingText = $('.tpw-loading-text');
+    const resultBox = $('.tpw-output-result');
+    const preface = $('.tpw-preface');
+    const prefaceBody = $('#tpw-preface');
+    const outputA = $('#tpw-output-a');
+    const outputB = $('#tpw-output-b');
+    const titleA = $('#tpw-title-a');
+    const titleB = $('#tpw-title-b');
+    const metaA = $('#tpw-meta-a');
+    const metaB = $('#tpw-meta-b');
+
+    let attachedFiles = [];
+    let busy = false;
+    const allowedTypes = ['pdf', 'txt', 'jpg', 'jpeg', 'png', 'md', 'doc', 'docx', 'xlsx'];
+
+    /* ---------- pixel canvas ---------- */
+    const PIXEL_SIZE = 44;
+    let width = 0, height = 0, cols = 0, rows = 0, grid = [], frame = 0;
+    const mouse = { x: -9999, y: -9999, radius: 220 };
+
+    const ambientPalette = [
+      { r: 255, g: 255, b: 255 }, { r: 254, g: 250, b: 246 }, { r: 254, g: 243, b: 232 },
+      { r: 253, g: 230, b: 210 }, { r: 253, g: 212, b: 175 },
+    ];
+    const highlightPalette = [
+      { r: 251, g: 146, b: 60 }, { r: 249, g: 115, b: 22 }, { r: 234, g: 88, b: 12 }, { r: 194, g: 65, b: 12 },
+    ];
+
+    function interpolatePalette(palette, value) {
+      const n = Math.max(0, Math.min(1, value));
+      const pos = n * (palette.length - 1);
+      const first = Math.floor(pos);
+      const second = Math.min(first + 1, palette.length - 1);
+      const ratio = pos - first;
+      const a = palette[first], b = palette[second];
+      return { r: a.r + (b.r - a.r) * ratio, g: a.g + (b.g - a.g) * ratio, b: a.b + (b.b - a.b) * ratio };
     }
 
+    class Pixel {
+      constructor(col, row) {
+        this.col = col; this.row = row;
+        this.x = col * PIXEL_SIZE; this.y = row * PIXEL_SIZE;
+        this.cx = this.x + PIXEL_SIZE / 2; this.cy = this.y + PIXEL_SIZE / 2;
+        this.seedX = Math.random() * 10; this.seedY = Math.random() * 10;
+        this.speed = .015 + Math.random() * .02;
+        this.ambient = 0; this.highlight = 0;
+      }
+      update(time) {
+        const vertical = this.row / Math.max(1, rows - 1);
+        const wave1 = Math.sin(time * this.speed + this.col * .12 + this.seedX);
+        const wave2 = Math.cos(time * (this.speed * .7) + this.row * .15 + this.seedY);
+        const wave3 = Math.sin(time * .02 + (this.col + this.row) * .08);
+        const normalized = (((wave1 + wave2 + wave3) / 3) + 1) / 2;
+        this.ambient = Math.min(1, vertical * .65 + normalized * .35);
+
+        const distance = Math.hypot(mouse.x - this.cx, mouse.y - this.cy);
+        if (distance < mouse.radius) {
+          const target = Math.pow(1 - distance / mouse.radius, 1.4);
+          this.highlight += (target - this.highlight) * .2;
+        } else {
+          this.highlight += (0 - this.highlight) * .08;
+        }
+      }
+      draw() {
+        const ambient = interpolatePalette(ambientPalette, this.ambient);
+        let color = ambient;
+        if (this.highlight > .02) {
+          const hl = interpolatePalette(highlightPalette, this.highlight);
+          const blend = Math.min(1, this.highlight * 1.2);
+          color = { r: ambient.r + (hl.r - ambient.r) * blend, g: ambient.g + (hl.g - ambient.g) * blend, b: ambient.b + (hl.b - ambient.b) * blend };
+        }
+        ctx.fillStyle = `rgb(${Math.round(color.r)},${Math.round(color.g)},${Math.round(color.b)})`;
+        ctx.fillRect(this.x, this.y, PIXEL_SIZE - .8, PIXEL_SIZE - .8);
+      }
+    }
+
+    function resizeCanvas() {
+      const rect = root.getBoundingClientRect();
+      const nw = Math.max(1, Math.round(rect.width));
+      const nh = Math.max(1, Math.round(rect.height));
+      if (width === nw && height === nh) return;
+      width = nw; height = nh;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
+      canvas.style.width = width + 'px';
+      canvas.style.height = height + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      cols = Math.ceil(width / PIXEL_SIZE);
+      rows = Math.ceil(height / PIXEL_SIZE);
+      grid = [];
+      for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) grid.push(new Pixel(c, r));
+    }
+    new ResizeObserver(resizeCanvas).observe(root);
+
+    function animate() {
+      frame++;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, width, height);
+      for (let i = 0; i < grid.length; i++) { grid[i].update(frame); grid[i].draw(); }
+      requestAnimationFrame(animate);
+    }
+
+    /* ---------- pointer ---------- */
+    root.addEventListener('pointermove', (e) => {
+      const rect = root.getBoundingClientRect();
+      mouse.x = e.clientX - rect.left; mouse.y = e.clientY - rect.top;
+    });
+    root.addEventListener('pointerleave', () => { mouse.x = -9999; mouse.y = -9999; });
+
+    /* ---------- plus menu ---------- */
+    plusBtn.addEventListener('click', (e) => { e.stopPropagation(); menu.classList.toggle('is-open'); });
+    root.addEventListener('click', (e) => {
+      if (!menu.contains(e.target) && !plusBtn.contains(e.target)) menu.classList.remove('is-open');
+    });
+    uploadBtn.addEventListener('click', () => { menu.classList.remove('is-open'); fileInput.click(); });
+
+    /* ---------- files ---------- */
+    fileInput.addEventListener('change', (e) => { processFiles(e.target.files); fileInput.value = ''; });
+
+    function processFiles(files) {
+      Array.from(files).forEach((file) => {
+        const ext = file.name.split('.').pop().toLowerCase();
+        if (!allowedTypes.includes(ext)) return;
+        const dup = attachedFiles.some((i) => i.name === file.name && i.size === file.size);
+        if (!dup) attachedFiles.push(file);
+      });
+      renderFiles();
+      updateSubmit();
+    }
+
+    let dragDepth = 0;
+    root.addEventListener('dragenter', (e) => { e.preventDefault(); dragDepth++; root.classList.add('is-dragging'); });
+    root.addEventListener('dragover', (e) => e.preventDefault());
+    root.addEventListener('dragleave', (e) => {
+      e.preventDefault(); dragDepth--;
+      if (dragDepth <= 0) { dragDepth = 0; root.classList.remove('is-dragging'); }
+    });
+    root.addEventListener('drop', (e) => {
+      e.preventDefault(); dragDepth = 0; root.classList.remove('is-dragging');
+      if (e.dataTransfer && e.dataTransfer.files) processFiles(e.dataTransfer.files);
+    });
+
+    function renderFiles() {
+      filesContainer.innerHTML = '';
+      attachedFiles.forEach((file, index) => {
+        const chip = document.createElement('div');
+        chip.className = 'tpw-chip';
+        const name = document.createElement('span');
+        name.className = 'tpw-chip-name';
+        name.textContent = file.name;
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.className = 'tpw-chip-remove';
+        remove.setAttribute('aria-label', 'Remove file');
+        remove.textContent = '×';
+        remove.addEventListener('click', () => { attachedFiles.splice(index, 1); renderFiles(); updateSubmit(); });
+        chip.append(name, remove);
+        filesContainer.appendChild(chip);
+      });
+    }
+
+    /* ---------- textarea ---------- */
+    input.addEventListener('input', () => {
+      input.style.height = 'auto';
+      input.style.height = Math.min(input.scrollHeight, 100) + 'px';
+      updateSubmit();
+    });
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(); }
+    });
+
+    function updateSubmit() {
+      submitBtn.classList.toggle('is-active', input.value.trim().length > 0 || attachedFiles.length > 0);
+    }
+    submitBtn.addEventListener('click', submit);
+
+    /* ---------- render helpers ---------- */
+    function splitVersions(md) {
+      const reA = /^##\s+Version\s+A[^\n]*$/im;
+      const reB = /^##\s+Version\s+B[^\n]*$/im;
+      const a = reA.exec(md);
+      const b = reB.exec(md);
+      if (!a || !b || b.index < a.index) return null;
+
+      const headingText = (m) => m[0].replace(/^##\s+/, '');
+      // stop Version B at the next "## " heading (e.g. "## Engine notes")
+      const afterB = md.slice(b.index + b[0].length);
+      const next = /^##\s+/m.exec(afterB);
+      const bBody = next ? afterB.slice(0, next.index) : afterB;
+      const tail = next ? afterB.slice(next.index) : '';
+
+      return {
+        preface: md.slice(0, a.index).trim(),
+        headA: headingText(a),
+        bodyA: md.slice(a.index + a[0].length, b.index).trim(),
+        headB: headingText(b),
+        bodyB: bBody.trim(),
+        tail: tail.trim(),
+      };
+    }
+
+    function showError(message) {
+      usageLine.textContent = '';
+      resultBox.classList.add('is-ready');
+      preface.hidden = true;
+      titleA.textContent = 'Error'; titleB.textContent = '';
+      metaA.textContent = ''; metaB.textContent = '';
+      outputA.textContent = message; outputA.classList.add('is-error');
+      outputB.textContent = ''; outputB.classList.remove('is-error');
+    }
+
+    function showResult(data) {
+      outputA.classList.remove('is-error');
+      renderUsageLine(data.usage);
+      resultBox.classList.add('is-ready');
+      const parts = splitVersions(data.markdown || '');
+      const meta = `Crazy: ${data.crazy}`;
+
+      if (!parts) {
+        // fallback: engine did not follow the A/B structure -> show everything in card A
+        preface.hidden = true;
+        titleA.textContent = 'Result'; titleB.textContent = '-';
+        metaA.textContent = meta; metaB.textContent = '';
+        outputA.textContent = data.markdown || '(empty response)';
+        outputB.textContent = '';
+        return;
+      }
+
+      const prefaceText = [parts.preface, parts.tail].filter(Boolean).join('\n\n');
+      preface.hidden = !prefaceText;
+      prefaceBody.textContent = prefaceText;
+
+      titleA.textContent = parts.headA.replace(/^Version A\s*[—-]\s*/i, '');
+      titleB.textContent = parts.headB.replace(/^Version B\s*[—-]\s*/i, '');
+      metaA.textContent = meta; metaB.textContent = meta;
+      outputA.textContent = parts.bodyA;
+      outputB.textContent = parts.bodyB;
+    }
+
+    /* ---------- submit -> /api/generate ---------- */
+    async function submit() {
+      if (busy) return;
+      const text = input.value.trim();
+      if (!text && attachedFiles.length === 0) return;
+
+      busy = true;
+      mainContainer.classList.add('has-output');
+      loadingOverlay.classList.add('is-loading');
+      resultBox.classList.remove('is-ready');
+      loadingText.textContent = 'Đang xử lý nội dung... (có thể mất 1–3 phút)';
+
+      const fd = new FormData();
+      fd.append('text', text);
+      fd.append('crazy', CRAZY_LEVEL);
+      attachedFiles.forEach((f) => fd.append('files', f, f.name));
+
+      try {
+        const res = await fetch(API_URL, { method: 'POST', body: fd });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+        loadingOverlay.classList.remove('is-loading');
+        showResult(data);
+        if (data.skipped && data.skipped.length) {
+          metaB.textContent = `Bỏ qua (chưa hỗ trợ): ${data.skipped.join(', ')}`;
+        }
+      } catch (err) {
+        loadingOverlay.classList.remove('is-loading');
+        showError(err.message || 'Có lỗi xảy ra.');
+      } finally {
+        busy = false;
+      }
+    }
+
+
+    /* ---------- usage: per-request line + admin panel ---------- */
+    const usageLine = $('#tpw-usage-line');
+    const usageBtn = $('.tpw-usage-btn');
+    const usagePanel = $('.tpw-usage-panel');
+    const usageKey = $('.tpw-usage-key');
+    const usageMsg = $('.tpw-usage-msg');
+    const usageBody = $('.tpw-usage-body');
+    const fmt = (n) => Number(n || 0).toLocaleString('en-US');
+
+    function renderUsageLine(u) {
+      if (!u) { usageLine.textContent = ''; return; }
+      const cache = u.cache_read_input_tokens ? ` (+${fmt(u.cache_read_input_tokens)} cached)` : '';
+      usageLine.textContent =
+        `Tokens: ${fmt(u.input_tokens)} in${cache} · ${fmt(u.output_tokens)} out · ~$${Number(u.est_cost_usd || 0).toFixed(3)} · ${u.duration_s}s`;
+    }
+
+    function getSaved() { try { return sessionStorage.getItem('tpw_admin_key') || ''; } catch { return ''; } }
+    function saveKey(k) { try { sessionStorage.setItem('tpw_admin_key', k); } catch {} }
+
+    function cell(tag, text) { const el = document.createElement(tag); el.textContent = text; return el; }
+
+    function renderUsage(d) {
+      usageBody.innerHTML = '';
+      const table = document.createElement('table');
+      table.className = 'tpw-usage-table';
+      const head = document.createElement('tr');
+      ['', 'Req', 'In', 'Out', 'Cost'].forEach((t) => head.appendChild(cell('th', t)));
+      table.appendChild(head);
+      [['Today', d.today], ['7 days', d.last_7_days], ['All', d.all_time]].forEach(([label, t]) => {
+        const tr = document.createElement('tr');
+        [label, fmt(t.requests), fmt(t.input_tokens), fmt(t.output_tokens), '$' + Number(t.est_cost_usd).toFixed(2)]
+          .forEach((v, i) => tr.appendChild(cell(i ? 'td' : 'td', v)));
+        table.appendChild(tr);
+      });
+      usageBody.appendChild(table);
+
+      const meta = document.createElement('div');
+      meta.textContent = `Visitors: ${fmt(d.unique_visitors)} · OK: ${fmt(d.all_time.ok)} · Errors: ${fmt(d.all_time.errors)} · Rate-limited: ${fmt(d.all_time.rate_limited)} · Avg: ${d.all_time.avg_duration_s}s`;
+      usageBody.appendChild(meta);
+
+      const sub = document.createElement('div');
+      sub.className = 'tpw-usage-sub';
+      sub.textContent = 'Latest';
+      usageBody.appendChild(sub);
+      const latest = document.createElement('div');
+      latest.className = 'tpw-usage-latest';
+      (d.latest || []).slice(0, 6).forEach((r) => {
+        const line = document.createElement('div');
+        const t = new Date(r.ts).toLocaleString('vi-VN', { hour12: false, day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+        line.textContent = `${t} · ${r.status} · ${r.crazy || '-'} · ${fmt((r.input_tokens || 0) + (r.output_tokens || 0))} tok · $${Number(r.est_cost_usd || 0).toFixed(3)}`;
+        latest.appendChild(line);
+      });
+      usageBody.appendChild(latest);
+
+      const note = document.createElement('div');
+      note.className = 'tpw-usage-note';
+      note.textContent = d.note || '';
+      usageBody.appendChild(note);
+    }
+
+    async function loadUsage() {
+      const key = usageKey.value.trim() || getSaved();
+      usageMsg.textContent = '';
+      if (!key) { usageMsg.textContent = 'Nhập admin key.'; return; }
+      try {
+        const res = await fetch(USAGE_URL, { headers: { 'x-admin-token': key } });
+        if (!res.ok) throw new Error(res.status === 404 ? 'Sai key hoặc server chưa đặt ADMIN_TOKEN.' : `Lỗi ${res.status}`);
+        saveKey(key);
+        usageKey.value = '';
+        renderUsage(await res.json());
+      } catch (err) {
+        usageBody.innerHTML = '';
+        usageMsg.textContent = err.message || 'Không tải được usage.';
+      }
+    }
+
+    usageBtn.addEventListener('click', () => {
+      usagePanel.hidden = !usagePanel.hidden;
+      if (!usagePanel.hidden && getSaved()) loadUsage();
+    });
+    $('.tpw-usage-close').addEventListener('click', () => { usagePanel.hidden = true; });
+    $('.tpw-usage-load').addEventListener('click', loadUsage);
+    usageKey.addEventListener('keydown', (e) => { if (e.key === 'Enter') loadUsage(); });
+
+    /* ---------- start ---------- */
+    resizeCanvas();
+    animate();
+    updateSubmit();
+  }
 })();
 </script>
 
-    
+</body>
+</html>
