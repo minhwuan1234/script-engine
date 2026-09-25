@@ -1,4 +1,3 @@
-
 // Magnetic Script backend: single file, zero dependencies (Node >= 20).
 // Serves index.html and POST /api/generate -> Claude Messages API + custom skill.
 //
@@ -17,7 +16,6 @@ import { fileURLToPath } from 'node:url';
  
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const {
-  ANTHROPIC_API_KEY,
   SKILL_ID,
   CLAUDE_MODEL = 'claude-sonnet-4-5',
   MAX_TOKENS = '16000',
@@ -25,7 +23,10 @@ const {
   PORT = '3000',
 } = process.env;
  
-const MAX_BODY = 25 * 1024 * 1024; // total upload cap
+// Secret is named CLAUDE_API; ANTHROPIC_API_KEY also works as a fallback.
+const ANTHROPIC_API_KEY = process.env.CLAUDE_API || process.env.ANTHROPIC_API_KEY;
+ 
+const MAX_BODY =25 * 1024 * 1024; // total upload cap
 const hits = new Map();
  
 /* ---------- helpers ---------- */
