@@ -447,6 +447,23 @@ async function handleGenerate(req, res) {
   const t0 = Date.now();
   const rec = { ts: new Date().toISOString(), visitor: visitorId(ip), status: 'error', model: CLAUDE_MODEL };
   const usage = {};
+  let heartbeat = null;
+
+  // Once callClaude() starts, this can run for a while. Node was already streaming from
+  // Anthropic internally, but the browser never saw a byte until everything was done —
+  // on a slow run, a proxy or the browser itself can give up waiting on a connection with
+  // no traffic. finish() sends the response headers up front, then a small space character
+  // every 15s to keep the connection visibly alive, and writes the real JSON as the last
+  // chunk. Because headers go out early with status 200, success/failure from this point on
+  // is signalled by an `error` field inside the JSON body, not the HTTP status — the
+  // frontend checks that field first (see index.html).
+  const finish = (obj) => {
+    if (heartbeat) { clearInterval(heartbeat); heartbeat = null; }
+    try {
+      res.write(JSON.stringify(obj));
+      res.end();
+    } catch {} // client likely disconnected — nothing to do
+  };
 
   try {
     if (rateLimited(ip)) {
@@ -499,6 +516,10 @@ async function handleGenerate(req, res) {
       `Return the final result in the skill's exact Step 6 markdown structure, as plain text — nothing else before or after it. Do not output JSON.` +
       (text ? `\n\n--- Pasted text / instructions ---\n${text}` : '');
 
+    // From here on, the wait can run well past a minute — start the keep-alive.
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    heartbeat = setInterval(() => { try { res.write(' '); } catch {} }, 15000);
+
     const { markdown, stopReason } = await callClaude([...blocks, { type: 'text', text: instruction }], usage);
 
     // Code-side gateway: turn the model's plain markdown into a stable field set.
@@ -511,19 +532,25 @@ async function handleGenerate(req, res) {
     if (!parsed.ok) {
       // Engine didn't follow the fixed heading structure — still hand back the raw
       // text so nothing is lost; the frontend has a fallback path for this case.
-      return json(res, 200, {
+      return finish({
         markdown, skipped, stop_reason: stopReason,
         usage: { ...usage, est_cost_usd: estimateCost(usage), duration_s: Math.round((Date.now() - t0) / 100) / 10 },
       });
     }
 
-    json(res, 200, {
+    finish({
       ...parsed.fields, skipped, stop_reason: stopReason,
       usage: { ...usage, est_cost_usd: estimateCost(usage), duration_s: Math.round((Date.now() - t0) / 100) / 10 },
     });
   } catch (err) {
     rec.error = String(err.message || err).slice(0, 300);
-    throw err;
+    if (heartbeat || res.headersSent) {
+      // Headers already went out as 200 — report the failure inside the JSON body
+      // instead of a status code, since the status can no longer be changed.
+      finish({ error: err.message || 'Server error' });
+    } else {
+      throw err; // headers not sent yet — let the outer handler set a proper status code
+    }
   } finally {
     Object.assign(rec, usage);
     rec.est_cost_usd = estimateCost(usage);
