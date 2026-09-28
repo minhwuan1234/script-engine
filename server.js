@@ -42,6 +42,15 @@ const MAX_BODY = 25 * 1024 * 1024; // total upload cap
 const hits = new Map();
 const DURATION_OPTIONS = ['30s-60s', '2-3 mins', 'upto 5 mins'];
 const DEFAULT_DURATION = '2-3 mins';
+// Keys the Step 6 "output gateway" must return (see SKILL.md). Every value is plain
+// markdown text for its section — never shown to the user as raw JSON, only rendered.
+const GATEWAY_FIELDS = [
+  'title', 'crazy_level', 'duration', 'icp',
+  'preface_md',
+  'version_a_title', 'version_a_md',
+  'version_b_title', 'version_b_md',
+  'engine_notes_md',
+];
 
 /* ---------- usage tracking ---------- */
 const MAX_RECORDS = 5000;
@@ -234,10 +243,31 @@ async function callClaude(content, usage) {
       else if (ev.type === 'error') throw new Error(ev.error?.message || 'Upstream stream error');
     }
   }
-  // The skill wraps its final answer in markers; drop any narration outside them.
-  const m = text.match(/<<<MSE_OUTPUT_START>>>([\s\S]*?)(?:<<<MSE_OUTPUT_END>>>|$)/);
-  const out = (m ? m[1] : text).trim();
-  return { markdown: out, stopReason };
+  // The skill returns the Step 6 "output gateway" — one JSON object, nothing else.
+  // Be tolerant of an accidental ```json fence in case the model wraps it anyway.
+  let raw = text.trim();
+  const fenced = raw.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/);
+  if (fenced) raw = fenced[1].trim();
+
+  let gateway;
+  try {
+    gateway = JSON.parse(raw);
+  } catch (err) {
+    throw Object.assign(
+      new Error('Engine returned invalid JSON: ' + err.message),
+      { status: 502 }
+    );
+  }
+
+  const missing = GATEWAY_FIELDS.filter((k) => !(k in gateway));
+  if (missing.length) {
+    throw Object.assign(
+      new Error('Engine JSON missing fields: ' + missing.join(', ')),
+      { status: 502 }
+    );
+  }
+
+  return { gateway, stopReason };
 }
 
 /* ---------- routes ---------- */
@@ -289,15 +319,18 @@ async function handleGenerate(req, res) {
     const instruction =
       `Use the magnetic-script-engine skill on the document provided below (attached file(s) and/or pasted text).\n` +
       `Crazy level: ${crazy}. Target duration: ${duration} (user-picked — respect it per the engine's rules; ` +
-      `note in one line if it fights the content, but still deliver on it). All other inputs: let the engine choose and state its assumptions.\n` +
-      `Return the final result in the skill's markdown output structure, as plain text in your reply.` +
+      `note it inside preface_md if it fights the content, but still deliver on it). All other inputs: let the engine choose and state its assumptions.\n` +
+      `Return ONLY the Step 6 output gateway — a single JSON object, no text before or after it, no markdown code fence around it.` +
       (text ? `\n\n--- Pasted text / instructions ---\n${text}` : '');
 
-    const { markdown, stopReason } = await callClaude([...blocks, { type: 'text', text: instruction }], usage);
-    rec.status = markdown.startsWith('ERROR:') ? 'engine_error' : 'ok';
+    const { gateway, stopReason } = await callClaude([...blocks, { type: 'text', text: instruction }], usage);
+    rec.status = 'ok';
     rec.stop_reason = stopReason;
+    // gateway = { title, crazy_level, duration, icp, preface_md, version_a_title, version_a_md,
+    //             version_b_title, version_b_md, engine_notes_md } — all plain text/markdown,
+    // never shown to the user as JSON: the frontend renders each field as text.
     json(res, 200, {
-      markdown, crazy, duration, skipped, stop_reason: stopReason,
+      ...gateway, skipped, stop_reason: stopReason,
       usage: { ...usage, est_cost_usd: estimateCost(usage), duration_s: Math.round((Date.now() - t0) / 100) / 10 },
     });
   } catch (err) {
