@@ -377,6 +377,20 @@ async function callClaude(content, usage) {
       stream: true,
       container: { skills: [{ type: 'custom', skill_id: SKILL_ID, version: 'latest' }] },
       tools: [{ type: 'code_execution_20250825', name: 'code_execution' }],
+      // Prompt caching: this text block never changes between requests, and the
+      // cache_control marker on it tells Anthropic to cache everything up through here
+      // (the skill + tool setup). The next request within the cache window reads that
+      // whole chunk from cache instead of reprocessing it — this is the fix for "every
+      // call pays to reload the skill from scratch". Only the per-request user message
+      // below stays dynamic. If a new skill version is pushed, the very next call pays
+      // to rebuild the cache once, then goes back to the cheap/fast path.
+      system: [
+        {
+          type: 'text',
+          text: 'You are running the magnetic-script-engine skill for the F.Learning Magnetic Script Studio tool. Follow the skill exactly.',
+          cache_control: { type: 'ephemeral' },
+        },
+      ],
       messages: [{ role: 'user', content }],
     }),
   });
