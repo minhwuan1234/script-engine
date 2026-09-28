@@ -36,6 +36,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const {
   SKILL_ID,
   CLAUDE_MODEL = 'claude-sonnet-4-5',
+  ICP_MODEL = 'claude-haiku-4-5-20251001', // small/cheap model, only for the ICP guess below
   MAX_TOKENS = '16000',
   RATE_LIMIT_PER_HOUR = '10',
   ADMIN_TOKEN,
@@ -146,6 +147,114 @@ function durationBudget(duration) {
     },
     per_segment_words_per_second_healthy_range: { min: 1.5, max: 3.0 },
   };
+}
+
+/* ---------- ICP guess: small/cheap model, not the main model ----------
+ * references/icp-lenses.md has 4 branches (healthcare, corporate L&D, publishing, NGO) but any
+ * one document only ever needs 1. Instead of having the main model read all 4 every run, a
+ * cheap/fast model (Haiku) reads a short excerpt of the doc first and picks one label. Code then
+ * hands the main model ONLY that section's text, verbatim from icp-lenses.md, as a pre-computed
+ * block — same pattern as the duration budget above. If the guess is wrong or the model has no
+ * text to look at (e.g. a scanned PDF), it falls back to "unclear", which is icp-lenses.md's own
+ * safest-guardrails default — never a hard failure.
+ */
+const ICP_LENSES = {
+  healthcare: {
+    label: 'Healthcare / pharma / patient education',
+    text:
+      '## Healthcare / pharma / patient education\n\n' +
+      '- **Typical docs**: discharge instructions, condition leaflets, medication guides, pre-op prep, HCP education decks.\n' +
+      '- **Viewer**: patients and caregivers, often low health literacy, stressed, older, multilingual; or HCPs short on time.\n' +
+      '- **What magnetic means**: "this finally makes sense and I know what to do tomorrow morning". Calm clarity beats spectacle; High still works if the drama is the body\'s real signal.\n' +
+      '- **Guardrails**:\n' +
+      '  - Never contradict, soften, or reinterpret clinical instructions. Thresholds and "call when…" lines stay in the doc\'s terms.\n' +
+      '  - No blame ("if you\'d just followed the rules…"). No shame about weight, diet, adherence.\n' +
+      '  - No invented outcomes or mortality numbers. Use the doc\'s numbers or `[ADD SOURCED STAT]`.\n' +
+      '  - Include "your care team" as an ally; calling is normal, expected, not a failure.\n' +
+      '  - Flag in Engine notes anything that needs clinical review (e.g. the engine added a mechanism explanation the doc doesn\'t state).\n' +
+      '- **Common failures**: Transfer Failure (knows the rule, misses the moment), False Certainty (nodded at discharge, can\'t explain why).',
+  },
+  corporate_lnd: {
+    label: 'Corporate L&D / compliance / onboarding',
+    text:
+      '## Corporate L&D / compliance / onboarding\n\n' +
+      '- **Typical docs**: policies, SOPs, handbooks, product manuals, safety procedures.\n' +
+      '- **Viewer**: employees who were assigned this; skeptical of training; know the "right answer" but act on habit.\n' +
+      '- **What magnetic means**: "that\'s actually my Tuesday" — recognisable workplace moments, a bit of wit, no corporate voice.\n' +
+      '- **Guardrails**: legal/policy wording that defines obligations stays exact; don\'t imply consequences the policy doesn\'t state; no mocking coworkers or roles.\n' +
+      '- **Common failures**: Transfer Failure (knows policy, doesn\'t act under pressure), Cognitive Overload (40-page policy, no hierarchy).',
+  },
+  publishing: {
+    label: 'Publishing / education',
+    text:
+      '## Publishing / education\n\n' +
+      '- **Typical docs**: textbook chapters, course notes, ebooks, study guides, non-fiction excerpts.\n' +
+      '- **Viewer**: students or curious adults; may be studying for an exam; used to creator-style YouTube.\n' +
+      '- **What magnetic means**: "I get it now, and I want the next one". Curiosity and mental models; High can be very creator-like.\n' +
+      '- **Guardrails**: accuracy to the source; don\'t oversimplify into wrongness; keep the author\'s claims attributed as theirs if contestable.\n' +
+      '- **Common failures**: Concept Fragmentation (memorised pieces, no model), False Certainty.',
+  },
+  ngo: {
+    label: 'NGO / mission-driven',
+    text:
+      '## NGO / mission-driven\n\n' +
+      '- **Typical docs**: impact reports, program briefs, advocacy papers, research summaries.\n' +
+      '- **Viewer**: public, donors, partners, policymakers; emotionally saturated, skeptical of guilt-trips.\n' +
+      '- **What magnetic means**: "I see the system, and there\'s something I can do". Stakes story + clear ask.\n' +
+      '- **Guardrails**: no poverty/suffering spectacle; no invented beneficiary stories — use the doc\'s, or frame a composite clearly as "imagine"; dignity-first language; the ask must match what the org actually asks for.\n' +
+      '- **Common failures**: Transfer Failure (cares, doesn\'t act), Fragmentation (sees tragedy, not cause).',
+  },
+  unclear: {
+    label: 'Unclear ICP',
+    text:
+      '## Unclear ICP\n\n' +
+      'Default to the lens whose guardrails are strictest among the plausible options (in practice: healthcare\'s), and say which you assumed.\n\n' +
+      ICP_LENSES_HEALTHCARE_TEXT_PLACEHOLDER,
+  },
+};
+// "unclear" ships healthcare's guardrails alongside it (strictest set) so the model has a
+// concrete lens to fall back to instead of just a label with nothing under it.
+ICP_LENSES.unclear.text = ICP_LENSES.unclear.text.replace(
+  'ICP_LENSES_HEALTHCARE_TEXT_PLACEHOLDER',
+  ICP_LENSES.healthcare.text
+);
+
+const ICP_KEYS = ['healthcare', 'corporate_lnd', 'publishing', 'ngo'];
+const ICP_EXCERPT_CHARS = 3000; // plenty to tell these 4 domains apart; keeps the classifier call tiny
+
+// One small, fast, non-streaming call. Any failure (bad response, network, timeout) just
+// falls back to "unclear" — this guess is an optimization, never something the run depends on.
+async function classifyIcp(excerpt) {
+  if (!excerpt || excerpt.trim().length < 20) return 'unclear';
+  try {
+    const res = await fetch(ANTHROPIC_API_URL, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: ICP_MODEL,
+        max_tokens: 8,
+        system:
+          'Classify which audience a document excerpt is written for. Reply with exactly one word, ' +
+          'no punctuation, no explanation: healthcare, corporate_lnd, publishing, ngo, or unclear.\n' +
+          '- healthcare: patient/clinical material (discharge instructions, medication guides, HCP education)\n' +
+          '- corporate_lnd: internal workplace material (policies, SOPs, handbooks, onboarding, safety procedures)\n' +
+          '- publishing: educational/editorial material (textbook chapters, course notes, ebooks, study guides)\n' +
+          '- ngo: mission-driven material (impact reports, program briefs, advocacy papers)\n' +
+          '- unclear: none of these fit clearly',
+        messages: [{ role: 'user', content: excerpt.slice(0, ICP_EXCERPT_CHARS) }],
+      }),
+    });
+    if (!res.ok) return 'unclear';
+    const data = await res.json();
+    const word = String(data.content?.[0]?.text || '').trim().toLowerCase().replace(/[^a-z_]/g, '');
+    return ICP_KEYS.includes(word) ? word : 'unclear';
+  } catch {
+    return 'unclear';
+  }
 }
 
 /* ---------- file text extraction: code-side, not AI-side ----------
@@ -507,12 +616,23 @@ async function handleGenerate(req, res) {
     // duration bucket the visitor picked. See "duration -> word/timing budget" above.
     const budget = durationBudget(duration);
 
+    // Pre-computed here too: which ICP lens applies, guessed by a small/cheap model from a
+    // short excerpt, so the main model gets only the one section it needs. See "ICP guess" above.
+    const classifyExcerpt = [text, ...blocks.filter((b) => b.type === 'text').map((b) => b.text)]
+      .join('\n\n')
+      .slice(0, ICP_EXCERPT_CHARS);
+    const icpKey = await classifyIcp(classifyExcerpt);
+    const icpLens = ICP_LENSES[icpKey];
+    rec.icp_guess = icpKey; // logging/debugging only, never document content
+
     const instruction =
       `Use the magnetic-script-engine skill on the document provided below (attached file(s) and/or pasted text).\n` +
       `Crazy level: ${crazy}. Target duration: ${duration} (user-picked — respect it per the engine's rules; ` +
       `note in one line if it fights the content, but still deliver on it). All other inputs: let the engine choose and state its assumptions.\n` +
       `Word/timing budget for this duration — pre-computed, use these numbers directly, do not recompute them:\n` +
       '```json\n' + JSON.stringify(budget, null, 2) + '\n```\n' +
+      `ICP lens — pre-computed guess from the document's own text, already the matching section of references/icp-lenses.md. Use it as-is; if the doc clearly reads as a different ICP once you actually read it, say so in one line in Engine notes and use the better-fitting lens instead:\n` +
+      icpLens.text + '\n\n' +
       `Return the final result in the skill's exact Step 6 markdown structure, as plain text — nothing else before or after it. Do not output JSON.` +
       (text ? `\n\n--- Pasted text / instructions ---\n${text}` : '');
 
