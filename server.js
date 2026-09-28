@@ -53,6 +53,13 @@ const MAX_BODY = 25 * 1024 * 1024; // total upload cap
 const hits = new Map();
 const DURATION_OPTIONS = ['30s-60s', '2-3 mins', 'upto 5 mins'];
 const DEFAULT_DURATION = '2-3 mins';
+// Same three buckets the UI's dropdown offers, as [min_seconds, max_seconds].
+// 'upto 5 mins' has min 0 — "up to" means no floor, only a ceiling.
+const DURATION_TARGETS = {
+  '30s-60s': [30, 60],
+  '2-3 mins': [120, 180],
+  'upto 5 mins': [0, 300],
+};
 
 /* ---------- output gateway: code-side, not AI-side ----------
  * The model only ever writes plain markdown in the fixed Step 6 structure (see SKILL.md).
@@ -107,6 +114,37 @@ function parseGateway(markdown, { crazy, duration }) {
       version_b_md,
       engine_notes_md,
     },
+  };
+}
+
+/* ---------- duration -> word/timing budget: code-side, not AI-side ----------
+ * The visitor already picked a duration bucket in the UI. Instead of making the model read
+ * references/platform-duration.md and do the wpm x seconds arithmetic itself every run, compute
+ * the exact target numbers here (same formula the reference file documents: ~150 wpm long-form,
+ * 160-170 wpm short-form, ~10% of time reserved for pauses/visual-only beats) and hand them to
+ * the model as a small JSON block alongside the instruction. The model still WRITES the script —
+ * that's judgment — it just never has to compute the budget itself.
+ */
+const LONG_FORM_WPM = 150;
+const SHORT_FORM_WPM_MIN = 160;
+const SHORT_FORM_WPM_MAX = 170;
+const PAUSE_RESERVE = 0.9; // keep ~90% of raw pace-derived words for pauses/visual-only beats
+
+function wordsFor(seconds, wpm) {
+  return Math.round((seconds / 60) * wpm * PAUSE_RESERVE);
+}
+
+function durationBudget(duration) {
+  const [loS, hiS] = DURATION_TARGETS[duration] || DURATION_TARGETS[DEFAULT_DURATION];
+  return {
+    duration_bucket: duration,
+    target_seconds: { min: loS, max: hiS, note: loS === 0 ? "no real floor ('up to') — only the max matters" : undefined },
+    hook: { seconds: { min: 0, max: 15 }, word_target: { min: 30, max: 40 } },
+    vo_word_budget: {
+      long_form_pace_150wpm: { min: wordsFor(loS, LONG_FORM_WPM), max: wordsFor(hiS, LONG_FORM_WPM) },
+      short_form_pace_160_170wpm: { min: wordsFor(loS, SHORT_FORM_WPM_MIN), max: wordsFor(hiS, SHORT_FORM_WPM_MAX) },
+    },
+    per_segment_words_per_second_healthy_range: { min: 1.5, max: 3.0 },
   };
 }
 
@@ -434,10 +472,16 @@ async function handleGenerate(req, res) {
       });
     }
 
+    // Pre-computed here, not asked of the model: the exact word/timing budget for the
+    // duration bucket the visitor picked. See "duration -> word/timing budget" above.
+    const budget = durationBudget(duration);
+
     const instruction =
       `Use the magnetic-script-engine skill on the document provided below (attached file(s) and/or pasted text).\n` +
       `Crazy level: ${crazy}. Target duration: ${duration} (user-picked — respect it per the engine's rules; ` +
       `note in one line if it fights the content, but still deliver on it). All other inputs: let the engine choose and state its assumptions.\n` +
+      `Word/timing budget for this duration — pre-computed, use these numbers directly, do not recompute them:\n` +
+      '```json\n' + JSON.stringify(budget, null, 2) + '\n```\n' +
       `Return the final result in the skill's exact Step 6 markdown structure, as plain text — nothing else before or after it. Do not output JSON.` +
       (text ? `\n\n--- Pasted text / instructions ---\n${text}` : '');
 
