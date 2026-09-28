@@ -94,11 +94,6 @@
                 </div>
 
                 <div class="tpw-output-result">
-                    <details class="tpw-preface" hidden>
-                        <summary>Doc diagnosis &amp; setup</summary>
-                        <div class="tpw-preface-body" id="tpw-preface"></div>
-                    </details>
-
                     <div class="tpw-output-grid">
                         <div class="tpw-output-card">
                             <div class="tpw-output-badge">VERSION A</div>
@@ -384,8 +379,6 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
     const loadingOverlay = $('.tpw-loading-overlay');
     const loadingText = $('.tpw-loading-text');
     const resultBox = $('.tpw-output-result');
-    const preface = $('.tpw-preface');
-    const prefaceBody = $('#tpw-preface');
     const outputA = $('#tpw-output-a');
     const outputB = $('#tpw-output-b');
     const titleA = $('#tpw-title-a');
@@ -595,9 +588,8 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
       }
 
       const meta = `Crazy: ${data.crazy_level} · Duration: ${data.duration}`;
-      const prefaceText = [data.title ? `# ${data.title}` : '', data.preface_md].filter(Boolean).join('\n\n');
-      preface.hidden = !prefaceText;
-      prefaceBody.textContent = prefaceText;
+      // data.preface_md (doc diagnosis / setup / version-comparison notes) is still returned by
+      // the API and available here if ever needed again — just not shown in this UI anymore.
 
       titleA.textContent = data.version_a_title;
       titleB.textContent = data.version_b_title;
