@@ -40,6 +40,8 @@ const ANTHROPIC_API_KEY = process.env.CLAUDE_API || process.env.ANTHROPIC_API_KE
 
 const MAX_BODY = 25 * 1024 * 1024; // total upload cap
 const hits = new Map();
+const DURATION_OPTIONS = ['30s-60s', '2-3 mins', 'upto 5 mins'];
+const DEFAULT_DURATION = '2-3 mins';
 
 /* ---------- usage tracking ---------- */
 const MAX_RECORDS = 5000;
@@ -259,7 +261,10 @@ async function handleGenerate(req, res) {
     const text = String(form.get('text') || '').trim();
     const crazyRaw = String(form.get('crazy') || 'Medium');
     const crazy = ['Low', 'Medium', 'High'].includes(crazyRaw) ? crazyRaw : 'Medium';
+    const durationRaw = String(form.get('duration') || DEFAULT_DURATION);
+    const duration = DURATION_OPTIONS.includes(durationRaw) ? durationRaw : DEFAULT_DURATION;
     rec.crazy = crazy;
+    rec.duration = duration;
     rec.text_chars = text.length;
 
     const blocks = [];
@@ -283,7 +288,8 @@ async function handleGenerate(req, res) {
 
     const instruction =
       `Use the magnetic-script-engine skill on the document provided below (attached file(s) and/or pasted text).\n` +
-      `Crazy level: ${crazy}. All other inputs: let the engine choose and state its assumptions.\n` +
+      `Crazy level: ${crazy}. Target duration: ${duration} (user-picked — respect it per the engine's rules; ` +
+      `note in one line if it fights the content, but still deliver on it). All other inputs: let the engine choose and state its assumptions.\n` +
       `Return the final result in the skill's markdown output structure, as plain text in your reply.` +
       (text ? `\n\n--- Pasted text / instructions ---\n${text}` : '');
 
@@ -291,7 +297,7 @@ async function handleGenerate(req, res) {
     rec.status = markdown.startsWith('ERROR:') ? 'engine_error' : 'ok';
     rec.stop_reason = stopReason;
     json(res, 200, {
-      markdown, crazy, skipped, stop_reason: stopReason,
+      markdown, crazy, duration, skipped, stop_reason: stopReason,
       usage: { ...usage, est_cost_usd: estimateCost(usage), duration_s: Math.round((Date.now() - t0) / 100) / 10 },
     });
   } catch (err) {

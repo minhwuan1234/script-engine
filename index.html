@@ -50,6 +50,12 @@
 
                     <textarea class="tpw-input" rows="1" placeholder="Paste text or drag files here..."></textarea>
 
+                    <select class="tpw-duration" aria-label="Độ dài video">
+                        <option value="30s-60s">30s–60s</option>
+                        <option value="2-3 mins" selected>2–3 mins</option>
+                        <option value="upto 5 mins">upto 5 mins</option>
+                    </select>
+
                     <div class="tpw-actions">
 
                         <div class="tpw-plus-wrap">
@@ -247,6 +253,17 @@
 .tony-pixel-widget .tpw-actions { position: relative; display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 .tony-pixel-widget button { font-family: inherit; }
 
+/* DURATION */
+.tony-pixel-widget select.tpw-duration {
+    flex: 0 0 auto; height: 34px; padding: 0 10px; margin: 0;
+    border: 1.5px solid #000000 !important; border-radius: 999px !important;
+    background: #ffedd5 !important; color: #000000 !important; font-size: 12px; font-weight: 800; cursor: pointer;
+    appearance: none; -webkit-appearance: none; -moz-appearance: none;
+    transform: none !important; transition: background-color .15s ease;
+}
+.tony-pixel-widget select.tpw-duration:hover { background: #ffebd2 !important; }
+.tony-pixel-widget select.tpw-duration:focus, .tony-pixel-widget select.tpw-duration:focus-visible { outline: none !important; }
+
 
 /* PLUS */
 .tony-pixel-widget .tpw-plus-wrap { position: relative; }
@@ -314,8 +331,9 @@
     .tony-pixel-widget .tpw-content { padding: 10px; justify-content: flex-start; padding-top: 16px; }
     .tony-pixel-widget .tpw-main-container { border-radius: 20px; }
     .tony-pixel-widget .tpw-main-container.has-output { padding: 10px; gap: 12px; }
-    .tony-pixel-widget .tpw-dropzone { padding: 6px 10px; gap: 6px; }
+    .tony-pixel-widget .tpw-dropzone { padding: 6px 10px; gap: 6px; flex-wrap: wrap; }
     .tony-pixel-widget .tpw-input { font-size: 14px; }
+    .tony-pixel-widget select.tpw-duration { height: 30px; font-size: 11px; padding: 0 8px; }
     .tony-pixel-widget button.tpw-plus, .tony-pixel-widget button.tpw-submit { width: 30px; height: 30px; min-width: 30px; min-height: 30px; flex: 0 0 30px; }
     .tony-pixel-widget button.tpw-plus svg { width: 16px; height: 16px; }
     .tony-pixel-widget button.tpw-submit svg { width: 14px; height: 14px; }
@@ -356,6 +374,7 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
     const ctx = canvas.getContext('2d', { alpha: false });
     const mainContainer = $('.tpw-main-container');
     const input = $('.tpw-input');
+    const durationSelect = $('.tpw-duration');
     const fileInput = $('.tpw-file-input');
     const filesContainer = $('.tpw-files');
     const plusBtn = $('.tpw-plus');
@@ -580,7 +599,7 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
       renderUsageLine(data.usage);
       resultBox.classList.add('is-ready');
       const parts = splitVersions(data.markdown || '');
-      const meta = `Crazy: ${data.crazy}`;
+      const meta = `Crazy: ${data.crazy} · Duration: ${data.duration}`;
 
       if (!parts) {
         // fallback: engine did not follow the A/B structure -> show everything in card A
@@ -618,6 +637,7 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
       const fd = new FormData();
       fd.append('text', text);
       fd.append('crazy', CRAZY_LEVEL);
+      fd.append('duration', durationSelect.value);
       attachedFiles.forEach((f) => fd.append('files', f, f.name));
 
       try {
