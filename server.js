@@ -209,7 +209,7 @@ const ICP_LENSES = {
     text:
       '## Unclear ICP\n\n' +
       'Default to the lens whose guardrails are strictest among the plausible options (in practice: healthcare\'s), and say which you assumed.\n\n' +
-      ICP_LENSES_HEALTHCARE_TEXT_PLACEHOLDER,
+      'ICP_LENSES_HEALTHCARE_TEXT_PLACEHOLDER',
   },
 };
 // "unclear" ships healthcare's guardrails alongside it (strictest set) so the model has a
