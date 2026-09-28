@@ -560,29 +560,14 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
     submitBtn.addEventListener('click', submit);
 
     /* ---------- render helpers ---------- */
-    function splitVersions(md) {
-      const reA = /^##\s+Version\s+A[^\n]*$/im;
-      const reB = /^##\s+Version\s+B[^\n]*$/im;
-      const a = reA.exec(md);
-      const b = reB.exec(md);
-      if (!a || !b || b.index < a.index) return null;
-
-      const headingText = (m) => m[0].replace(/^##\s+/, '');
-      // stop Version B at the next "## " heading (e.g. "## Engine notes")
-      const afterB = md.slice(b.index + b[0].length);
-      const next = /^##\s+/m.exec(afterB);
-      const bBody = next ? afterB.slice(0, next.index) : afterB;
-      const tail = next ? afterB.slice(next.index) : '';
-
-      return {
-        preface: md.slice(0, a.index).trim(),
-        headA: headingText(a),
-        bodyA: md.slice(a.index + a[0].length, b.index).trim(),
-        headB: headingText(b),
-        bodyB: bBody.trim(),
-        tail: tail.trim(),
-      };
-    }
+    // Backend now returns the engine's "output gateway": a JSON object whose fields are
+    // plain text/markdown per section (see SKILL.md Step 6). No regex-parsing of headings —
+    // and the JSON itself is never shown to the user, only the text inside each field.
+    const GATEWAY_FIELDS = [
+      'title', 'crazy_level', 'duration', 'icp', 'preface_md',
+      'version_a_title', 'version_a_md', 'version_b_title', 'version_b_md', 'engine_notes_md',
+    ];
+    const hasGatewayFields = (data) => GATEWAY_FIELDS.every((k) => typeof data[k] === 'string');
 
     function showError(message) {
       usageLine.textContent = '';
@@ -598,28 +583,32 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
       outputA.classList.remove('is-error');
       renderUsageLine(data.usage);
       resultBox.classList.add('is-ready');
-      const parts = splitVersions(data.markdown || '');
-      const meta = `Crazy: ${data.crazy} · Duration: ${data.duration}`;
 
-      if (!parts) {
-        // fallback: engine did not follow the A/B structure -> show everything in card A
+      if (!hasGatewayFields(data)) {
+        // fallback: engine didn't return the expected gateway fields -> show raw text so nothing is lost
         preface.hidden = true;
         titleA.textContent = 'Result'; titleB.textContent = '-';
-        metaA.textContent = meta; metaB.textContent = '';
-        outputA.textContent = data.markdown || '(empty response)';
+        metaA.textContent = ''; metaB.textContent = '';
+        outputA.textContent = data.markdown || data.title || '(empty response)';
         outputB.textContent = '';
         return;
       }
 
-      const prefaceText = [parts.preface, parts.tail].filter(Boolean).join('\n\n');
+      const meta = `Crazy: ${data.crazy_level} · Duration: ${data.duration}`;
+      const prefaceText = [data.title ? `# ${data.title}` : '', data.preface_md].filter(Boolean).join('\n\n');
       preface.hidden = !prefaceText;
       prefaceBody.textContent = prefaceText;
 
-      titleA.textContent = parts.headA.replace(/^Version A\s*[—-]\s*/i, '');
-      titleB.textContent = parts.headB.replace(/^Version B\s*[—-]\s*/i, '');
+      titleA.textContent = data.version_a_title;
+      titleB.textContent = data.version_b_title;
       metaA.textContent = meta; metaB.textContent = meta;
-      outputA.textContent = parts.bodyA;
-      outputB.textContent = parts.bodyB;
+      outputA.textContent = data.version_a_md;
+      outputB.textContent = data.version_b_md;
+
+      if (data.engine_notes_md) {
+        prefaceBody.textContent = [prefaceText, data.engine_notes_md].filter(Boolean).join('\n\n');
+        preface.hidden = false;
+      }
     }
 
     /* ---------- submit -> /api/generate ---------- */
@@ -643,7 +632,13 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
       try {
         const res = await fetch(API_URL, { method: 'POST', body: fd });
         const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+        // The server sends its response headers as soon as it starts working (so the
+        // connection stays visibly alive during a long generation) and can no longer change
+        // the HTTP status afterwards — so an error from that point on comes back as status
+        // 200 with an `error` field in the body instead. Check that first; res.ok alone is
+        // no longer enough to tell success from failure.
+        if (data.error) throw new Error(data.error);
+        if (!res.ok) throw new Error(`Request failed (${res.status})`);
         loadingOverlay.classList.remove('is-loading');
         showResult(data);
         if (data.skipped && data.skipped.length) {
