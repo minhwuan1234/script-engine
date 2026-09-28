@@ -1,4 +1,5 @@
-// Magnetic Script backend: single file, zero dependencies (Node >= 20).
+// Magnetic Script backend: single file, Node >= 20. Now has 3 deps for server-side
+// file -> plain text extraction (mammoth, pdf-parse, jszip) — see "file text extraction" below.
 // Serves index.html and POST /api/generate -> Claude Messages API + custom skill.
 // Every generate request is tracked (tokens, estimated cost, duration, status) - see GET /api/usage.
 //
@@ -14,12 +15,22 @@
 //   PRICE_IN_PER_M      optional  USD per 1M input tokens, default 3   (cost is an ESTIMATE; set to your model's price)
 //   PRICE_OUT_PER_M     optional  USD per 1M output tokens, default 15
 //   PORT                set by Railway
+//
+// After pulling this version: run `npm install` (adds mammoth, pdf-parse, jszip to node_modules).
+// Railway runs npm install automatically on deploy because package.json now lists dependencies.
 
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import mammoth from 'mammoth';
+// Import pdf-parse's inner module directly, NOT the package root. pdf-parse@1.1.1's index.js
+// runs a "debug mode" self-test (`if (!module.parent) { ...open a test PDF from disk... }`) —
+// under ESM import, module.parent is always undefined, so it thinks it's the entry point and
+// crashes on import (ENOENT). Its lib file has the real, side-effect-free export.
+import pdfParse from 'pdf-parse/lib/pdf-parse.js';
+import JSZip from 'jszip';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const {
@@ -42,15 +53,149 @@ const MAX_BODY = 25 * 1024 * 1024; // total upload cap
 const hits = new Map();
 const DURATION_OPTIONS = ['30s-60s', '2-3 mins', 'upto 5 mins'];
 const DEFAULT_DURATION = '2-3 mins';
-// Keys the Step 6 "output gateway" must return (see SKILL.md). Every value is plain
-// markdown text for its section — never shown to the user as raw JSON, only rendered.
-const GATEWAY_FIELDS = [
-  'title', 'crazy_level', 'duration', 'icp',
-  'preface_md',
-  'version_a_title', 'version_a_md',
-  'version_b_title', 'version_b_md',
-  'engine_notes_md',
-];
+
+/* ---------- output gateway: code-side, not AI-side ----------
+ * The model only ever writes plain markdown in the fixed Step 6 structure (see SKILL.md).
+ * It is never asked to produce JSON. This function IS the gateway: deterministic, regex-based
+ * parsing of that fixed markdown into a stable field set, done entirely in code — costs no
+ * model tokens and never depends on the model getting JSON syntax right.
+ * crazy/duration are NOT parsed out of the text — the caller already knows them (it's what
+ * it asked for), so they're passed in directly instead of trusting the model to restate them.
+ */
+function parseGateway(markdown, { crazy, duration }) {
+  const md = String(markdown || '').trim();
+
+  const titleMatch = /^#\s+(.*?)(?:\s*[—-]\s*Magnetic Script\s*)?$/m.exec(md);
+  const title = titleMatch ? titleMatch[1].trim() : '';
+
+  const icpMatch = /\*\*ICP read:\*\*\s*([^\n]+)/i.exec(md);
+  const icp = icpMatch ? icpMatch[1].trim() : '';
+
+  const headingRe = (label) => new RegExp(`^##\\s+${label}\\b[^\\n]*$`, 'im');
+  const aHead = headingRe('Version\\s+A').exec(md);
+  const bHead = headingRe('Version\\s+B').exec(md);
+  const notesHead = headingRe('Engine notes').exec(md);
+
+  if (!aHead || !bHead || bHead.index < aHead.index) {
+    return { ok: false, fields: null };
+  }
+
+  // preface = everything after the "# ... Magnetic Script" title line and before "## Version A"
+  // (crazy/ICP line, Doc diagnosis, Recommended setup, What's different tables).
+  const titleEnd = titleMatch ? titleMatch.index + titleMatch[0].length : 0;
+  const preface_md = md.slice(titleEnd, aHead.index).trim();
+
+  const versionTitle = (headMatch) =>
+    headMatch[0].replace(/^##\s+Version\s+[AB]\s*[—-]?\s*/i, '').trim();
+
+  const bEnd = notesHead ? notesHead.index : md.length;
+  const version_a_md = md.slice(aHead.index + aHead[0].length, bHead.index).trim();
+  const version_b_md = md.slice(bHead.index + bHead[0].length, bEnd).trim();
+  const engine_notes_md = notesHead ? md.slice(notesHead.index).trim() : '';
+
+  return {
+    ok: true,
+    fields: {
+      title,
+      crazy_level: crazy,
+      duration,
+      icp,
+      preface_md,
+      version_a_title: versionTitle(aHead),
+      version_a_md,
+      version_b_title: versionTitle(bHead),
+      version_b_md,
+      engine_notes_md,
+    },
+  };
+}
+
+/* ---------- file text extraction: code-side, not AI-side ----------
+ * Turning an uploaded PDF/DOCX/PPTX into plain text is a deterministic parsing job —
+ * no judgment involved — so it happens here in code instead of asking the model to read
+ * the file itself (which used to mean loading file-reading/pdf-reading/python-docx/pptx
+ * skill instructions and running code_execution, all of which cost tokens and thinking time).
+ * Once this returns plain text, the model just gets a text block like any pasted instructions.
+ *
+ * The one case code can't handle: a PDF that's actually a scan (an image with no real text
+ * layer) — pdf-parse then returns ~nothing. MIN_TEXT_CHARS catches that and falls back to
+ * sending the file natively so Claude reads it with vision, exactly like before this change.
+ */
+const MIN_TEXT_CHARS = 40;
+
+async function extractPdfText(buffer) {
+  try {
+    const { text } = await pdfParse(buffer);
+    return (text || '').trim();
+  } catch {
+    return '';
+  }
+}
+
+async function extractDocxText(buffer) {
+  try {
+    const { value } = await mammoth.extractRawText({ buffer });
+    return (value || '').trim();
+  } catch {
+    return '';
+  }
+}
+
+async function extractPptxText(buffer) {
+  try {
+    const zip = await JSZip.loadAsync(buffer);
+    const slideFiles = Object.keys(zip.files)
+      .filter((n) => /^ppt\/slides\/slide\d+\.xml$/.test(n))
+      .sort((a, b) => Number(a.match(/slide(\d+)\.xml/)[1]) - Number(b.match(/slide(\d+)\.xml/)[1]));
+
+    const parts = [];
+    for (const name of slideFiles) {
+      const xml = await zip.files[name].async('string');
+      const texts = [...xml.matchAll(/<a:t>([^<]*)<\/a:t>/g)].map((m) => m[1]);
+      if (texts.length) parts.push(`--- Slide ${parts.length + 1} ---\n${texts.join(' ')}`);
+    }
+    return parts.join('\n\n').trim();
+  } catch {
+    return '';
+  }
+}
+
+// Returns { block, mode }. block is a Messages API content block (or null if unsupported/failed).
+// mode is for the usage log only (which extraction path ran) — never filenames or file content.
+async function fileToBlock(file) {
+  const ext = file.name.split('.').pop().toLowerCase();
+  const asBuffer = async () => Buffer.from(await file.arrayBuffer());
+  const textBlock = (t) => ({ type: 'text', text: `--- ${file.name} ---\n${t}` });
+
+  if (ext === 'pdf') {
+    const buffer = await asBuffer();
+    const text = await extractPdfText(buffer);
+    if (text.length >= MIN_TEXT_CHARS) {
+      return { block: textBlock(text), mode: 'pdf_text' };
+    }
+    // No usable text layer — likely a scanned PDF. Fall back to native (vision) reading.
+    return {
+      block: {
+        type: 'document',
+        source: { type: 'base64', media_type: 'application/pdf', data: buffer.toString('base64') },
+        title: file.name,
+      },
+      mode: 'pdf_native_fallback',
+    };
+  }
+  if (ext === 'docx') {
+    const text = await extractDocxText(await asBuffer());
+    return text ? { block: textBlock(text), mode: 'docx_text' } : { block: null, mode: 'docx_extract_failed' };
+  }
+  if (ext === 'pptx') {
+    const text = await extractPptxText(await asBuffer());
+    return text ? { block: textBlock(text), mode: 'pptx_text' } : { block: null, mode: 'pptx_extract_failed' };
+  }
+  if (ext === 'txt' || ext === 'md') {
+    return { block: textBlock(await file.text()), mode: 'plain_text' };
+  }
+  return { block: null, mode: 'unsupported' };
+}
 
 /* ---------- usage tracking ---------- */
 const MAX_RECORDS = 5000;
@@ -177,18 +322,6 @@ async function readForm(req) {
   return request.formData();
 }
 
-async function fileToBlock(file) {
-  const ext = file.name.split('.').pop().toLowerCase();
-  if (ext === 'pdf') {
-    const b64 = Buffer.from(await file.arrayBuffer()).toString('base64');
-    return { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: b64 }, title: file.name };
-  }
-  if (ext === 'txt' || ext === 'md') {
-    return { type: 'text', text: `--- ${file.name} ---\n${await file.text()}` };
-  }
-  return null; // doc/docx/xlsx/images: not supported yet
-}
-
 // Call Messages API with streaming (avoids long-request timeouts).
 // Returns the final text, stop reason and token usage. `usage` is filled in as events arrive,
 // so a caller can still read partial usage if the stream fails midway.
@@ -243,31 +376,13 @@ async function callClaude(content, usage) {
       else if (ev.type === 'error') throw new Error(ev.error?.message || 'Upstream stream error');
     }
   }
-  // The skill returns the Step 6 "output gateway" — one JSON object, nothing else.
-  // Be tolerant of an accidental ```json fence in case the model wraps it anyway.
-  let raw = text.trim();
-  const fenced = raw.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/);
-  if (fenced) raw = fenced[1].trim();
+  // The skill returns plain markdown in the fixed Step 6 structure — never JSON.
+  // Strip a stray ```markdown fence in case the model wraps it anyway.
+  let markdown = text.trim();
+  const fenced = markdown.match(/^```(?:markdown)?\s*([\s\S]*?)\s*```$/);
+  if (fenced) markdown = fenced[1].trim();
 
-  let gateway;
-  try {
-    gateway = JSON.parse(raw);
-  } catch (err) {
-    throw Object.assign(
-      new Error('Engine returned invalid JSON: ' + err.message),
-      { status: 502 }
-    );
-  }
-
-  const missing = GATEWAY_FIELDS.filter((k) => !(k in gateway));
-  if (missing.length) {
-    throw Object.assign(
-      new Error('Engine JSON missing fields: ' + missing.join(', ')),
-      { status: 502 }
-    );
-  }
-
-  return { gateway, stopReason };
+  return { markdown, stopReason };
 }
 
 /* ---------- routes ---------- */
@@ -300,18 +415,21 @@ async function handleGenerate(req, res) {
     const blocks = [];
     const skipped = [];
     const fileTypes = [];
+    const extractModes = [];
     for (const f of form.getAll('files').slice(0, 3)) {
       if (typeof f === 'string') continue;
       fileTypes.push(f.name.split('.').pop().toLowerCase());
-      const b = await fileToBlock(f);
-      if (b) blocks.push(b); else skipped.push(f.name);
+      const { block, mode } = await fileToBlock(f);
+      extractModes.push(mode);
+      if (block) blocks.push(block); else skipped.push(f.name);
     }
     rec.files = fileTypes; // extensions only, never file names or contents
+    rec.extract_modes = extractModes; // which extraction path ran — debugging/insight only
     if (!text && blocks.length === 0) {
       rec.status = 'bad_request';
       return json(res, 400, {
         error: skipped.length
-          ? `File type not supported yet: ${skipped.join(', ')}. Use PDF, TXT, MD or paste text.`
+          ? `Could not read file(s): ${skipped.join(', ')}. Use PDF, DOCX, PPTX, TXT, MD or paste text.`
           : 'Provide text or a file.',
       });
     }
@@ -319,18 +437,30 @@ async function handleGenerate(req, res) {
     const instruction =
       `Use the magnetic-script-engine skill on the document provided below (attached file(s) and/or pasted text).\n` +
       `Crazy level: ${crazy}. Target duration: ${duration} (user-picked — respect it per the engine's rules; ` +
-      `note it inside preface_md if it fights the content, but still deliver on it). All other inputs: let the engine choose and state its assumptions.\n` +
-      `Return ONLY the Step 6 output gateway — a single JSON object, no text before or after it, no markdown code fence around it.` +
+      `note in one line if it fights the content, but still deliver on it). All other inputs: let the engine choose and state its assumptions.\n` +
+      `Return the final result in the skill's exact Step 6 markdown structure, as plain text — nothing else before or after it. Do not output JSON.` +
       (text ? `\n\n--- Pasted text / instructions ---\n${text}` : '');
 
-    const { gateway, stopReason } = await callClaude([...blocks, { type: 'text', text: instruction }], usage);
-    rec.status = 'ok';
+    const { markdown, stopReason } = await callClaude([...blocks, { type: 'text', text: instruction }], usage);
+
+    // Code-side gateway: turn the model's plain markdown into a stable field set.
+    // No AI involved in this step — pure parsing, so it costs no tokens and can't
+    // fail on JSON syntax the way asking the model to hand-write JSON could.
+    const parsed = parseGateway(markdown, { crazy, duration });
+    rec.status = parsed.ok ? 'ok' : 'parse_error';
     rec.stop_reason = stopReason;
-    // gateway = { title, crazy_level, duration, icp, preface_md, version_a_title, version_a_md,
-    //             version_b_title, version_b_md, engine_notes_md } — all plain text/markdown,
-    // never shown to the user as JSON: the frontend renders each field as text.
+
+    if (!parsed.ok) {
+      // Engine didn't follow the fixed heading structure — still hand back the raw
+      // text so nothing is lost; the frontend has a fallback path for this case.
+      return json(res, 200, {
+        markdown, skipped, stop_reason: stopReason,
+        usage: { ...usage, est_cost_usd: estimateCost(usage), duration_s: Math.round((Date.now() - t0) / 100) / 10 },
+      });
+    }
+
     json(res, 200, {
-      ...gateway, skipped, stop_reason: stopReason,
+      ...parsed.fields, skipped, stop_reason: stopReason,
       usage: { ...usage, est_cost_usd: estimateCost(usage), duration_s: Math.round((Date.now() - t0) / 100) / 10 },
     });
   } catch (err) {
