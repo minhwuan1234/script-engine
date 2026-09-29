@@ -62,7 +62,8 @@ If series is recommended: give an episode map (3–6 rows: episode, the one job,
 
 Two versions must differ on a real axis — POV, structure, or where the tension comes from — not just wording. Use the pairing guidance in `references/narrative-styles.md`.
 
-- Request specified a style → Version A uses it. Version B is the engine's best contrasting pick.
+- If the calling app specifies narrative styles for both Version A and Version B, use those exact styles in those exact version slots. The app chooses a contrasting pair using prior A/B picks for the relevant ICP. Keep the versions distinct, and name the styles in their headings. Do not infer a different style pair from the document in this case.
+- If only one style is specified, Version A uses it. Version B is the engine's best contrasting pick.
 - No pick → choose the two styles that best fit the diagnosis and contrast most usefully.
 
 Both versions use the **same crazy level** and the **same duration**. The slider changes temperature; the versions change angle.
