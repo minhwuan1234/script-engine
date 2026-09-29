@@ -70,10 +70,10 @@ const DURATION_TARGETS = {
  * It is never asked to produce JSON. This function IS the gateway: deterministic, regex-based
  * parsing of that fixed markdown into a stable field set, done entirely in code — costs no
  * model tokens and never depends on the model getting JSON syntax right.
- * crazy/duration are NOT parsed out of the text — the caller already knows them (it's what
+ * duration is NOT parsed out of the text — the caller already knows it (it's what
  * it asked for), so they're passed in directly instead of trusting the model to restate them.
  */
-function parseGateway(markdown, { crazy, duration }) {
+function parseGateway(markdown, { duration }) {
   const md = String(markdown || '').trim();
 
   const titleMatch = /^#\s+(.*?)(?:\s*[—-]\s*Magnetic Script\s*)?$/m.exec(md);
@@ -92,7 +92,7 @@ function parseGateway(markdown, { crazy, duration }) {
   }
 
   // preface = everything after the "# ... Magnetic Script" title line and before "## Version A"
-  // (crazy/ICP line, Doc diagnosis, Recommended setup, What's different tables).
+  // (ICP line, Doc diagnosis, Recommended setup, What's different tables).
   const titleEnd = titleMatch ? titleMatch.index + titleMatch[0].length : 0;
   const preface_md = md.slice(titleEnd, aHead.index).trim();
 
@@ -108,7 +108,6 @@ function parseGateway(markdown, { crazy, duration }) {
     ok: true,
     fields: {
       title,
-      crazy_level: crazy,
       duration,
       icp,
       preface_md,
@@ -123,8 +122,8 @@ function parseGateway(markdown, { crazy, duration }) {
 
 /* ---------- duration -> word/timing budget: code-side, not AI-side ----------
  * The visitor already picked a duration bucket in the UI. Instead of making the model read
- * references/platform-duration.md and do the wpm x seconds arithmetic itself every run, compute
- * the exact target numbers here (same formula the reference file documents: ~150 wpm long-form,
+ * word-per-minute arithmetic itself every run, compute
+ * the exact target numbers here (~150 wpm long-form,
  * 160-170 wpm short-form, ~10% of time reserved for pauses/visual-only beats) and hand them to
  * the model as a small JSON block alongside the instruction. The model still WRITES the script —
  * that's judgment — it just never has to compute the budget itself.
@@ -408,11 +407,9 @@ function usageSummary() {
   const today = new Date().toISOString().slice(0, 10);
   const weekAgo = Date.now() - 7 * 86400_000;
   const byDay = {};
-  const byCrazy = {};
   for (const r of records) {
     const d = r.ts.slice(0, 10);
     (byDay[d] ||= []).push(r);
-    if (r.status === 'ok') byCrazy[r.crazy] = (byCrazy[r.crazy] || 0) + 1;
   }
   return {
     model: CLAUDE_MODEL,
@@ -423,7 +420,6 @@ function usageSummary() {
     today: totals(records.filter((r) => r.ts.startsWith(today))),
     last_7_days: totals(records.filter((r) => Date.parse(r.ts) >= weekAgo)),
     by_day: Object.fromEntries(Object.entries(byDay).slice(-14).map(([d, l]) => [d, totals(l)])),
-    ok_requests_by_crazy_level: byCrazy,
     latest: records.slice(-20).reverse(),
   };
 }
@@ -585,11 +581,8 @@ async function handleGenerate(req, res) {
 
     const form = await readForm(req);
     const text = String(form.get('text') || '').trim();
-    const crazyRaw = String(form.get('crazy') || 'Medium');
-    const crazy = ['Low', 'Medium', 'High'].includes(crazyRaw) ? crazyRaw : 'Medium';
     const durationRaw = String(form.get('duration') || DEFAULT_DURATION);
     const duration = DURATION_OPTIONS.includes(durationRaw) ? durationRaw : DEFAULT_DURATION;
-    rec.crazy = crazy;
     rec.duration = duration;
     rec.text_chars = text.length;
 
@@ -631,8 +624,8 @@ async function handleGenerate(req, res) {
 
     const instruction =
       `Use the magnetic-script-engine skill on the document provided below (attached file(s) and/or pasted text).\n` +
-      `Crazy level: ${crazy}. Target duration: ${duration} (user-picked — respect it per the engine's rules; ` +
-      `note in one line if it fights the content, but still deliver on it). All other inputs: let the engine choose and state its assumptions.\n` +
+      `Target duration: ${duration} (user-picked — respect it per the engine's rules; ` +
+      `note in one line if it fights the content, but still deliver on it). Infer the platform and series recommendation from the document; state any document-based assumptions in Engine notes.\n` +
       `Word/timing budget for this duration — pre-computed, use these numbers directly, do not recompute them:\n` +
       '```json\n' + JSON.stringify(budget, null, 2) + '\n```\n' +
       `ICP lens — pre-computed guess from the document's own text, already the matching section of references/icp-lenses.md. Use it as-is; if the doc clearly reads as a different ICP once you actually read it, say so in one line in Engine notes and use the better-fitting lens instead:\n` +
@@ -650,7 +643,7 @@ async function handleGenerate(req, res) {
     // Code-side gateway: turn the model's plain markdown into a stable field set.
     // No AI involved in this step — pure parsing, so it costs no tokens and can't
     // fail on JSON syntax the way asking the model to hand-write JSON could.
-    const parsed = parseGateway(markdown, { crazy, duration });
+    const parsed = parseGateway(markdown, { duration });
     rec.status = parsed.ok ? 'ok' : 'parse_error';
     rec.stop_reason = stopReason;
 
@@ -665,6 +658,7 @@ async function handleGenerate(req, res) {
 
     // Only offer feedback for a complete parsed pair; no document or script is stored.
     let abPick = null;
+    let abPickStatus = 'ready';
     const stylesMatch =
       parsed.fields.version_a_title.toLowerCase().includes(STYLES[strategyPair.a].toLowerCase()) &&
       parsed.fields.version_b_title.toLowerCase().includes(STYLES[strategyPair.b].toLowerCase());
@@ -673,13 +667,16 @@ async function handleGenerate(req, res) {
         abPick = preferenceStore.createGeneration(icpKey, strategyPair);
       } catch (error) {
         console.error('Could not save A/B generation:', error.message);
+        abPickStatus = 'storage_unavailable';
       }
     } else {
       rec.strategy_mismatch = true; // Do not learn from output that ignored the assigned styles.
+      abPickStatus = 'strategy_mismatch';
     }
     finish({
       ...parsed.fields, skipped, stop_reason: stopReason,
       ab_pick: abPick ? { ...abPick, icp: icpKey, strategies: strategyPair } : null,
+      ab_pick_status: abPickStatus,
       usage: { ...usage, est_cost_usd: estimateCost(usage), duration_s: Math.round((Date.now() - t0) / 100) / 10 },
     });
   } catch (err) {
