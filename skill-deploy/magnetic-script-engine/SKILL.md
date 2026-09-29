@@ -425,6 +425,7 @@ If no schema is provided (for example when testing in chat), use this structure:
 - Exact conflicting or unclear source passages requiring clinical review
 - Factual assumptions: none
 ```
+update
 
 ---
 
@@ -438,3 +439,4 @@ If no schema is provided (for example when testing in chat), use this structure:
 - Do not put `[ADD SOURCED STAT]` or another placeholder inside a patient-facing script.
 - Do not mention platforms, other durations, series or "part 2".
 - Do not soften the tone of a red-flag rule to sound friendlier. Make it clearer, not gentler.
+  
