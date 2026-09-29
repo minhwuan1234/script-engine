@@ -580,9 +580,9 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
     function showError(message) {
       currentPick = null;
       pickButtons.forEach((button) => { button.hidden = true; });
+      pickStatus.textContent = '';
       usageLine.textContent = '';
       resultBox.classList.add('is-ready');
-      preface.hidden = true;
       titleA.textContent = 'Error'; titleB.textContent = '';
       metaA.textContent = ''; metaB.textContent = '';
       outputA.textContent = message; outputA.classList.add('is-error');
@@ -597,8 +597,8 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
       if (!hasGatewayFields(data)) {
         currentPick = null;
         pickButtons.forEach((button) => { button.hidden = true; });
+        pickStatus.textContent = 'Chưa thể chọn A/B: kết quả không có đủ hai phiên bản theo cấu trúc yêu cầu.';
         // fallback: engine didn't return the expected gateway fields -> show raw text so nothing is lost
-        preface.hidden = true;
         titleA.textContent = 'Result'; titleB.textContent = '-';
         metaA.textContent = ''; metaB.textContent = '';
         outputA.textContent = data.markdown || data.title || '(empty response)';
@@ -617,7 +617,9 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
       outputB.textContent = data.version_b_md;
       currentPick = data.ab_pick || null;
       pickButtons.forEach((button) => { button.hidden = !currentPick; button.disabled = false; });
-      if (!currentPick) {
+      if (currentPick) {
+        pickStatus.textContent = 'Bạn thích phiên bản nào hơn? Chọn A hoặc B để hệ thống ghi nhận.';
+      } else {
         pickStatus.textContent = data.ab_pick_status === 'storage_unavailable'
           ? 'Chưa thể chọn A/B: server không lưu được dữ liệu lựa chọn. Kiểm tra PREFERENCE_LOG và Railway Volume.'
           : data.ab_pick_status === 'strategy_mismatch'
@@ -625,10 +627,6 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
             : 'Chưa thể chọn A/B: backend chưa trả ab_pick. Hãy cập nhật server.js và thêm preference-store.js.';
       }
 
-      if (data.engine_notes_md) {
-        prefaceBody.textContent = [prefaceText, data.engine_notes_md].filter(Boolean).join('\n\n');
-        preface.hidden = false;
-      }
     }
 
     pickButtons.forEach((button) => button.addEventListener('click', async () => {
