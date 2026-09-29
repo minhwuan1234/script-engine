@@ -530,7 +530,7 @@ async function callClaude(content, usage) {
         {
           type: 'text',
           text: 'You are running the magnetic-script-engine skill for the F.Learning Magnetic Script Studio tool. Follow the skill exactly.',
-          cache_control: { type: 'ephemeral' },
+          cache_control: { type: 'ephemeral', ttl: '1h' },
         },
       ],
       messages: [{ role: 'user', content }],
