@@ -1,6 +1,6 @@
 ---
 name: "magnetic-script-engine"
-description: "Engine behind F.Learning's \"text-wall nightmare → magnetic YouTube video script\" lead-magnet tool. Takes a dense document (PDF, Word, PPT, ebook, or pasted text) plus a \"crazy\" level (Low / Medium / High) and optional picks (narrative style, platform, series vs one-off, duration); diagnoses where viewers will misunderstand the material, recommends platform + duration with reasons, and returns TWO timestamped scripts with a separated 15s hook, what differs, a reason and a \"best when\" for each. Use WHENEVER F or the team wants to turn a document into a video script, test the engine, or compare crazy levels — e.g. \"chạy engine\", \"test magnetic script\", \"doc → script\", \"kéo slider lên High\", \"làm 2 version script từ tài liệu này\", \"turn this doc into a YouTube script\". Also use when someone pastes a leaflet, manual, policy, textbook chapter or NGO report and asks for a video script from it. Works across ICPs (healthcare, L&D, publishing, NGO)."
+description: "Engine behind F.Learning's \"text-wall nightmare → magnetic YouTube video script\" lead-magnet tool. Takes a dense document (PDF, Word, PPT, ebook, or pasted text) and optional picks (narrative style, platform, series vs one-off, duration); diagnoses where viewers will misunderstand the material, recommends platform + duration with reasons, and returns TWO timestamped scripts with a separated 15s hook, what differs, a reason and a \"best when\" for each. Use WHENEVER F or the team wants to turn a document into a video script, test the engine — e.g. \"chạy engine\", \"test magnetic script\", \"doc → script\", \"làm 2 version script từ tài liệu này\", \"turn this doc into a YouTube script\". Also use when someone pastes a leaflet, manual, policy, textbook chapter or NGO report and asks for a video script from it. Works across ICPs (healthcare, L&D, publishing, NGO)."
 ---
 
 # Magnetic Script Engine
@@ -11,16 +11,28 @@ The engine is the same for every ICP. Only the framing (who the viewer is, what'
 
 This skill's job stops at writing good markdown. The calling app (not this skill) turns that markdown into JSON and runs the timing/pacing/duration checks in its own code — see "On JSON / machine-readable output" and Step 5 below. Nothing here should try to redo that in a code_execution call. `scripts/check_timing.py` is kept in this folder only as a reference copy of the original logic (now ported into the app's `server.js`); it is not run as part of this skill — do not invoke it.
 
-**How this skill is actually invoked.** In production this runs behind an API call from the app's server, not a chat: the app sends one request with the document plus whatever picks the visitor made (crazy level, duration, etc.), and you return one finished response. There is no back-and-forth — you cannot pause mid-run and wait for a reply, because there is no one on the other end of a chat to answer. Anywhere below that used to say "ask", read it as "note the gap and keep going" or, for the one case where the run truly cannot proceed (no document at all), "say so plainly in your one response instead of the normal output."
+**How this skill is actually invoked.** In production this runs behind an API call from the app's server, not a chat: the app sends one request with the document plus the visitor's duration and the narrative pair chosen by the app, and you return one finished response. There is no back-and-forth — you cannot pause mid-run and wait for a reply, because there is no one on the other end of a chat to answer. Anywhere below that used to say "ask", read it as "note the gap and keep going" or, for the one case where the run truly cannot proceed (no document at all), "say so plainly in your one response instead of the normal output."
 
 **The document arrives as plain text already — you never extract it yourself.** The app converts any uploaded PDF/DOCX/PPTX to plain text in its own code (deterministic parsing, not a model call) before it ever reaches you, and hands it to you as a normal text block headed `--- filename ---`. Treat that block exactly like pasted text — it already *is* the document, nothing left to open or parse. Do not load `file-reading`, `pdf-reading`, `python-docx` or `python-pptx`, and do not run code_execution to read a file — there is no file object here to read, only text you already have. The one exception: a scanned PDF with no real text layer arrives instead as a native PDF attachment (the app's code detects this and falls back automatically) — if that happens, just read it the normal way any attached document is read; no special step needed on your side either way.
+
+## Inputs
+
+| Input | Required | If missing |
+|---|---|---|
+| Document / text | Yes | Nothing to run the engine on — there's no one to ask, so say plainly in your response that no document/text came through, and stop there instead of producing a diagnosis. |
+| Narrative style | No | Engine picks two contrasting styles |
+| Platform | No | Engine recommends, with reason |
+| Series vs one-off | No | Engine recommends, with reason |
+| Duration | No | Engine recommends, with reason |
+| ICP | No | Infer from the doc; state the inference |
+
+Never stop mid-run to ask about an optional input — there's no channel back to a person to answer, and the tool's promise is "drop your doc, get a script" in one pass. Infer, state the assumption in one line, move on. The only input worth flagging as blocking is a genuinely missing/unreadable document, and even then you don't "ask" — you just say so in your single response, since that's the only message you get to send.
 
 ## Before writing anything
 
 1. Load `brand-lens` (`/mnt/skills/user/brand-lens/SKILL.md`). The *scripts* speak for the client's content, not for F.Learning — but the *thinking* (Understanding Failure → Design Principle) and the voice of the Reason / Best-when copy are F's. That copy is where F's expertise becomes visible to the prospect.
 2. Read these references now — they are the craft, not optional detail:
    - `references/script-craft.md` — how a magnetic script is built, line by line
-   - `references/crazy-dial.md` — what each level changes and what it never changes
    - `references/narrative-styles.md` — the style library and how to pick a contrasting pair
    - `references/platform-duration.md` — recommendation rules + word budgets
    - `references/icp-lenses.md` — per-ICP viewer, stakes, guardrails
@@ -36,7 +48,7 @@ This step is what separates F's engine from "summarize this into a video". Answe
 - **Buried gold**: the 2–4 facts in the doc that matter most and are currently hard to find (usually page 3, paragraph 4, inside a sentence with three clauses). Quote or paraphrase with location.
 - **Likely understanding failure**: pick ONE of False Certainty / Cognitive Overload / Concept Fragmentation / Transfer Failure (definitions in brand-lens). Say what the misunderstanding would look like in real behavior ("weighs daily but doesn't know a 2 lb jump means call today").
 - **Mechanism to reveal**: the "why" the doc states or implies that makes the rule stick (e.g. extra weight is fluid the heart can't move). If the doc gives no mechanism, note that — do not invent one beyond what's safely standard and uncontroversial; flag it instead.
-- **Doc facts that must stay exact**: numbers, thresholds, dosing language, legal wording, "call X when Y" lines. These are locked across every crazy level.
+- **Doc facts that must stay exact**: numbers, thresholds, dosing language, legal wording, "call X when Y" lines. These stay exact in both versions.
 
 ### Step 2 — Recommend platform, format, duration
 
@@ -52,11 +64,11 @@ Two versions must differ on a real axis — POV, structure, or where the tension
 - If only one style is specified, Version A uses it. Version B is the engine's best contrasting pick.
 - No pick → choose the two styles that best fit the diagnosis and contrast most usefully.
 
-Both versions use the **same crazy level** and the **same duration**. The slider changes temperature; the versions change angle.
+Both versions use the **same duration**. The versions change angle.
 
 ### Step 4 — Write the scripts
 
-Follow `references/script-craft.md` and the level spec in `references/crazy-dial.md`. Non-negotiables:
+Follow `references/script-craft.md`. Non-negotiables:
 
 - Word count fits duration — the request you received includes a pre-computed `vo_word_budget` JSON block (min/max words for the picked duration, at both long-form and short-form pace, plus the hook's 30–40 word target). Use those numbers directly — they're already the `references/platform-duration.md` formula run for you, so there's no wpm × seconds math left for you to do. You do not need to run anything to verify this yourself — the calling app checks actual pacing after you're done and logs any mismatch; your job is to write to the budget, not to prove you hit it.
 - Hook = first 15 seconds, written as its own block. It must work alone — it is the free preview before the email gate.
@@ -77,7 +89,7 @@ Write plain text in this **exact** markdown structure — do not summarize it, d
 ```
 # [Working title] — Magnetic Script
 
-**Crazy level:** [Low/Medium/High] · **ICP read:** [inferred ICP]
+**ICP read:** [inferred ICP]
 
 ## Doc diagnosis
 | | |
@@ -127,7 +139,7 @@ Write plain text in this **exact** markdown structure — do not summarize it, d
 
 Timestamps are ranges (`0:00–0:05`). Hook rows cover exactly 0:00–0:15; the Script table continues from 0:15. "On screen" says what the viewer sees that does explanatory work — not decoration (see script-craft).
 
-The calling app already knows the crazy level and duration it asked for (they came from its own UI, not from your text) — you don't need to make those machine-parseable beyond the one line above; write that line for the human reading it, not for a parser.
+The calling app already knows the duration it asked for (it came from its own UI) — you don't need to make it machine-parseable in the markdown.
 
 ## On JSON / machine-readable output
 
