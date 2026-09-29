@@ -31,6 +31,7 @@ import mammoth from 'mammoth';
 // crashes on import (ENOENT). Its lib file has the real, side-effect-free export.
 import pdfParse from 'pdf-parse/lib/pdf-parse.js';
 import JSZip from 'jszip';
+import { createPreferenceStore, STYLES } from './preference-store.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const {
@@ -41,6 +42,7 @@ const {
   RATE_LIMIT_PER_HOUR = '10',
   ADMIN_TOKEN,
   USAGE_LOG = path.join(__dirname, 'usage.jsonl'),
+  PREFERENCE_LOG = path.join(__dirname, 'preferences.jsonl'),
   PRICE_IN_PER_M = '3',
   PRICE_OUT_PER_M = '15',
   ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages', // overridable for testing
@@ -52,6 +54,7 @@ const ANTHROPIC_API_KEY = process.env.CLAUDE_API || process.env.ANTHROPIC_API_KE
 
 const MAX_BODY = 25 * 1024 * 1024; // total upload cap
 const hits = new Map();
+const preferenceStore = createPreferenceStore(PREFERENCE_LOG);
 const DURATION_OPTIONS = ['30s-60s', '2-3 mins', 'upto 5 mins'];
 const DEFAULT_DURATION = '2-3 mins';
 // Same three buckets the UI's dropdown offers, as [min_seconds, max_seconds].
@@ -623,6 +626,7 @@ async function handleGenerate(req, res) {
       .slice(0, ICP_EXCERPT_CHARS);
     const icpKey = await classifyIcp(classifyExcerpt);
     const icpLens = ICP_LENSES[icpKey];
+    const strategyPair = preferenceStore.choosePair(icpKey);
     rec.icp_guess = icpKey; // logging/debugging only, never document content
 
     const instruction =
@@ -633,6 +637,7 @@ async function handleGenerate(req, res) {
       '```json\n' + JSON.stringify(budget, null, 2) + '\n```\n' +
       `ICP lens — pre-computed guess from the document's own text, already the matching section of references/icp-lenses.md. Use it as-is; if the doc clearly reads as a different ICP once you actually read it, say so in one line in Engine notes and use the better-fitting lens instead:\n` +
       icpLens.text + '\n\n' +
+      `Narrative pair for this run, selected by the app from prior A/B picks: Version A must use "${STYLES[strategyPair.a]}" and Version B must use "${STYLES[strategyPair.b]}". Preserve two contrasting scripts and all source facts. Do not swap their styles or substitute another style. State each style in its Version heading.\n\n` +
       `Return the final result in the skill's exact Step 6 markdown structure, as plain text — nothing else before or after it. Do not output JSON.` +
       (text ? `\n\n--- Pasted text / instructions ---\n${text}` : '');
 
@@ -658,8 +663,23 @@ async function handleGenerate(req, res) {
       });
     }
 
+    // Only offer feedback for a complete parsed pair; no document or script is stored.
+    let abPick = null;
+    const stylesMatch =
+      parsed.fields.version_a_title.toLowerCase().includes(STYLES[strategyPair.a].toLowerCase()) &&
+      parsed.fields.version_b_title.toLowerCase().includes(STYLES[strategyPair.b].toLowerCase());
+    if (stylesMatch) {
+      try {
+        abPick = preferenceStore.createGeneration(icpKey, strategyPair);
+      } catch (error) {
+        console.error('Could not save A/B generation:', error.message);
+      }
+    } else {
+      rec.strategy_mismatch = true; // Do not learn from output that ignored the assigned styles.
+    }
     finish({
       ...parsed.fields, skipped, stop_reason: stopReason,
+      ab_pick: abPick ? { ...abPick, icp: icpKey, strategies: strategyPair } : null,
       usage: { ...usage, est_cost_usd: estimateCost(usage), duration_s: Math.round((Date.now() - t0) / 100) / 10 },
     });
   } catch (err) {
@@ -677,6 +697,22 @@ async function handleGenerate(req, res) {
     rec.duration_ms = Date.now() - t0;
     recordUsage(rec);
   }
+}
+
+async function handlePick(req, res) {
+  // A bearer token is generated per successful response. Reject oversized input.
+  const body = [];
+  let size = 0;
+  for await (const chunk of req) {
+    size += chunk.length;
+    if (size > 2048) return json(res, 413, { error: 'Pick too large.' });
+    body.push(chunk);
+  }
+  let input;
+  try { input = JSON.parse(Buffer.concat(body).toString('utf8')); }
+  catch { return json(res, 400, { error: 'Invalid JSON.' }); }
+  const result = preferenceStore.pick(input || {});
+  return json(res, result.ok ? 200 : result.status, result);
 }
 
 function serveIndex(res) {
@@ -701,6 +737,7 @@ http
         return json(res, 200, usageSummary());
       }
       if (req.method === 'POST' && pathname === '/api/generate') return await handleGenerate(req, res);
+      if (req.method === 'POST' && pathname === '/api/pick') return await handlePick(req, res);
       res.writeHead(404); res.end('Not found');
     } catch (err) {
       console.error(err);

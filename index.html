@@ -100,6 +100,7 @@
                             <div class="tpw-output-title" id="tpw-title-a">-</div>
                             <div class="tpw-output-meta" id="tpw-meta-a"></div>
                             <div class="tpw-output-body" id="tpw-output-a"></div>
+                            <button class="tpw-pick-btn" type="button" data-pick="A" hidden>Chọn Version A</button>
                         </div>
 
                         <div class="tpw-output-card">
@@ -107,8 +108,10 @@
                             <div class="tpw-output-title" id="tpw-title-b">-</div>
                             <div class="tpw-output-meta" id="tpw-meta-b"></div>
                             <div class="tpw-output-body" id="tpw-output-b"></div>
+                            <button class="tpw-pick-btn" type="button" data-pick="B" hidden>Chọn Version B</button>
                         </div>
                     </div>
+                    <div class="tpw-pick-status" role="status" aria-live="polite"></div>
 
                     <div class="tpw-usage-line" id="tpw-usage-line"></div>
                 </div>
@@ -200,6 +203,15 @@
 .tony-pixel-widget .tpw-output-meta { font-size: 12px; font-weight: 500; color: #64748b; margin-bottom: 12px; }
 .tony-pixel-widget .tpw-output-body { flex: 1; overflow-y: auto; font-size: 13.5px; line-height: 1.6; color: var(--tpw-text); white-space: pre-wrap; padding-right: 4px; }
 .tony-pixel-widget .tpw-output-body.is-error { color: #b91c1c; font-weight: 600; }
+.tony-pixel-widget button.tpw-pick-btn {
+    align-self: flex-start; margin-top: 12px; padding: 8px 14px; border: 1.5px solid #000; border-radius: 999px;
+    background: #ffedd5; color: #000; font: inherit; font-size: 12px; font-weight: 800; cursor: pointer;
+}
+.tony-pixel-widget button.tpw-pick-btn:hover { background: #ff9436; }
+.tony-pixel-widget button.tpw-pick-btn:disabled { opacity: .55; cursor: default; }
+.tony-pixel-widget button.tpw-pick-btn[hidden] { display: none; }
+.tony-pixel-widget .tpw-pick-status { margin-top: 8px; font-size: 12px; font-weight: 700; color: #22252a; }
+.tony-pixel-widget .tpw-pick-status:empty { display: none; }
 
 .tony-pixel-widget .tpw-output-body::-webkit-scrollbar { width: 4px; }
 .tony-pixel-widget .tpw-output-body::-webkit-scrollbar-thumb { background: #000000; border-radius: 4px; }
@@ -353,6 +365,7 @@
  * CRAZY_LEVEL : 'Low' | 'Medium' | 'High' (fixed for now, UI slider comes later)
  */
 const API_URL = '/api/generate';
+const PICK_URL = '/api/pick';
 const CRAZY_LEVEL = 'Medium';
 const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the server)
 
@@ -385,6 +398,10 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
     const titleB = $('#tpw-title-b');
     const metaA = $('#tpw-meta-a');
     const metaB = $('#tpw-meta-b');
+    const pickButtons = root.querySelectorAll('.tpw-pick-btn');
+    const pickStatus = $('.tpw-pick-status');
+    let currentPick = null;
+    let pickBusy = false;
 
     let attachedFiles = [];
     let busy = false;
@@ -563,6 +580,8 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
     const hasGatewayFields = (data) => GATEWAY_FIELDS.every((k) => typeof data[k] === 'string');
 
     function showError(message) {
+      currentPick = null;
+      pickButtons.forEach((button) => { button.hidden = true; });
       usageLine.textContent = '';
       resultBox.classList.add('is-ready');
       preface.hidden = true;
@@ -578,6 +597,8 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
       resultBox.classList.add('is-ready');
 
       if (!hasGatewayFields(data)) {
+        currentPick = null;
+        pickButtons.forEach((button) => { button.hidden = true; });
         // fallback: engine didn't return the expected gateway fields -> show raw text so nothing is lost
         preface.hidden = true;
         titleA.textContent = 'Result'; titleB.textContent = '-';
@@ -596,6 +617,8 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
       metaA.textContent = meta; metaB.textContent = meta;
       outputA.textContent = data.version_a_md;
       outputB.textContent = data.version_b_md;
+      currentPick = data.ab_pick || null;
+      pickButtons.forEach((button) => { button.hidden = !currentPick; button.disabled = false; });
 
       if (data.engine_notes_md) {
         prefaceBody.textContent = [prefaceText, data.engine_notes_md].filter(Boolean).join('\n\n');
@@ -603,11 +626,40 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
       }
     }
 
+    pickButtons.forEach((button) => button.addEventListener('click', async () => {
+      if (!currentPick || pickBusy) return;
+      const { id, token } = currentPick;
+      pickBusy = true;
+      pickButtons.forEach((b) => { b.disabled = true; });
+      pickStatus.textContent = 'Đang lưu lựa chọn...';
+      try {
+        const response = await fetch(PICK_URL, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, token, choice: button.dataset.pick }),
+        });
+        const result = await response.json();
+        if (!response.ok || !result.ok) throw new Error(result.error || 'Không lưu được lựa chọn.');
+        if (currentPick?.id === id) {
+          currentPick = null;
+          pickButtons.forEach((b) => { b.hidden = true; });
+          pickStatus.textContent = `Đã lưu lựa chọn Version ${button.dataset.pick}. Cảm ơn bạn!`;
+        }
+      } catch (error) {
+        if (currentPick?.id === id) {
+          pickStatus.textContent = error.message || 'Không lưu được lựa chọn.';
+          pickButtons.forEach((b) => { b.disabled = false; });
+        }
+      } finally { pickBusy = false; }
+    }));
+
     /* ---------- submit -> /api/generate ---------- */
     async function submit() {
       if (busy) return;
       const text = input.value.trim();
       if (!text && attachedFiles.length === 0) return;
+      currentPick = null;
+      pickStatus.textContent = '';
+      pickButtons.forEach((button) => { button.hidden = true; });
 
       busy = true;
       mainContainer.classList.add('has-output');
