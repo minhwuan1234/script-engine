@@ -3,7 +3,8 @@ from pathlib import Path
 
 import requests
 
-skill_root = Path("skill-deploy/magnetic-script-healthcare")
+
+skill_root = Path("skill-deploy/magnetic-script-engine")
 skill_id = os.environ["ANTHROPIC_SKILL_ID"]
 api_key = os.environ["ANTHROPIC_API_KEY"]
 
@@ -27,6 +28,9 @@ try:
             )
         )
 
+    if not uploads:
+        raise RuntimeError(f"No files found in {skill_root}")
+
     response = requests.post(
         f"https://api.anthropic.com/v1/skills/{skill_id}/versions",
         headers={
@@ -37,13 +41,12 @@ try:
         timeout=120,
     )
 
-if not response.ok:
-    print("Anthropic API status:", response.status_code)
-    print("Anthropic API response:", response.text)
-    response.raise_for_status()
+    if not response.ok:
+        print("Anthropic API status:", response.status_code)
+        print("Anthropic API response:", response.text)
+        response.raise_for_status()
 
     result = response.json()
-
     print("Published skill version:", result["id"])
 
 finally:
