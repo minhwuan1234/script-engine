@@ -15,19 +15,6 @@ This skill's job stops at writing good markdown. The calling app (not this skill
 
 **The document arrives as plain text already — you never extract it yourself.** The app converts any uploaded PDF/DOCX/PPTX to plain text in its own code (deterministic parsing, not a model call) before it ever reaches you, and hands it to you as a normal text block headed `--- filename ---`. Treat that block exactly like pasted text — it already *is* the document, nothing left to open or parse. Do not load `file-reading`, `pdf-reading`, `python-docx` or `python-pptx`, and do not run code_execution to read a file — there is no file object here to read, only text you already have. The one exception: a scanned PDF with no real text layer arrives instead as a native PDF attachment (the app's code detects this and falls back automatically) — if that happens, just read it the normal way any attached document is read; no special step needed on your side either way.
 
-## Inputs
-
-| Input | Required | If missing |
-|---|---|---|
-| Document / text | Yes | Nothing to run the engine on — there's no one to ask, so say plainly in your response that no document/text came through, and stop there instead of producing a diagnosis. |
-| Narrative style | No | Engine picks two contrasting styles |
-| Platform | No | Engine recommends, with reason |
-| Series vs one-off | No | Engine recommends, with reason |
-| Duration | No | Engine recommends, with reason |
-| ICP | No | Infer from the doc; state the inference |
-
-Never stop mid-run to ask about an optional input — there's no channel back to a person to answer, and the tool's promise is "drop your doc, get a script" in one pass. Infer, state the assumption in one line, move on. The only input worth flagging as blocking is a genuinely missing/unreadable document, and even then you don't "ask" — you just say so in your single response, since that's the only message you get to send.
-
 ## Before writing anything
 
 1. Load `brand-lens` (`/mnt/skills/user/brand-lens/SKILL.md`). The *scripts* speak for the client's content, not for F.Learning — but the *thinking* (Understanding Failure → Design Principle) and the voice of the Reason / Best-when copy are F's. That copy is where F's expertise becomes visible to the prospect.
