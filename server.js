@@ -12,6 +12,9 @@
 //   ADMIN_TOKEN         optional  enables GET /api/usage (send as ?key=... or Authorization: Bearer ...)
 //   USAGE_LOG           optional  JSONL file for usage records. Default ./usage.jsonl
 //                                 (Railway disk is wiped on redeploy: mount a Volume at /data and set /data/usage.jsonl)
+//   ICP_SIGNAL_LOG      optional  learned ICP words/phrases. Default ./icp-signals.jsonl
+//   ICP_REFRESH_RATE    optional  share of confident matches still checked by Haiku. Default 0.1
+//   ICP_SIGNAL_MIN_COUNT optional observations before a learned signal can select an ICP. Default 3
 //   PRICE_IN_PER_M      optional  USD per 1M input tokens, default 3   (cost is an ESTIMATE; set to your model's price)
 //   PRICE_OUT_PER_M     optional  USD per 1M output tokens, default 15
 //   PORT                set by Railway
@@ -32,6 +35,7 @@ import mammoth from 'mammoth';
 import pdfParse from 'pdf-parse/lib/pdf-parse.js';
 import JSZip from 'jszip';
 import { createPreferenceStore, STYLES } from './preference-store.js';
+import { createIcpSignalStore, ICP_KEYS } from './icp-signal-store.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const {
@@ -43,6 +47,9 @@ const {
   ADMIN_TOKEN,
   USAGE_LOG = path.join(__dirname, 'usage.jsonl'),
   PREFERENCE_LOG = path.join(__dirname, 'preferences.jsonl'),
+  ICP_SIGNAL_LOG = path.join(__dirname, 'icp-signals.jsonl'),
+  ICP_REFRESH_RATE = '0.1',
+  ICP_SIGNAL_MIN_COUNT = '3',
   PRICE_IN_PER_M = '3',
   PRICE_OUT_PER_M = '15',
   ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages', // overridable for testing
@@ -55,6 +62,9 @@ const ANTHROPIC_API_KEY = process.env.CLAUDE_API || process.env.ANTHROPIC_API_KE
 const MAX_BODY = 25 * 1024 * 1024; // total upload cap
 const hits = new Map();
 const preferenceStore = createPreferenceStore(PREFERENCE_LOG);
+const icpSignalStore = createIcpSignalStore(ICP_SIGNAL_LOG, {
+  minCount: Math.max(2, Number(ICP_SIGNAL_MIN_COUNT) || 3),
+});
 const DURATION_OPTIONS = ['30s-60s', '2-3 mins', 'upto 5 mins'];
 const DEFAULT_DURATION = '2-3 mins';
 // Same three buckets the UI's dropdown offers, as [min_seconds, max_seconds].
@@ -221,13 +231,18 @@ ICP_LENSES.unclear.text = ICP_LENSES.unclear.text.replace(
   ICP_LENSES.healthcare.text
 );
 
-const ICP_KEYS = ['healthcare', 'corporate_lnd', 'publishing', 'ngo'];
 const ICP_EXCERPT_CHARS = 3000; // plenty to tell these 4 domains apart; keeps the classifier call tiny
 
-// One small, fast, non-streaming call. Any failure (bad response, network, timeout) just
-// falls back to "unclear" — this guess is an optimization, never something the run depends on.
+// Existing signals make confident classifications locally. Uncertain inputs go to Haiku, and
+// a configurable share of confident matches also goes to Haiku so the collection keeps learning.
 async function classifyIcp(excerpt) {
-  if (!excerpt || excerpt.trim().length < 20) return 'unclear';
+  if (!excerpt || excerpt.trim().length < 20) return { icp: 'unclear', source: 'no_text' };
+  const local = icpSignalStore.classify(excerpt);
+  const refreshRate = Math.max(0, Math.min(1, Number(ICP_REFRESH_RATE) || 0));
+  const refresh = local.confident && Math.random() < refreshRate;
+  if (local.confident && !refresh) {
+    return { ...local, source: 'signals' };
+  }
   try {
     const res = await fetch(ANTHROPIC_API_URL, {
       method: 'POST',
@@ -238,10 +253,13 @@ async function classifyIcp(excerpt) {
       },
       body: JSON.stringify({
         model: ICP_MODEL,
-        max_tokens: 8,
+        max_tokens: 300,
         system:
-          'Classify which audience a document excerpt is written for. Reply with exactly one word, ' +
-          'no punctuation, no explanation: healthcare, corporate_lnd, publishing, ngo, or unclear.\n' +
+          'Classify which audience a document excerpt is written for. Return only valid JSON in this shape: ' +
+          '{"icp":"healthcare|corporate_lnd|publishing|ngo|unclear","confidence":0.0,"signals":["exact phrase"]}. ' +
+          'Signals must be 1-5 word lowercase phrases copied exactly from the excerpt. Return 2-8 distinctive ' +
+          'signals that explain the classification. Do not return generic words such as content, video, audience, ' +
+          'training, education, learning, or document by themselves. Use an empty signals array for unclear.\n' +
           '- healthcare: patient/clinical material (discharge instructions, medication guides, HCP education)\n' +
           '- corporate_lnd: internal workplace material (policies, SOPs, handbooks, onboarding, safety procedures)\n' +
           '- publishing: educational/editorial material (textbook chapters, course notes, ebooks, study guides)\n' +
@@ -250,12 +268,28 @@ async function classifyIcp(excerpt) {
         messages: [{ role: 'user', content: excerpt.slice(0, ICP_EXCERPT_CHARS) }],
       }),
     });
-    if (!res.ok) return 'unclear';
+    if (!res.ok) return local.confident ? { ...local, source: 'signals_fallback' } : { icp: 'unclear', source: 'model_error' };
     const data = await res.json();
-    const word = String(data.content?.[0]?.text || '').trim().toLowerCase().replace(/[^a-z_]/g, '');
-    return ICP_KEYS.includes(word) ? word : 'unclear';
+    const raw = String(data.content?.[0]?.text || '').trim().replace(/^```(?:json)?\s*|\s*```$/g, '');
+    const answer = JSON.parse(raw);
+    const modelIcp = ICP_KEYS.includes(answer.icp) ? answer.icp : 'unclear';
+    const confidence = Math.max(0, Math.min(1, Number(answer.confidence) || 0));
+    let acceptedSignals = [];
+    if (modelIcp !== 'unclear' && confidence >= 0.6) {
+      try {
+        acceptedSignals = icpSignalStore.observe({
+          icp: modelIcp, confidence, signals: answer.signals, sourceText: excerpt,
+        });
+      } catch (error) {
+        console.error('Could not save ICP signals:', error.message);
+      }
+    }
+    if (modelIcp !== 'unclear') {
+      return { icp: modelIcp, confidence, signals: acceptedSignals, source: refresh ? 'model_refresh' : 'model' };
+    }
+    return local.confident ? { ...local, source: 'signals_after_model_unclear' } : { icp: 'unclear', confidence, source: 'model' };
   } catch {
-    return 'unclear';
+    return local.confident ? { ...local, source: 'signals_fallback' } : { icp: 'unclear', source: 'model_error' };
   }
 }
 
@@ -617,10 +651,13 @@ async function handleGenerate(req, res) {
     const classifyExcerpt = [text, ...blocks.filter((b) => b.type === 'text').map((b) => b.text)]
       .join('\n\n')
       .slice(0, ICP_EXCERPT_CHARS);
-    const icpKey = await classifyIcp(classifyExcerpt);
+    const icpDecision = await classifyIcp(classifyExcerpt);
+    const icpKey = icpDecision.icp;
     const icpLens = ICP_LENSES[icpKey];
     const strategyPair = preferenceStore.choosePair(icpKey);
     rec.icp_guess = icpKey; // logging/debugging only, never document content
+    rec.icp_source = icpDecision.source;
+    rec.icp_new_signal_count = icpDecision.signals?.length || 0;
 
     const instruction =
       `Use the magnetic-script-engine skill on the document provided below (attached file(s) and/or pasted text).\n` +
