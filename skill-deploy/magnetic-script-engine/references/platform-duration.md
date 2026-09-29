@@ -54,6 +54,6 @@ Per segment: 1.5–3.0 words/sec is healthy. Above ~3.0 reads rushed; below ~1.5
 
 Hook (0:00–0:15): 30–40 words.
 
-Crazy level shifts pace: Low and visual-led scripts can sit near 2.0 w/s overall (room to breathe, visual reveals); High usually runs 2.2–2.7 w/s with short, punchy segments.
+Visual-led scripts can sit near 2.0 w/s overall to leave room for reveals and pauses. Keep speech within the segment pacing range above.
 
 `scripts/check_timing.py` checks these numbers on a finished draft.

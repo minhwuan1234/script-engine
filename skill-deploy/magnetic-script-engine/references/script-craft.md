@@ -17,13 +17,13 @@ A document is written to be *complete*. A script is written to be *followed*. Mo
 
 ## 1. The spine
 
-Every script, any style, any level, carries this spine:
+Every script, in any style, carries this spine:
 
 1. **Tension** — a gap between what the viewer thinks/does and what's actually true or needed. Built from the diagnosis (the likely misunderstanding), never from a generic "health is important".
 2. **Mechanism** — why the rule exists, shown simply enough to picture. This is what turns "a rule I was told" into "a thing I understand", and it's what makes the rule survive contact with real life.
 3. **Action** — one specific, observable thing to do, with the trigger ("when you see X, do Y").
 
-The narrative style decides *how* the spine is told. The crazy level decides *how hot*. The spine doesn't move.
+The narrative style decides *how* the spine is told. The spine doesn't move.
 
 ## 2. The hook (0:00–0:15)
 
@@ -123,7 +123,6 @@ Before output, answer each honestly. Fix failures in the script itself.
 | 5 | Every locked fact is present and exactly right; no invented facts/stats/stories |
 | 6 | Ends on one observable action with a trigger |
 | 7 | Word count within budget; `check_timing.py` shows no dense/thin flags (or they're intentional and noted) |
-| 8 | Crazy level is audible — a reader could guess the level from the hook alone |
-| 9 | Versions A and B differ in angle/structure, not just wording |
-| 10 | No anti-pattern lines from §8 |
-| 11 | Reason copy names the understanding problem in plain language and ties it to a script choice |
+| 8 | Versions A and B differ in angle/structure, not just wording |
+| 9 | No anti-pattern lines from §8 |
+| 10 | Reason copy names the understanding problem in plain language and ties it to a script choice |
