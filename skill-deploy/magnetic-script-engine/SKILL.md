@@ -9,9 +9,9 @@ This skill is the engine of a lead magnet. A prospect uploads a document they're
 
 The engine is the same for every ICP. Only the framing (who the viewer is, what's at stake, which guardrails apply) changes. See `references/icp-lenses.md`.
 
-This skill's job stops at writing good markdown. The calling app (not this skill) turns that markdown into JSON and runs the timing/pacing/duration checks in its own code — see "On JSON / machine-readable output" and Step 5 below. Nothing here should try to redo that in a code_execution call. `scripts/check_timing.py` is kept in this folder only as a reference copy of the original logic (now ported into the app's `server.js`); it is not run as part of this skill — do not invoke it.
+This skill writes the finished markdown. The app extracts text from files, supplies a duration and word budget, and parses the markdown into JSON. Follow the pacing checks below while writing; the app currently computes the budget but does not validate each finished timestamp row. Do not run code for these checks.
 
-**How this skill is actually invoked.** In production this runs behind an API call from the app's server, not a chat: the app sends one request with the document plus the visitor's duration and the narrative pair chosen by the app, and you return one finished response. There is no back-and-forth — you cannot pause mid-run and wait for a reply, because there is no one on the other end of a chat to answer. Anywhere below that used to say "ask", read it as "note the gap and keep going" or, for the one case where the run truly cannot proceed (no document at all), "say so plainly in your one response instead of the normal output."
+The app invokes this skill through one API request containing the document, selected duration and narrative styles for A/B. Return one finished response. The server rejects empty input before calling the model.
 
 **The document arrives as plain text already — you never extract it yourself.** The app converts any uploaded PDF/DOCX/PPTX to plain text in its own code (deterministic parsing, not a model call) before it ever reaches you, and hands it to you as a normal text block headed `--- filename ---`. Treat that block exactly like pasted text — it already *is* the document, nothing left to open or parse. Do not load `file-reading`, `pdf-reading`, `python-docx` or `python-pptx`, and do not run code_execution to read a file — there is no file object here to read, only text you already have. The one exception: a scanned PDF with no real text layer arrives instead as a native PDF attachment (the app's code detects this and falls back automatically) — if that happens, just read it the normal way any attached document is read; no special step needed on your side either way.
 
@@ -21,7 +21,6 @@ This skill's job stops at writing good markdown. The calling app (not this skill
 2. Read these references now — they are the craft, not optional detail:
    - `references/script-craft.md` — how a magnetic script is built, line by line
    - `references/narrative-styles.md` — the style library and how to pick a contrasting pair
-   - `references/platform-duration.md` — recommendation rules + word budgets
    - `references/icp-lenses.md` — per-ICP viewer, stakes, guardrails
 
 ## The flow
@@ -39,17 +38,25 @@ This step is what separates F's engine from "summarize this into a video". Answe
 
 ### Step 2 — Recommend platform, format, duration
 
-Use `references/platform-duration.md`. Always show the recommendation with a one-line reason tied to the diagnosis (viewer's moment, number of jobs, attention context). If the incoming request already specified something (platform, duration, etc.), respect it — and if the pick fights the content (e.g. 30s Short for a doc with four critical jobs), say so in one sentence and still deliver on that pick.
+Match the recommended platform to where the viewer needs the knowledge:
 
-If series is recommended: give an episode map (3–6 rows: episode, the one job, working title) and write the scripts for **episode 1 only**, saying so. Episode 1 is the job with the highest cost of getting wrong, not the doc's first section — if that breaks the doc's order (or the usual order for this topic), say why in one line. That reordering is often the most visible piece of expertise in the whole output.
+- YouTube long-form (16:9): sought-out explainer; roughly 1.5–8 minutes.
+- Shorts/Reels/TikTok (9:16): scrolling viewer; roughly 20–60 seconds and one job.
+- LinkedIn feed: work context, captions first; roughly 45–90 seconds.
+- Internal LMS: assigned learning; roughly 1–5 minutes per module.
+- Clinic screen or QR on leaflet: distracted viewer, sound optional; roughly 1–3 minutes.
+
+Typical starting points by ICP: healthcare → unlisted YouTube/QR or clinic screen; corporate L&D → LMS or unlisted video; publishing → YouTube explainer with optional short cutdowns; NGO → short awareness video or a 2–3 minute partner/donor explainer. Override these defaults when the document's audience and viewing moment point elsewhere.
+
+Use the selected duration from the app for both scripts. In Recommended setup, name the platform and explain whether the chosen duration fits the diagnosis; if it is too short for several critical jobs, flag the tradeoff while still delivering the requested duration. A short script holds one job, one mechanism and one action; 2–4 minutes can carry a multi-step mechanism or two linked jobs. Long educational explainers can take 4–8 minutes when the model itself needs explaining. Choose by the viewer's job, not the document's length. For one job or two tightly linked jobs, recommend a one-off. For three or more separable jobs, or a reference manual used for lookup, recommend a series.
+
+If series is recommended: give an episode map (3–6 rows: episode, the one job, working title) and write the scripts for **episode 1 only**, saying so. Episode 1 is the job with the highest cost of getting wrong, not necessarily the doc's first section.
 
 ### Step 3 — Choose the two versions
 
 Two versions must differ on a real axis — POV, structure, or where the tension comes from — not just wording. Use the pairing guidance in `references/narrative-styles.md`.
 
-- If the calling app specifies narrative styles for both Version A and Version B, use those exact styles in those exact version slots. The app chooses a contrasting pair using prior A/B picks for the relevant ICP. Keep the versions distinct, and name the styles in their headings. Do not infer a different style pair from the document in this case.
-- If only one style is specified, Version A uses it. Version B is the engine's best contrasting pick.
-- No pick → choose the two styles that best fit the diagnosis and contrast most usefully.
+Use the exact narrative style the app assigns to each version. The app chooses a contrasting pair using prior A/B picks for the relevant ICP. Keep the versions distinct and name the styles in their headings.
 
 Both versions use the **same duration**. The versions change angle.
 
@@ -57,7 +64,7 @@ Both versions use the **same duration**. The versions change angle.
 
 Follow `references/script-craft.md`. Non-negotiables:
 
-- Word count fits duration — the request you received includes a pre-computed `vo_word_budget` JSON block (min/max words for the picked duration, at both long-form and short-form pace, plus the hook's 30–40 word target). Use those numbers directly — they're already the `references/platform-duration.md` formula run for you, so there's no wpm × seconds math left for you to do. You do not need to run anything to verify this yourself — the calling app checks actual pacing after you're done and logs any mismatch; your job is to write to the budget, not to prove you hit it.
+- Word count fits duration — the request includes a pre-computed `vo_word_budget` JSON block for the selected duration. Use it directly for both versions. It reserves about 10% of the runtime for pauses and visual beats (around 150 words/minute for long-form, 160–170 for short-form).
 - Hook = first 15 seconds, written as its own block. It must work alone — it is the free preview before the email gate.
 - Every locked fact from Step 1 appears correctly. No invented statistics, studies, quotes, or case stories. If a number would help and the doc doesn't have one, write `[ADD SOURCED STAT]` rather than making one up.
 - The script reveals the mechanism, not just the rule (this is the anti–False Certainty move, and the thing that makes F's work different).
@@ -65,13 +72,20 @@ Follow `references/script-craft.md`. Non-negotiables:
 
 ### Step 5 — Quality gate (do this honestly before output)
 
-Run the checklist in `references/script-craft.md` → "Quality gate". If any item fails, fix the script, don't just note it — this part stays yours, because it's judgment (locked facts present and correct, no invented claims, mechanism actually revealed, hook works standalone), not something a word-count script could catch.
+Run the checklist in `references/script-craft.md` → "Quality gate". Fix failures in the script itself: locked facts, mechanism, hook and observable action all require judgment.
 
-Do **not** run a timing/pacing script yourself, and do not open or read `scripts/check_timing.py` — it is legacy reference only. That check now lives in the calling app's own code and runs automatically on your finished markdown after you deliver it — it costs no extra step here, and re-doing it yourself would just spend a code_execution call re-deriving something the app already computes for free.
+Check timing from the finished timestamp rows in **each** version:
+
+- Hook rows cover 0:00–0:15 and total roughly 30–40 voiceover words.
+- Each timestamp range has a positive duration. Aim for 1.5–3.0 spoken words per second: above 3.0 will feel rushed; below 1.5 needs a deliberate pause or visual reveal described in On screen.
+- Total voiceover words fit the app's `vo_word_budget` for the selected duration. The last row ends within that duration; leave time for visual-only beats.
+- Exclude bracketed production notes such as `[ADD SOURCED STAT]` when estimating spoken words. Check A and B separately. Revise crowded or thin rows before output.
+
+These are writing checks in the skill; no Python timing script is loaded or run. The app computes the target budget, while a deterministic post-generation timing validator would require separate server code.
 
 ### Step 6 — Output
 
-Write plain text in this **exact** markdown structure — do not summarize it, do not wrap it in JSON, do not add narration before or after it. This is the one and only message you send back for this run, so it has to be complete and self-contained; the calling app parses these fixed headings with code on its side to build its own data structure (a JSON "output gateway") and to run the timing check, so the heading wording and nesting below must match exactly, every time — that reliability is code's job, not something you need to think about beyond following the template. Language: English (the tool is client-facing), unless the request says otherwise.
+Write plain text in this **exact** markdown structure — no JSON or text before or after it. The app parses the fixed Version headings to build its output fields, so preserve their wording and nesting. Write in English unless the input explicitly requests another language.
 
 ```
 # [Working title] — Magnetic Script
@@ -120,14 +134,10 @@ Write plain text in this **exact** markdown structure — do not summarize it, d
 (same structure)
 
 ## Engine notes
-- Assumptions made (inputs inferred)
+- Assumptions made from ambiguous document content or ICP
 - Flags (missing mechanism, [ADD SOURCED STAT] placeholders, doc claims that need client/clinical check)
 ```
 
 Timestamps are ranges (`0:00–0:05`). Hook rows cover exactly 0:00–0:15; the Script table continues from 0:15. "On screen" says what the viewer sees that does explanatory work — not decoration (see script-craft).
 
 The calling app already knows the duration it asked for (it came from its own UI) — you don't need to make it machine-parseable in the markdown.
-
-## On JSON / machine-readable output
-
-Never produce JSON yourself, even if the request asks for "machine-readable output" or "JSON for the UI." Say that the calling app builds its JSON from this same markdown by parsing the fixed headings above with code — there is nothing extra for you to generate, and writing JSON by hand only adds risk of malformed output for no benefit.
