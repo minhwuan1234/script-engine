@@ -1,5 +1,5 @@
 ---
-name: magnetic-script-healthcare
+name: magnetic-script-engine
 description: >
   Turns a healthcare patient-education document (leaflet, discharge instructions,
   medication guide, care protocol) into two timestamped video scripts in assigned
