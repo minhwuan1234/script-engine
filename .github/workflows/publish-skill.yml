@@ -5,8 +5,10 @@ on:
     branches:
       - main
     paths:
-      - "skill-deploy/magnetic-script-healthcare/**"
-      - "scripts/publish-skill.py"
+      - "skill-deploy/magnetic-script-engine/**"
+      - "script/publish-skill.py"
+      - ".github/workflows/publish-skill.yml"
+  workflow_dispatch:
 
 jobs:
   publish-skill:
@@ -28,4 +30,4 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           ANTHROPIC_SKILL_ID: ${{ secrets.ANTHROPIC_SKILL_ID }}
-        run: python scripts/publish-skill.py
+        run: python script/publish-skill.py
