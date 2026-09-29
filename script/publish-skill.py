@@ -37,7 +37,7 @@ try:
         timeout=120,
     )
 
-   if not response.ok:
+if not response.ok:
     print("Anthropic API status:", response.status_code)
     print("Anthropic API response:", response.text)
     response.raise_for_status()
