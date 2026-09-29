@@ -1,0 +1,31 @@
+name: Publish Anthropic Skill
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "skill-deploy/magnetic-script-healthcare/**"
+      - "scripts/publish-skill.py"
+
+jobs:
+  publish-skill:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependency
+        run: pip install requests
+
+      - name: Publish new skill version
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_SKILL_ID: ${{ secrets.ANTHROPIC_SKILL_ID }}
+        run: python scripts/publish-skill.py
