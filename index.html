@@ -362,11 +362,9 @@
 <script>
 /* ===== API CONFIG =====
  * API_URL     : backend endpoint that holds the Claude API key (NEVER put the key in this file).
- * CRAZY_LEVEL : 'Low' | 'Medium' | 'High' (fixed for now, UI slider comes later)
  */
 const API_URL = '/api/generate';
 const PICK_URL = '/api/pick';
-const CRAZY_LEVEL = 'Medium';
 const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the server)
 
 (() => {
@@ -574,7 +572,7 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
     // plain text/markdown per section (see SKILL.md Step 6). No regex-parsing of headings —
     // and the JSON itself is never shown to the user, only the text inside each field.
     const GATEWAY_FIELDS = [
-      'title', 'crazy_level', 'duration', 'icp', 'preface_md',
+      'title', 'duration', 'icp', 'preface_md',
       'version_a_title', 'version_a_md', 'version_b_title', 'version_b_md', 'engine_notes_md',
     ];
     const hasGatewayFields = (data) => GATEWAY_FIELDS.every((k) => typeof data[k] === 'string');
@@ -608,7 +606,7 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
         return;
       }
 
-      const meta = `Crazy: ${data.crazy_level} · Duration: ${data.duration}`;
+      const meta = `Duration: ${data.duration}`;
       // data.preface_md (doc diagnosis / setup / version-comparison notes) is still returned by
       // the API and available here if ever needed again — just not shown in this UI anymore.
 
@@ -669,7 +667,6 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
 
       const fd = new FormData();
       fd.append('text', text);
-      fd.append('crazy', CRAZY_LEVEL);
       fd.append('duration', durationSelect.value);
       attachedFiles.forEach((f) => fd.append('files', f, f.name));
 
@@ -746,7 +743,7 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
       (d.latest || []).slice(0, 6).forEach((r) => {
         const line = document.createElement('div');
         const t = new Date(r.ts).toLocaleString('vi-VN', { hour12: false, day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
-        line.textContent = `${t} · ${r.status} · ${r.crazy || '-'} · ${fmt((r.input_tokens || 0) + (r.output_tokens || 0))} tok · $${Number(r.est_cost_usd || 0).toFixed(3)}`;
+        line.textContent = `${t} · ${r.status} · ${fmt((r.input_tokens || 0) + (r.output_tokens || 0))} tok · $${Number(r.est_cost_usd || 0).toFixed(3)}`;
         latest.appendChild(line);
       });
       usageBody.appendChild(latest);
