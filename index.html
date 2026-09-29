@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="vi">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -50,16 +50,16 @@
 
                     <textarea class="tpw-input" rows="1" placeholder="Paste text or drag files here..."></textarea>
 
-                    <select class="tpw-duration" aria-label="Độ dài video">
+                    <select class="tpw-duration" aria-label="Video duration">
                         <option value="30s-60s">30s–60s</option>
                         <option value="2-3 mins" selected>2–3 mins</option>
-                        <option value="upto 5 mins">upto 5 mins</option>
+                        <option value="upto 5 mins">Up to 5 mins</option>
                     </select>
 
                     <div class="tpw-actions">
 
                         <div class="tpw-plus-wrap">
-                            <button class="tpw-plus" type="button" aria-label="Thêm tệp">
+                            <button class="tpw-plus" type="button" aria-label="Add files">
                                 <svg viewBox="0 0 24 24"><path d="M12 4.5v15m7.5-7.5h-15"/></svg>
                             </button>
 
@@ -69,20 +69,20 @@
                                         <svg viewBox="0 0 24 24"><path d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
                                     </span>
                                     <span>
-                                        <strong>Tải tệp lên</strong>
-                                        <small>PDF, TXT, MD (DOC/XLSX/ảnh: sắp có)</small>
+                                        <strong>Upload files</strong>
+                                        <small>PDF, TXT, MD (DOC/XLSX/images coming soon)</small>
                                     </span>
                                 </button>
                             </div>
                         </div>
 
-                        <button class="tpw-submit" type="button" aria-label="Gửi">
+                        <button class="tpw-submit" type="button" aria-label="Submit">
                             <svg viewBox="0 0 24 24"><path d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
                         </button>
 
                     </div>
 
-                    <div class="tpw-drag-hint">Thả tệp vào đây</div>
+                    <div class="tpw-drag-hint">Drop files here</div>
 
                 </div>
             </div>
@@ -90,7 +90,7 @@
             <div class="tpw-output-section">
                 <div class="tpw-loading-overlay">
                     <div class="tpw-spinner"></div>
-                    <span class="tpw-loading-text">Đang xử lý nội dung... (có thể mất 1–3 phút)</span>
+                    <span class="tpw-loading-text">Processing content... (this may take 1–3 minutes)</span>
                 </div>
 
                 <div class="tpw-output-result">
@@ -100,7 +100,7 @@
                             <div class="tpw-output-title" id="tpw-title-a">-</div>
                             <div class="tpw-output-meta" id="tpw-meta-a"></div>
                             <div class="tpw-output-body" id="tpw-output-a"></div>
-                            <button class="tpw-pick-btn" type="button" data-pick="A" hidden>Chọn Version A</button>
+                            <button class="tpw-pick-btn" type="button" data-pick="A" hidden>Choose Version A</button>
                         </div>
 
                         <div class="tpw-output-card">
@@ -108,7 +108,7 @@
                             <div class="tpw-output-title" id="tpw-title-b">-</div>
                             <div class="tpw-output-meta" id="tpw-meta-b"></div>
                             <div class="tpw-output-body" id="tpw-output-b"></div>
-                            <button class="tpw-pick-btn" type="button" data-pick="B" hidden>Chọn Version B</button>
+                            <button class="tpw-pick-btn" type="button" data-pick="B" hidden>Choose Version B</button>
                         </div>
                     </div>
                     <div class="tpw-pick-status" role="status" aria-live="polite"></div>
@@ -597,7 +597,7 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
       if (!hasGatewayFields(data)) {
         currentPick = null;
         pickButtons.forEach((button) => { button.hidden = true; });
-        pickStatus.textContent = 'Chưa thể chọn A/B: kết quả không có đủ hai phiên bản theo cấu trúc yêu cầu.';
+        pickStatus.textContent = 'A/B selection is unavailable because the result does not contain two complete versions.';
         // fallback: engine didn't return the expected gateway fields -> show raw text so nothing is lost
         titleA.textContent = 'Result'; titleB.textContent = '-';
         metaA.textContent = ''; metaB.textContent = '';
@@ -618,13 +618,13 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
       currentPick = data.ab_pick || null;
       pickButtons.forEach((button) => { button.hidden = !currentPick; button.disabled = false; });
       if (currentPick) {
-        pickStatus.textContent = 'Bạn thích phiên bản nào hơn? Chọn A hoặc B để hệ thống ghi nhận.';
+        pickStatus.textContent = 'Which version do you prefer? Choose A or B to help the system learn.';
       } else {
         pickStatus.textContent = data.ab_pick_status === 'storage_unavailable'
-          ? 'Chưa thể chọn A/B: server không lưu được dữ liệu lựa chọn. Kiểm tra PREFERENCE_LOG và Railway Volume.'
+          ? 'A/B selection is unavailable because the server could not save preference data. Check PREFERENCE_LOG and the Railway Volume.'
           : data.ab_pick_status === 'strategy_mismatch'
-            ? 'Chưa thể chọn A/B: bản script không theo đúng hai chiến lược đã gán.'
-            : 'Chưa thể chọn A/B: backend chưa trả ab_pick. Hãy cập nhật server.js và thêm preference-store.js.';
+            ? 'A/B selection is unavailable because the scripts did not follow the two assigned styles.'
+            : 'A/B selection is unavailable because the backend did not return a preference token.';
       }
 
     }
@@ -634,22 +634,22 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
       const { id, token } = currentPick;
       pickBusy = true;
       pickButtons.forEach((b) => { b.disabled = true; });
-      pickStatus.textContent = 'Đang lưu lựa chọn...';
+      pickStatus.textContent = 'Saving your choice...';
       try {
         const response = await fetch(PICK_URL, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id, token, choice: button.dataset.pick }),
         });
         const result = await response.json();
-        if (!response.ok || !result.ok) throw new Error(result.error || 'Không lưu được lựa chọn.');
+        if (!response.ok || !result.ok) throw new Error(result.error || 'Could not save your choice.');
         if (currentPick?.id === id) {
           currentPick = null;
           pickButtons.forEach((b) => { b.hidden = true; });
-          pickStatus.textContent = `Đã lưu lựa chọn Version ${button.dataset.pick}. Cảm ơn bạn!`;
+          pickStatus.textContent = `Version ${button.dataset.pick} saved. Thank you!`;
         }
       } catch (error) {
         if (currentPick?.id === id) {
-          pickStatus.textContent = error.message || 'Không lưu được lựa chọn.';
+          pickStatus.textContent = error.message || 'Could not save your choice.';
           pickButtons.forEach((b) => { b.disabled = false; });
         }
       } finally { pickBusy = false; }
@@ -668,7 +668,7 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
       mainContainer.classList.add('has-output');
       loadingOverlay.classList.add('is-loading');
       resultBox.classList.remove('is-ready');
-      loadingText.textContent = 'Đang xử lý nội dung... (có thể mất 1–3 phút)';
+      loadingText.textContent = 'Processing content... (this may take 1–3 minutes)';
 
       const fd = new FormData();
       fd.append('text', text);
@@ -688,11 +688,11 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
         loadingOverlay.classList.remove('is-loading');
         showResult(data);
         if (data.skipped && data.skipped.length) {
-          metaB.textContent = `Bỏ qua (chưa hỗ trợ): ${data.skipped.join(', ')}`;
+          metaB.textContent = `Skipped (unsupported): ${data.skipped.join(', ')}`;
         }
       } catch (err) {
         loadingOverlay.classList.remove('is-loading');
-        showError(err.message || 'Có lỗi xảy ra.');
+        showError(err.message || 'Something went wrong.');
       } finally {
         busy = false;
       }
@@ -747,7 +747,7 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
       latest.className = 'tpw-usage-latest';
       (d.latest || []).slice(0, 6).forEach((r) => {
         const line = document.createElement('div');
-        const t = new Date(r.ts).toLocaleString('vi-VN', { hour12: false, day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+        const t = new Date(r.ts).toLocaleString('en-US', { hour12: false, day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
         line.textContent = `${t} · ${r.status} · ${fmt((r.input_tokens || 0) + (r.output_tokens || 0))} tok · $${Number(r.est_cost_usd || 0).toFixed(3)}`;
         latest.appendChild(line);
       });
@@ -762,16 +762,16 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
     async function loadUsage() {
       const key = usageKey.value.trim() || getSaved();
       usageMsg.textContent = '';
-      if (!key) { usageMsg.textContent = 'Nhập admin key.'; return; }
+      if (!key) { usageMsg.textContent = 'Enter the admin key.'; return; }
       try {
         const res = await fetch(USAGE_URL, { headers: { 'x-admin-token': key } });
-        if (!res.ok) throw new Error(res.status === 404 ? 'Sai key hoặc server chưa đặt ADMIN_TOKEN.' : `Lỗi ${res.status}`);
+        if (!res.ok) throw new Error(res.status === 404 ? 'Invalid key or ADMIN_TOKEN is not configured.' : `Error ${res.status}`);
         saveKey(key);
         usageKey.value = '';
         renderUsage(await res.json());
       } catch (err) {
         usageBody.innerHTML = '';
-        usageMsg.textContent = err.message || 'Không tải được usage.';
+        usageMsg.textContent = err.message || 'Could not load usage data.';
       }
     }
 
