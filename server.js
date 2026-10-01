@@ -13,7 +13,6 @@
 //   USAGE_LOG           optional  JSONL file for usage records. Default ./usage.jsonl
 //                                 (Railway disk is wiped on redeploy: mount a Volume at /data and set /data/usage.jsonl)
 //   ICP_SIGNAL_LOG      optional  learned ICP words/phrases. Default ./icp-signals.jsonl
-//   ICP_REFRESH_RATE    optional  share of confident matches still checked by Haiku. Default 0.1
 //   ICP_SIGNAL_MIN_COUNT optional observations before a learned signal can select an ICP. Default 3
 //   PRICE_IN_PER_M      optional  USD per 1M input tokens, default 3   (cost is an ESTIMATE; set to your model's price)
 //   PRICE_OUT_PER_M     optional  USD per 1M output tokens, default 15
@@ -48,7 +47,6 @@ const {
   USAGE_LOG = path.join(__dirname, 'usage.jsonl'),
   PREFERENCE_LOG = path.join(__dirname, 'preferences.jsonl'),
   ICP_SIGNAL_LOG = path.join(__dirname, 'icp-signals.jsonl'),
-  ICP_REFRESH_RATE = '0.1',
   ICP_SIGNAL_MIN_COUNT = '3',
   PRICE_IN_PER_M = '3',
   PRICE_OUT_PER_M = '15',
@@ -67,6 +65,16 @@ const icpSignalStore = createIcpSignalStore(ICP_SIGNAL_LOG, {
 });
 const DURATION_OPTIONS = ['30s-60s', '2-3 mins', 'upto 5 mins'];
 const DEFAULT_DURATION = '2-3 mins';
+const STYLE_REFERENCES = {
+  journey: 'references/style-journey.md',
+  mechanism: 'references/style-mechanism.md',
+  myth: 'references/style-myth.md',
+  before_after: 'references/style-before-after.md',
+  countdown: 'references/style-countdown.md',
+  mystery: 'references/style-mystery.md',
+  qa: 'references/style-qa.md',
+  stakes: 'references/style-stakes.md',
+};
 // Same three buckets the UI's dropdown offers, as [min_seconds, max_seconds].
 // 'upto 5 mins' has min 0 — "up to" means no floor, only a ceiling.
 const DURATION_TARGETS = {
@@ -76,21 +84,18 @@ const DURATION_TARGETS = {
 };
 
 /* ---------- output gateway: code-side, not AI-side ----------
- * The model only ever writes plain markdown in the fixed Step 6 structure (see SKILL.md).
+ * The model only ever writes plain markdown in the fixed Step 7 structure (see SKILL.md).
  * It is never asked to produce JSON. This function IS the gateway: deterministic, regex-based
  * parsing of that fixed markdown into a stable field set, done entirely in code — costs no
  * model tokens and never depends on the model getting JSON syntax right.
  * duration is NOT parsed out of the text — the caller already knows it (it's what
  * it asked for), so they're passed in directly instead of trusting the model to restate them.
  */
-function parseGateway(markdown, { duration }) {
+function parseGateway(markdown, { duration, icp }) {
   const md = String(markdown || '').trim();
 
   const titleMatch = /^#\s+(.*?)(?:\s*[—-]\s*Magnetic Script\s*)?$/m.exec(md);
   const title = titleMatch ? titleMatch[1].trim() : '';
-
-  const icpMatch = /\*\*ICP read:\*\*\s*([^\n]+)/i.exec(md);
-  const icp = icpMatch ? icpMatch[1].trim() : '';
 
   const headingRe = (label) => new RegExp(`^##\\s+${label}\\b[^\\n]*$`, 'im');
   const aHead = headingRe('Version\\s+A').exec(md);
@@ -101,8 +106,7 @@ function parseGateway(markdown, { duration }) {
     return { ok: false, fields: null };
   }
 
-  // preface = everything after the "# ... Magnetic Script" title line and before "## Version A"
-  // (ICP line, Doc diagnosis, Recommended setup, What's different tables).
+  // preface = anything after the title line and before "## Version A".
   const titleEnd = titleMatch ? titleMatch.index + titleMatch[0].length : 0;
   const preface_md = md.slice(titleEnd, aHead.index).trim();
 
@@ -162,87 +166,41 @@ function durationBudget(duration) {
 }
 
 /* ---------- ICP guess: small/cheap model, not the main model ----------
- * references/icp-lenses.md has 4 branches (healthcare, corporate L&D, publishing, NGO) but any
- * one document only ever needs 1. Instead of having the main model read all 4 every run, a
- * cheap/fast model (Haiku) reads a short excerpt of the doc first and picks one label. Code then
- * hands the main model ONLY that section's text, verbatim from icp-lenses.md, as a pre-computed
- * block — same pattern as the duration budget above. If the guess is wrong or the model has no
- * text to look at (e.g. a scanned PDF), it falls back to "unclear", which is icp-lenses.md's own
- * safest-guardrails default — never a hard failure.
+ * A cheap/fast model (Haiku) reads a short excerpt and selects one ICP key. The main
+ * model receives only that key plus the exact reference path to open at Step 3 of the
+ * skill. This preserves progressive disclosure: unused ICP references stay unread.
  */
 const ICP_LENSES = {
   healthcare: {
     label: 'Healthcare / pharma / patient education',
-    text:
-      '## Healthcare / pharma / patient education\n\n' +
-      '- **Typical docs**: discharge instructions, condition leaflets, medication guides, pre-op prep, HCP education decks.\n' +
-      '- **Viewer**: patients and caregivers, often low health literacy, stressed, older, multilingual; or HCPs short on time.\n' +
-      '- **What magnetic means**: "this finally makes sense and I know what to do tomorrow morning". Calm clarity beats spectacle; High still works if the drama is the body\'s real signal.\n' +
-      '- **Guardrails**:\n' +
-      '  - Never contradict, soften, or reinterpret clinical instructions. Thresholds and "call when…" lines stay in the doc\'s terms.\n' +
-      '  - No blame ("if you\'d just followed the rules…"). No shame about weight, diet, adherence.\n' +
-      '  - No invented outcomes or mortality numbers. Use the doc\'s numbers or `[ADD SOURCED STAT]`.\n' +
-      '  - Include "your care team" as an ally; calling is normal, expected, not a failure.\n' +
-      '  - Flag in Engine notes anything that needs clinical review (e.g. the engine added a mechanism explanation the doc doesn\'t state).\n' +
-      '- **Common failures**: Transfer Failure (knows the rule, misses the moment), False Certainty (nodded at discharge, can\'t explain why).',
+    reference: 'references/icp-healthcare.md',
   },
   corporate_lnd: {
     label: 'Corporate L&D / compliance / onboarding',
-    text:
-      '## Corporate L&D / compliance / onboarding\n\n' +
-      '- **Typical docs**: policies, SOPs, handbooks, product manuals, safety procedures.\n' +
-      '- **Viewer**: employees who were assigned this; skeptical of training; know the "right answer" but act on habit.\n' +
-      '- **What magnetic means**: "that\'s actually my Tuesday" — recognisable workplace moments, a bit of wit, no corporate voice.\n' +
-      '- **Guardrails**: legal/policy wording that defines obligations stays exact; don\'t imply consequences the policy doesn\'t state; no mocking coworkers or roles.\n' +
-      '- **Common failures**: Transfer Failure (knows policy, doesn\'t act under pressure), Cognitive Overload (40-page policy, no hierarchy).',
+    reference: 'references/icp-corporate-lnd.md',
   },
   publishing: {
     label: 'Publishing / education',
-    text:
-      '## Publishing / education\n\n' +
-      '- **Typical docs**: textbook chapters, course notes, ebooks, study guides, non-fiction excerpts.\n' +
-      '- **Viewer**: students or curious adults; may be studying for an exam; used to creator-style YouTube.\n' +
-      '- **What magnetic means**: "I get it now, and I want the next one". Curiosity and mental models; High can be very creator-like.\n' +
-      '- **Guardrails**: accuracy to the source; don\'t oversimplify into wrongness; keep the author\'s claims attributed as theirs if contestable.\n' +
-      '- **Common failures**: Concept Fragmentation (memorised pieces, no model), False Certainty.',
+    reference: 'references/icp-publishing.md',
   },
   ngo: {
     label: 'NGO / mission-driven',
-    text:
-      '## NGO / mission-driven\n\n' +
-      '- **Typical docs**: impact reports, program briefs, advocacy papers, research summaries.\n' +
-      '- **Viewer**: public, donors, partners, policymakers; emotionally saturated, skeptical of guilt-trips.\n' +
-      '- **What magnetic means**: "I see the system, and there\'s something I can do". Stakes story + clear ask.\n' +
-      '- **Guardrails**: no poverty/suffering spectacle; no invented beneficiary stories — use the doc\'s, or frame a composite clearly as "imagine"; dignity-first language; the ask must match what the org actually asks for.\n' +
-      '- **Common failures**: Transfer Failure (cares, doesn\'t act), Fragmentation (sees tragedy, not cause).',
+    reference: 'references/icp-ngo.md',
   },
   unclear: {
     label: 'Unclear ICP',
-    text:
-      '## Unclear ICP\n\n' +
-      'Default to the lens whose guardrails are strictest among the plausible options (in practice: healthcare\'s), and say which you assumed.\n\n' +
-      'ICP_LENSES_HEALTHCARE_TEXT_PLACEHOLDER',
+    reference: 'references/icp-unclear.md',
   },
 };
-// "unclear" ships healthcare's guardrails alongside it (strictest set) so the model has a
-// concrete lens to fall back to instead of just a label with nothing under it.
-ICP_LENSES.unclear.text = ICP_LENSES.unclear.text.replace(
-  'ICP_LENSES_HEALTHCARE_TEXT_PLACEHOLDER',
-  ICP_LENSES.healthcare.text
-);
 
 const ICP_EXCERPT_CHARS = 3000; // plenty to tell these 4 domains apart; keeps the classifier call tiny
 
-// Existing signals make confident classifications locally. Uncertain inputs go to Haiku, and
-// a configurable share of confident matches also goes to Haiku so the collection keeps learning.
+// Local signals provide a prior guess, but Haiku checks every input so the collection
+// keeps learning new phrases instead of stopping once a confident local match exists.
 async function classifyIcp(excerpt) {
   if (!excerpt || excerpt.trim().length < 20) return { icp: 'unclear', source: 'no_text' };
   const local = icpSignalStore.classify(excerpt);
-  const refreshRate = Math.max(0, Math.min(1, Number(ICP_REFRESH_RATE) || 0));
-  const refresh = local.confident && Math.random() < refreshRate;
-  if (local.confident && !refresh) {
-    return { ...local, source: 'signals' };
-  }
+  const refresh = local.confident;
   try {
     const res = await fetch(ANTHROPIC_API_URL, {
       method: 'POST',
@@ -570,7 +528,7 @@ async function callClaude(content, usage) {
       else if (ev.type === 'error') throw new Error(ev.error?.message || 'Upstream stream error');
     }
   }
-  // The skill returns plain markdown in the fixed Step 6 structure — never JSON.
+  // The skill returns plain markdown in the fixed Step 7 structure — never JSON.
   // Strip a stray ```markdown fence in case the model wraps it anyway.
   let markdown = text.trim();
   const fenced = markdown.match(/^```(?:markdown)?\s*([\s\S]*?)\s*```$/);
@@ -646,8 +604,8 @@ async function handleGenerate(req, res) {
     // duration bucket the visitor picked. See "duration -> word/timing budget" above.
     const budget = durationBudget(duration);
 
-    // Pre-computed here too: which ICP lens applies, guessed by a small/cheap model from a
-    // short excerpt, so the main model gets only the one section it needs. See "ICP guess" above.
+    // Pre-computed here too: which ICP applies, guessed by a small/cheap model from a
+    // short excerpt. The main model receives its key and opens only that reference.
     const classifyExcerpt = [text, ...blocks.filter((b) => b.type === 'text').map((b) => b.text)]
       .join('\n\n')
       .slice(0, ICP_EXCERPT_CHARS);
@@ -662,13 +620,20 @@ async function handleGenerate(req, res) {
     const instruction =
       `Use the magnetic-script-engine skill on the document provided below (attached file(s) and/or pasted text).\n` +
       `Target duration: ${duration} (user-picked — respect it per the engine's rules; ` +
-      `note in one line if it fights the content, but still deliver on it). Infer the platform and series recommendation from the document; state any document-based assumptions in Engine notes.\n` +
+      `note in one line if it fights the content, but still deliver on it).\n` +
       `Word/timing budget for this duration — pre-computed, use these numbers directly, do not recompute them:\n` +
       '```json\n' + JSON.stringify(budget, null, 2) + '\n```\n' +
-      `ICP lens — pre-computed guess from the document's own text, already the matching section of references/icp-lenses.md. Use it as-is; if the doc clearly reads as a different ICP once you actually read it, say so in one line in Engine notes and use the better-fitting lens instead:\n` +
-      icpLens.text + '\n\n' +
-      `Narrative pair for this run, selected by the app from prior A/B picks: Version A must use "${STYLES[strategyPair.a]}" and Version B must use "${STYLES[strategyPair.b]}". Preserve two contrasting scripts and all source facts. Do not swap their styles or substitute another style. State each style in its Version heading.\n\n` +
-      `Return the final result in the skill's exact Step 6 markdown structure, as plain text — nothing else before or after it. Do not output JSON.` +
+      `Selected ICP key: ${icpKey}\n` +
+      `At Step 3, read only this ICP reference: ${icpLens.reference}\n\n` +
+      `Narrative pair selected from prior A/B picks:\n` +
+      `- Version A style key: ${strategyPair.a}\n` +
+      `- Version A exact style name: ${STYLES[strategyPair.a]}\n` +
+      `- Version A reference: ${STYLE_REFERENCES[strategyPair.a]}\n` +
+      `- Version B style key: ${strategyPair.b}\n` +
+      `- Version B exact style name: ${STYLES[strategyPair.b]}\n` +
+      `- Version B reference: ${STYLE_REFERENCES[strategyPair.b]}\n` +
+      `At Step 4, read only those two style references. Do not swap the assigned styles.\n\n` +
+      `Return the final result in the skill's exact Step 7 format, as plain text — nothing else before or after it. Do not output JSON.` +
       (text ? `\n\n--- Pasted text / instructions ---\n${text}` : '');
 
     // From here on, the wait can run well past a minute — start the keep-alive.
@@ -680,7 +645,7 @@ async function handleGenerate(req, res) {
     // Code-side gateway: turn the model's plain markdown into a stable field set.
     // No AI involved in this step — pure parsing, so it costs no tokens and can't
     // fail on JSON syntax the way asking the model to hand-write JSON could.
-    const parsed = parseGateway(markdown, { duration });
+    const parsed = parseGateway(markdown, { duration, icp: icpKey });
     rec.status = parsed.ok ? 'ok' : 'parse_error';
     rec.stop_reason = stopReason;
 
