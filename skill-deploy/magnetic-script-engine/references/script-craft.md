@@ -14,6 +14,15 @@ Both versions use the same source facts and carry this spine:
 Do not manufacture tension from an assumed belief, behavior or consequence. If the
 source supplies no mechanism, teach the exact rule without adding a reason.
 
+## Choose the angle before writing
+
+- Identify the most useful source-specific question the selected job answers. Use
+  the source's exact action, condition, distinction or threshold as its payoff.
+- Choose the strongest supported entry point for each assigned style. An angle is
+  a way into the same job, not a new factual claim or a different audience.
+- If the source is sparse, make the instruction clear and direct. Do not add a
+  fictional scene, common mistake or implied consequence to make it feel dramatic.
+
 ## Hook
 
 The first 15 seconds must:
@@ -57,6 +66,10 @@ implies unsupported stakes or promises a reveal the script cannot support.
 
 ## Structure
 
+- Privately map a short sequence before writing lines: hook promise → the minimum
+  source facts needed to understand the job → the exact action and its trigger.
+  Place each locked fact at the beat where the viewer needs it; never detach its
+  condition or repeat it only to fill time.
 - Give each beat one explanatory job.
 - Where source detail allows it, vary the beat about every 5–8 seconds. A new beat
   must contribute a source-supported decision, explanation or action, not padding.
@@ -64,20 +77,28 @@ implies unsupported stakes or promises a reveal the script cannot support.
 - Use an analogy only when the source itself supplies it or every element of the
   analogy is a non-factual organizing label that cannot imply a new mechanism.
 - Make Versions A and B differ in order, framing and source of tension—not merely in
-  wording or character names.
+  wording or character names. Give each version a different source-supported
+  opening and route to the same answer. If the material cannot support two distinct
+  routes, vary the order of explanation without manufacturing a new premise.
 - The selected style controls the shape of each version. Never substitute Q&A or
   Myth-buster for an assigned style because of an internal understanding lens.
 - Follow the app-supplied word and timing budget exactly. Cut background and secondary
   material before cutting locked facts or red-flag rules.
+- After drafting, remove any sentence that repeats the preceding beat without
+  adding a source-supported clarification, decision or action. Keep useful repetition
+  only when it reinforces an exact trigger or prohibition.
 
 ## On-screen direction
 
 Describe only explanatory visuals supported by the source. Show the actual
-source-stated sequence, comparison, wording or decision when it helps understanding;
-avoid decorative icons and filler. On-screen direction must
-not introduce an unsupported symptom, reading, anatomy claim, procedure, result,
-timeline, setting or cause. Put essential thresholds or action triggers on screen when
-the source provides them. Avoid decorative directions that teach nothing.
+source-stated sequence, comparison, wording or decision when it helps understanding.
+Pair voiceover and visuals so the picture clarifies the spoken point; do not simply
+repeat every spoken word as text. Use exact on-screen wording for a critical number,
+trigger or prohibition when the source provides it. If the source supports no
+informative image, use restrained text rather than a fabricated demonstration.
+On-screen direction must not introduce an unsupported symptom, reading, anatomy
+claim, procedure, result, timeline, setting or cause. Avoid decorative icons and
+filler that teach nothing.
 
 ## Ending
 
