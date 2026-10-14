@@ -88,6 +88,58 @@ implies unsupported stakes or promises a reveal the script cannot support.
   adding a source-supported clarification, decision or action. Keep useful repetition
   only when it reinforces an exact trigger or prohibition.
 
+## Healthcare shape by duration
+
+Apply this editorial shape when the selected ICP is `healthcare`. The app-supplied
+word and timing budget remains authoritative. These are content limits, not a
+request to recalculate or override that budget. Both versions cover the same chosen
+job and the same essential locked facts; vary the route through them according to
+the two assigned styles. Never cut a red-flag rule or its condition for the chosen
+job merely to hit a word target. If the source is thin, use the low end of the
+budget; if even that requires padding, write shorter and explain the limitation in
+`Engine notes`.
+
+### 30–60 seconds
+
+- Cover one job only. Select the two or three highest-priority locked items needed
+  for it, plus every source-stated red-flag rule tied to that job. Keep every
+  condition attached to the selected items.
+- Use one short source-stated mechanism at most. Omit history, background, secondary
+  jobs and recap.
+- Shape: 0:00–0:15 hook → one core explanation or decision → exact action in the
+  last ten seconds.
+- If an assigned style is Q&A or Myth-buster, use one or two source-supported
+  questions or corrected beliefs.
+
+### 2–3 minutes
+
+- Lead with one job. Include at most two supporting jobs only when the source
+  clearly connects them to the main job. Use up to five relevant locked items,
+  plus all red-flag rules for the included jobs.
+- Shape: hook → source-stated reason or mechanism, if present → what to do in no
+  more than three steps → when to call or act, if stated → one-line action recap.
+  Do not invent an example merely to make the mechanism concrete.
+- If an assigned style is Q&A or Myth-buster, use three or four source-supported
+  questions or corrected beliefs only when the source has enough distinct material.
+
+### Up to 5 minutes
+
+- Include up to three source-supported jobs when there is enough critical content.
+  Use up to eight relevant locked items, plus all red-flag rules for those jobs.
+  Preserve the source's priority and sequence where changing them could alter
+  meaning or imply a new clinical ranking.
+- Shape: hook → one beat per job with a one-sentence recap when useful → closing
+  checklist of source-stated actions. Include missed-step advice or common
+  mistakes only if the source explicitly provides them.
+- If an assigned style is Q&A or Myth-buster, use five or six source-supported
+  questions or corrected beliefs only when the source can sustain them. Never pad
+  a sparse document to reach the count or the time ceiling.
+
+Across all durations, cut illustrative detail first, then background, then
+secondary jobs. Preserve exact wording for numbers, medication or procedural
+instructions, prohibitions and `when to call` triggers. A longer duration permits
+more source material; it does not permit more assumed facts.
+
 ## On-screen direction
 
 Describe only explanatory visuals supported by the source. Show the actual

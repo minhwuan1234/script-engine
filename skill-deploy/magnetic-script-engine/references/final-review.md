@@ -36,6 +36,9 @@ Delete any statement without an exact supporting passage. Do not print the ledge
 - No title, question, transition or visual smuggles in a new premise.
 - Red-flag rules for the chosen job remain present.
 - Voiceover fits the app-supplied word budget.
+- For healthcare, the content follows the selected duration's job, step and recap
+  limits. Any Q&A or Myth-buster question or belief is supported by the source;
+  a sparse source is never padded to meet a suggested count.
 - The hook is 30–40 words, passes the swap, clarity and promise tests, and is
   paid off by the script without withholding a source-stated urgent action.
 - Both versions contain the same locked facts but differ structurally.
