@@ -8,7 +8,7 @@
 //   SKILL_ID            required  (skill_01... from the skill upload)
 //   CLAUDE_MODEL        optional  default claude-haiku-5-5
 //   ICP_MODEL           optional  default claude-haiku-4-5-20251001
-//   MAX_TOKENS          optional  default 16000
+//   MAX_TOKENS          optional  default 32000 (thinking and visible text share this cap)
 //   RATE_LIMIT_PER_HOUR optional  default 10 (per IP)
 //   ADMIN_TOKEN         optional  enables GET /api/usage (send as ?key=... or Authorization: Bearer ...)
 //   USAGE_LOG           optional  JSONL file for usage records. Default ./usage.jsonl
@@ -43,7 +43,7 @@ const {
   SKILL_ID,
   CLAUDE_MODEL = 'claude-haiku-5-5',
   ICP_MODEL = 'claude-haiku-4-5-20251001', // small/cheap model, only for the ICP guess below
-  MAX_TOKENS = '16000',
+  MAX_TOKENS = '32000',
   RATE_LIMIT_PER_HOUR = '10',
   ADMIN_TOKEN,
   USAGE_LOG = path.join(__dirname, 'usage.jsonl'),
@@ -754,13 +754,26 @@ async function handleGenerate(req, res) {
       }
     };
     const { markdown, stopReason } = await callClaude([...blocks, { type: 'text', text: instruction }], usage, onText);
+    rec.stop_reason = stopReason;
+
+    // Haiku 5.5 can spend the whole output budget on adaptive thinking before it
+    // emits any visible text. Never turn that case into a successful empty result.
+    // A capped response may also contain an unfinished script, so don't present it
+    // as a complete A/B pair. Already streamed versions remain visible in the UI.
+    if (stopReason === 'max_tokens') {
+      rec.status = 'output_limit';
+      throw new Error('Generation reached its output limit before both scripts were complete. Please retry.');
+    }
+    if (!markdown) {
+      rec.status = 'empty_response';
+      throw new Error('Generation finished without a script. Please retry.');
+    }
 
     // Code-side gateway: turn the model's plain text into a stable field set.
     // No AI involved in this step — pure parsing, so it costs no tokens and can't
     // fail on JSON syntax the way asking the model to hand-write JSON could.
     const parsed = parseGateway(markdown, { duration, icp: icpKey });
     rec.status = parsed.ok ? 'ok' : 'parse_error';
-    rec.stop_reason = stopReason;
 
     if (!parsed.ok) {
       // Engine didn't follow the fixed heading structure — still hand back readable

@@ -714,6 +714,10 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
     }
 
     function showResult(data) {
+      if (!hasGatewayFields(data) && !String(data.text || data.markdown || data.title || '').trim()) {
+        showError('Generation finished without a script. Please retry.');
+        return;
+      }
       outputA.classList.remove('is-error');
       renderUsageLine(data.usage);
       resultBox.classList.add('is-ready');
@@ -725,7 +729,7 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
         // fallback: engine didn't return the expected gateway fields -> show raw text so nothing is lost
         titleA.textContent = 'Result'; titleB.textContent = '-';
         metaA.textContent = ''; metaB.textContent = '';
-        renderScript(outputA, plainText(data.text || data.markdown || data.title || '(empty response)'));
+        renderScript(outputA, plainText(data.text || data.markdown || data.title));
         outputB.textContent = '';
         setDownload('A', '', '', '');
         setDownload('B', '', '', '');
