@@ -80,6 +80,10 @@ Read `references/script-craft.md` immediately before drafting. Use the exact tim
 and word budget supplied by the app; do not recompute it and do not open a separate
 duration guide. Both versions must preserve the same locked facts while differing in
 structure and source of tension.
+For healthcare, apply the duration-specific editorial shape and healthcare craft
+checks in that reference and `references/icp-healthcare.md`. The app-assigned style
+still determines each version's form; the understanding need informs the opening
+and order within that form, never replaces an assigned style.
 
 ### Step 6 — Verify before output
 
