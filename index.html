@@ -100,8 +100,10 @@
                             <div class="tpw-output-title" id="tpw-title-a">-</div>
                             <div class="tpw-output-meta" id="tpw-meta-a"></div>
                             <div class="tpw-output-body" id="tpw-output-a"></div>
-                            <button class="tpw-download-btn" type="button" data-download="A" hidden>Download PDF</button>
-                            <button class="tpw-pick-btn" type="button" data-pick="A" hidden>Choose Version A</button>
+                            <div class="tpw-output-actions">
+                                <button class="tpw-download-btn" type="button" data-download="A" hidden>Download PDF</button>
+                                <button class="tpw-pick-btn" type="button" data-pick="A" hidden>Choose Version A</button>
+                            </div>
                         </div>
 
                         <div class="tpw-output-card">
@@ -109,8 +111,10 @@
                             <div class="tpw-output-title" id="tpw-title-b">-</div>
                             <div class="tpw-output-meta" id="tpw-meta-b"></div>
                             <div class="tpw-output-body" id="tpw-output-b"></div>
-                            <button class="tpw-download-btn" type="button" data-download="B" hidden>Download PDF</button>
-                            <button class="tpw-pick-btn" type="button" data-pick="B" hidden>Choose Version B</button>
+                            <div class="tpw-output-actions">
+                                <button class="tpw-download-btn" type="button" data-download="B" hidden>Download PDF</button>
+                                <button class="tpw-pick-btn" type="button" data-pick="B" hidden>Choose Version B</button>
+                            </div>
                         </div>
                     </div>
                     <div class="tpw-pick-status" role="status" aria-live="polite"></div>
@@ -203,18 +207,38 @@
 }
 .tony-pixel-widget .tpw-output-title { font-size: 18px; font-weight: 800; color: #000000; margin-bottom: 4px; }
 .tony-pixel-widget .tpw-output-meta { font-size: 12px; font-weight: 500; color: #64748b; margin-bottom: 12px; }
-.tony-pixel-widget .tpw-output-body { flex: 1; overflow-y: auto; font-size: 13.5px; line-height: 1.6; color: var(--tpw-text); white-space: pre-wrap; padding-right: 4px; }
-.tony-pixel-widget .tpw-output-body.is-error { color: #b91c1c; font-weight: 600; }
+.tony-pixel-widget .tpw-output-body { flex: 1; min-height: 0; overflow-y: auto; font-size: 13.5px; line-height: 1.55; color: var(--tpw-text); padding-right: 4px; }
+.tony-pixel-widget .tpw-output-body.is-error { color: #b91c1c; font-weight: 600; white-space: pre-wrap; }
+.tony-pixel-widget .tpw-script-heading {
+    margin: 2px 0 10px; padding: 7px 10px; border-left: 4px solid #ff9436; border-radius: 6px;
+    background: #fff1df; color: #1f2937; font-size: 12px; font-weight: 800; letter-spacing: .025em;
+}
+.tony-pixel-widget .tpw-script-beat {
+    margin: 0 0 11px; padding: 9px 11px; border: 1px solid #e7e2dc; border-radius: 10px; background: #fffdfa;
+}
+.tony-pixel-widget .tpw-script-time {
+    display: inline-block; padding: 2px 7px; border-radius: 6px; background: #ffedd5;
+    color: #7c2d12; font-size: 11px; font-weight: 800;
+}
+.tony-pixel-widget .tpw-script-line { margin-top: 7px; }
+.tony-pixel-widget .tpw-script-label { display: block; margin-bottom: 2px; color: #9a3412; font-size: 10px; font-weight: 800; letter-spacing: .055em; }
+.tony-pixel-widget .tpw-script-copy { display: block; overflow-wrap: anywhere; }
+.tony-pixel-widget .tpw-script-voiceover .tpw-script-copy { color: #22252a; font-weight: 600; }
+.tony-pixel-widget .tpw-script-onscreen .tpw-script-label { color: #64748b; }
+.tony-pixel-widget .tpw-script-onscreen .tpw-script-copy { color: #475569; }
+.tony-pixel-widget .tpw-script-plain { margin: 0 0 9px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.tony-pixel-widget .tpw-output-actions { display: flex; align-items: center; gap: 8px; margin-top: 12px; flex: none; }
+.tony-pixel-widget .tpw-output-actions:not(:has(> button:not([hidden]))) { display: none; }
 .tony-pixel-widget button.tpw-pick-btn {
-    align-self: flex-start; margin-top: 12px; padding: 8px 14px; border: 1.5px solid #000; border-radius: 999px;
-    background: #ffedd5; color: #000; font: inherit; font-size: 12px; font-weight: 800; cursor: pointer;
+    padding: 8px 10px; border: 1.5px solid #000; border-radius: 999px;
+    background: #ffedd5; color: #000; font: inherit; font-size: 11px; font-weight: 800; white-space: nowrap; cursor: pointer;
 }
 .tony-pixel-widget button.tpw-pick-btn:hover { background: #ff9436; }
 .tony-pixel-widget button.tpw-pick-btn:disabled { opacity: .55; cursor: default; }
 .tony-pixel-widget button.tpw-pick-btn[hidden] { display: none; }
 .tony-pixel-widget button.tpw-download-btn {
-    align-self: flex-start; margin-top: 12px; padding: 8px 14px; border: 1.5px solid #000; border-radius: 999px;
-    background: #fff; color: #000; font: inherit; font-size: 12px; font-weight: 800; cursor: pointer;
+    padding: 8px 10px; border: 1.5px solid #000; border-radius: 999px;
+    background: #fff; color: #000; font: inherit; font-size: 11px; font-weight: 800; white-space: nowrap; cursor: pointer;
 }
 .tony-pixel-widget button.tpw-download-btn:hover { background: #ffedd5; }
 .tony-pixel-widget button.tpw-download-btn:disabled { opacity: .55; cursor: default; }
@@ -365,6 +389,8 @@
     .tony-pixel-widget .tpw-dropzone { padding: 4px 8px; }
     .tony-pixel-widget .tpw-actions { gap: 4px; }
     .tony-pixel-widget .tpw-output-title { font-size: 15px; }
+    .tony-pixel-widget .tpw-output-actions { gap: 5px; }
+    .tony-pixel-widget button.tpw-download-btn, .tony-pixel-widget button.tpw-pick-btn { padding: 7px 8px; font-size: 10px; }
 }
 </style>
 
@@ -596,6 +622,43 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
         return [line];
       }).join('\n').replace(/\n{3,}/g, '\n\n').trim();
     }
+    function renderScript(container, text) {
+      const fragment = document.createDocumentFragment();
+      let beat = null;
+      const make = (tag, className, value) => {
+        const element = document.createElement(tag);
+        element.className = className;
+        element.textContent = value;
+        return element;
+      };
+      for (const rawLine of text.split('\n')) {
+        const line = rawLine.trim();
+        if (!line) continue;
+        if (/^(?:HOOK\s*(?:\([^)]*\))?|SCRIPT)$/i.test(line)) {
+          beat = null;
+          fragment.appendChild(make('div', 'tpw-script-heading', line));
+        } else if (/^TIME:\s*/i.test(line)) {
+          beat = make('div', 'tpw-script-beat', '');
+          beat.appendChild(make('span', 'tpw-script-time', line.replace(/^TIME:\s*/i, '')));
+          fragment.appendChild(beat);
+        } else if (/^(VOICEOVER|ON SCREEN):\s*/i.test(line)) {
+          if (!beat) {
+            beat = make('div', 'tpw-script-beat', '');
+            fragment.appendChild(beat);
+          }
+          const match = /^(VOICEOVER|ON SCREEN):\s*(.*)$/i.exec(line);
+          const row = make('div', match[1].toUpperCase() === 'VOICEOVER'
+            ? 'tpw-script-line tpw-script-voiceover' : 'tpw-script-line tpw-script-onscreen', '');
+          row.appendChild(make('span', 'tpw-script-label', match[1].toUpperCase()));
+          row.appendChild(make('span', 'tpw-script-copy', match[2]));
+          beat.appendChild(row);
+        } else {
+          beat = null;
+          fragment.appendChild(make('p', 'tpw-script-plain', line));
+        }
+      }
+      container.replaceChildren(fragment);
+    }
     const versionText = (data, letter) => data[`version_${letter.toLowerCase()}_text`] ?? data[`version_${letter.toLowerCase()}_md`];
     const hasGatewayFields = (data) =>
       ['title', 'duration', 'icp', 'version_a_title', 'version_b_title'].every((k) => typeof data[k] === 'string') &&
@@ -662,7 +725,7 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
         // fallback: engine didn't return the expected gateway fields -> show raw text so nothing is lost
         titleA.textContent = 'Result'; titleB.textContent = '-';
         metaA.textContent = ''; metaB.textContent = '';
-        outputA.textContent = plainText(data.text || data.markdown || data.title || '(empty response)');
+        renderScript(outputA, plainText(data.text || data.markdown || data.title || '(empty response)'));
         outputB.textContent = '';
         setDownload('A', '', '', '');
         setDownload('B', '', '', '');
@@ -676,10 +739,12 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
       titleA.textContent = data.version_a_title;
       titleB.textContent = data.version_b_title;
       metaA.textContent = meta; metaB.textContent = meta;
-      outputA.textContent = plainText(versionText(data, 'A'));
-      outputB.textContent = plainText(versionText(data, 'B'));
-      setDownload('A', data.title || data.version_a_title, outputA.textContent, data.duration, data.version_a_title);
-      setDownload('B', data.title || data.version_b_title, outputB.textContent, data.duration, data.version_b_title);
+      const scriptA = plainText(versionText(data, 'A'));
+      const scriptB = plainText(versionText(data, 'B'));
+      renderScript(outputA, scriptA);
+      renderScript(outputB, scriptB);
+      setDownload('A', data.title || data.version_a_title, scriptA, data.duration, data.version_a_title);
+      setDownload('B', data.title || data.version_b_title, scriptB, data.duration, data.version_b_title);
       currentPick = data.ab_pick || null;
       pickButtons.forEach((button) => { button.hidden = !currentPick; button.disabled = false; });
       if (currentPick) {
@@ -766,8 +831,9 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
               outputB.classList.remove('is-error');
               titleA.textContent = event.title || 'Version A';
               metaA.textContent = `Duration: ${selectedDuration}`;
-              outputA.textContent = plainText(event.text ?? event.markdown);
-              setDownload('A', event.workingTitle || titleA.textContent, outputA.textContent, selectedDuration, titleA.textContent);
+              const scriptA = plainText(event.text ?? event.markdown);
+              renderScript(outputA, scriptA);
+              setDownload('A', event.workingTitle || titleA.textContent, scriptA, selectedDuration, titleA.textContent);
               titleB.textContent = 'Writing Version B...';
               metaB.textContent = '';
               outputB.textContent = 'The second script is being prepared.';
@@ -775,8 +841,9 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
               receivedB = true;
               titleB.textContent = event.title || 'Version B';
               metaB.textContent = `Duration: ${selectedDuration}`;
-              outputB.textContent = plainText(event.text ?? event.markdown);
-              setDownload('B', event.workingTitle || titleB.textContent, outputB.textContent, selectedDuration, titleB.textContent);
+              const scriptB = plainText(event.text ?? event.markdown);
+              renderScript(outputB, scriptB);
+              setDownload('B', event.workingTitle || titleB.textContent, scriptB, selectedDuration, titleB.textContent);
             } else if (event.type === 'complete') {
               completed = true;
               loadingOverlay.classList.remove('is-loading');
