@@ -91,6 +91,11 @@
                 <div class="tpw-loading-overlay">
                     <div class="tpw-spinner"></div>
                     <span class="tpw-loading-text">Processing content... (this may take 1–3 minutes)</span>
+                    <div class="tpw-loading-fact">
+                        <span class="tpw-loading-fact-label">ABOUT F.LEARNING</span>
+                        <span class="tpw-loading-fact-text"></span>
+                        <a href="https://flearningstudio.com/" target="_blank" rel="noopener noreferrer">Explore our services ↗</a>
+                    </div>
                 </div>
 
                 <div class="tpw-output-result">
@@ -258,6 +263,13 @@
 .tony-pixel-widget .tpw-spinner { width: 32px; height: 32px; border: 3px solid #ffedd5; border-top-color: #000000; border-radius: 50%; animation: tpw-spin 0.8s linear infinite; }
 @keyframes tpw-spin { to { transform: rotate(360deg); } }
 .tony-pixel-widget .tpw-loading-text { font-size: 13px; font-weight: 700; color: #000000; }
+.tony-pixel-widget .tpw-loading-fact {
+    display: flex; flex-direction: column; align-items: center; gap: 6px; max-width: 460px;
+    padding-top: 12px; border-top: 1px solid #e5e7eb; text-align: center;
+}
+.tony-pixel-widget .tpw-loading-fact-label { color: #b45309; font-size: 10px; font-weight: 800; letter-spacing: .08em; }
+.tony-pixel-widget .tpw-loading-fact-text { min-height: 38px; color: #374151; font-size: 12px; line-height: 1.5; }
+.tony-pixel-widget .tpw-loading-fact a { color: #111827; font-size: 11px; font-weight: 700; text-decoration: underline; }
 
 /* FILE CHIPS */
 .tony-pixel-widget .tpw-files { width: 100%; display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; pointer-events: auto; }
@@ -425,6 +437,7 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
     const submitBtn = $('.tpw-submit');
     const loadingOverlay = $('.tpw-loading-overlay');
     const loadingText = $('.tpw-loading-text');
+    const loadingFactText = $('.tpw-loading-fact-text');
     const resultBox = $('.tpw-output-result');
     const outputA = $('#tpw-output-a');
     const outputB = $('#tpw-output-b');
@@ -441,6 +454,30 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
 
     let attachedFiles = [];
     let busy = false;
+    let loadingFactTimer = null;
+    const loadingFacts = [
+      'F.Learning turns complex topics into clear visual explanations through animation.',
+      'Medical animation can help patients understand treatments, procedures, and care journeys.',
+      'F.Learning creates visual resources for clinical training and healthcare professional education.',
+      '2D animation supports accessible patient education; 3D can show anatomy and device mechanisms.',
+      'Training animation can support onboarding, standard procedures, and compliance learning.',
+      'Product explainers make technical products and systems easier for customers to understand.',
+      'F.Learning structures the explanation before choosing the animation style.',
+      'Animation deliverables can be prepared for LMS platforms, patient portals, and websites.',
+    ];
+    function stopLoadingFacts() {
+      if (loadingFactTimer !== null) clearInterval(loadingFactTimer);
+      loadingFactTimer = null;
+    }
+    function startLoadingFacts() {
+      stopLoadingFacts();
+      let index = 0;
+      loadingFactText.textContent = loadingFacts[index];
+      loadingFactTimer = setInterval(() => {
+        index = (index + 1) % loadingFacts.length;
+        loadingFactText.textContent = loadingFacts[index];
+      }, 8000);
+    }
     const allowedTypes = ['pdf', 'txt', 'jpg', 'jpeg', 'png', 'md', 'doc', 'docx', 'xlsx'];
 
     /* ---------- pixel canvas ---------- */
@@ -803,6 +840,7 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
       busy = true;
       mainContainer.classList.add('has-output');
       loadingOverlay.classList.add('is-loading');
+      startLoadingFacts();
       resultBox.classList.remove('is-ready');
       loadingText.textContent = 'Processing content... (this may take 1–3 minutes)';
 
@@ -829,6 +867,7 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
             if (event.type === 'error') throw new Error(event.error || 'Generation failed.');
             if (event.type === 'version_a') {
               receivedA = true;
+              stopLoadingFacts();
               loadingOverlay.classList.remove('is-loading');
               resultBox.classList.add('is-ready');
               outputA.classList.remove('is-error');
@@ -850,6 +889,7 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
               setDownload('B', event.workingTitle || titleB.textContent, scriptB, selectedDuration, titleB.textContent);
             } else if (event.type === 'complete') {
               completed = true;
+              stopLoadingFacts();
               loadingOverlay.classList.remove('is-loading');
               showResult(event.data || {});
               if (event.data?.skipped?.length) metaB.textContent = `Skipped (unsupported): ${event.data.skipped.join(', ')}`;
@@ -878,11 +918,13 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
         if (data.error) throw new Error(data.error);
         if (!res.ok) throw new Error(`Request failed (${res.status})`);
         loadingOverlay.classList.remove('is-loading');
+        stopLoadingFacts();
         showResult(data);
         if (data.skipped && data.skipped.length) {
           metaB.textContent = `Skipped (unsupported): ${data.skipped.join(', ')}`;
         }
       } catch (err) {
+        stopLoadingFacts();
         loadingOverlay.classList.remove('is-loading');
         if (receivedA) {
           if (!receivedB) {
@@ -896,6 +938,7 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
             : 'Version A is available above. A/B selection requires both versions.';
         } else showError(err.message || 'Something went wrong.');
       } finally {
+        stopLoadingFacts();
         busy = false;
       }
     }
