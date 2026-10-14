@@ -7,7 +7,7 @@
 //   CLAUDE_API          required  (ANTHROPIC_API_KEY also accepted)
 //   SKILL_ID            required  (skill_01... from the skill upload)
 //   CLAUDE_MODEL        optional  default claude-haiku-5-5
-//   ICP_MODEL           optional  default claude-haiku-5-5
+//   ICP_MODEL           optional  default claude-haiku-4-5-20251001
 //   MAX_TOKENS          optional  default 16000
 //   RATE_LIMIT_PER_HOUR optional  default 10 (per IP)
 //   ADMIN_TOKEN         optional  enables GET /api/usage (send as ?key=... or Authorization: Bearer ...)
@@ -42,7 +42,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const {
   SKILL_ID,
   CLAUDE_MODEL = 'claude-haiku-5-5',
-  ICP_MODEL = 'claude-haiku-5-5', // small/cheap model, only for the ICP guess below
+  ICP_MODEL = 'claude-haiku-4-5-20251001', // small/cheap model, only for the ICP guess below
   MAX_TOKENS = '16000',
   RATE_LIMIT_PER_HOUR = '10',
   ADMIN_TOKEN,
@@ -260,8 +260,7 @@ async function classifyIcp(excerpt) {
       },
       body: JSON.stringify({
         model: ICP_MODEL,
-        max_tokens: ICP_MODEL === 'claude-haiku-5-5' ? 1024 : 300,
-        ...(ICP_MODEL === 'claude-haiku-5-5' ? { output_config: { effort: 'low' } } : {}),
+        max_tokens: 300,
         system:
           'Classify which audience a document excerpt is written for. Return only valid JSON in this shape: ' +
           '{"icp":"healthcare|corporate_lnd|publishing|ngo|unclear","confidence":0.0,"signals":["exact phrase"]}. ' +
@@ -278,8 +277,7 @@ async function classifyIcp(excerpt) {
     });
     if (!res.ok) return local.confident ? { ...local, source: 'signals_fallback' } : { icp: 'unclear', source: 'model_error' };
     const data = await res.json();
-    const raw = String(data.content?.find((block) => block.type === 'text')?.text || '')
-      .trim().replace(/^```(?:json)?\s*|\s*```$/g, '');
+    const raw = String(data.content?.[0]?.text || '').trim().replace(/^```(?:json)?\s*|\s*```$/g, '');
     const answer = JSON.parse(raw);
     const modelIcp = ICP_KEYS.includes(answer.icp) ? answer.icp : 'unclear';
     const confidence = Math.max(0, Math.min(1, Number(answer.confidence) || 0));
