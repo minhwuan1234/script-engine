@@ -1,40 +1,42 @@
 # Output format
 
-Return plain Markdown in exactly this structure. Do not output JSON, code fences,
-analysis, a materials sheet, a source ledger or a review checklist.
+Return plain text in exactly this structure. Do not use Markdown headings, tables,
+bullets, bold markers, code fences or JSON. Do not output analysis, a materials
+sheet, a source ledger or a review checklist.
 
-# [Working title]
+TITLE: [Working title]
 
-## Version A — [Exact assigned style name]
+VERSION A — [Exact assigned style name]
 
-### Hook (0:00-0:15)
+HOOK (0:00-0:15)
+TIME: 0:00-0:15
+VOICEOVER: [spoken line]
+ON SCREEN: [source-supported visual direction]
 
-| Time | Voiceover | On screen |
-|---|---|---|
+SCRIPT
+TIME: 0:15-0:20
+VOICEOVER: [spoken line]
+ON SCREEN: [source-supported visual direction]
 
-### Script
+VERSION B — [Exact assigned style name]
 
-| Time | Voiceover | On screen |
-|---|---|---|
+HOOK (0:00-0:15)
+TIME: 0:00-0:15
+VOICEOVER: [spoken line]
+ON SCREEN: [source-supported visual direction]
 
-## Version B — [Exact assigned style name]
+SCRIPT
+TIME: 0:15-0:20
+VOICEOVER: [spoken line]
+ON SCREEN: [source-supported visual direction]
 
-### Hook (0:00-0:15)
+ENGINE NOTES
+Source limitations: [none or a concise description]
+Missing definitions or mechanisms requiring an approved source: [none or details]
+Exact conflicting or unclear passages requiring review: [none or details]
+Factual assumptions: none
 
-| Time | Voiceover | On screen |
-|---|---|---|
-
-### Script
-
-| Time | Voiceover | On screen |
-|---|---|---|
-
-## Engine notes
-
-- Source limitations
-- Missing definitions or mechanisms requiring an approved source
-- Exact conflicting or unclear passages requiring review
-- Factual assumptions: none
-
-Use timestamp ranges such as `0:00-0:05`. Continue the script after the hook at
-`0:15`. If a notes category has no issue, state `none`.
+Repeat the TIME / VOICEOVER / ON SCREEN block for every beat. Use timestamp ranges
+such as 0:00-0:05. Continue the script after the hook at 0:15. If a notes category
+has no issue, state none. Keep one physical line per label; wrap long spoken lines
+only through the display, not by adding unlabeled lines.

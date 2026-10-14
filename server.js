@@ -33,6 +33,7 @@ import mammoth from 'mammoth';
 // crashes on import (ENOENT). Its lib file has the real, side-effect-free export.
 import pdfParse from 'pdf-parse/lib/pdf-parse.js';
 import JSZip from 'jszip';
+import PDFDocument from 'pdfkit';
 import { createPreferenceStore, STYLES } from './preference-store.js';
 import { createIcpSignalStore, ICP_KEYS } from './icp-signal-store.js';
 
@@ -84,39 +85,63 @@ const DURATION_TARGETS = {
 };
 
 /* ---------- output gateway: code-side, not AI-side ----------
- * The model only ever writes plain markdown in the fixed Step 7 structure (see SKILL.md).
- * It is never asked to produce JSON. This function IS the gateway: deterministic, regex-based
- * parsing of that fixed markdown into a stable field set, done entirely in code — costs no
- * model tokens and never depends on the model getting JSON syntax right.
+ * The model writes plain text in the fixed Step 7 structure (see SKILL.md). The
+ * parser also accepts the old Markdown headings/tables while skill versions roll out.
+ * It is never asked to produce JSON. This deterministic gateway creates stable
+ * fields without model tokens or model-authored JSON syntax.
  * duration is NOT parsed out of the text — the caller already knows it (it's what
  * it asked for), so they're passed in directly instead of trusting the model to restate them.
  */
-function parseGateway(markdown, { duration, icp }) {
-  const md = String(markdown || '').trim();
+function toPlainText(section) {
+  const lines = [];
+  for (const rawLine of String(section || '').split(/\r?\n/)) {
+    let line = rawLine.trim();
+    if (/^\|\s*(?:Time|[-: ]+)\s*\|/i.test(line)) continue;
+    if (/^\|.*\|$/.test(line)) {
+      const cells = line.slice(1, -1).split('|').map((cell) => cell.trim());
+      if (cells.length >= 3 && /^\d+:\d+\s*[-–]\s*\d+:\d+/.test(cells[0])) {
+        lines.push(`TIME: ${cells[0]}`, `VOICEOVER: ${cells[1]}`, `ON SCREEN: ${cells.slice(2).join(' | ')}`, '');
+        continue;
+      }
+    }
+    line = line.replace(/^#{1,6}\s+/, '').replace(/^[-*]\s+/, '').replace(/\*\*/g, '').replace(/`/g, '');
+    lines.push(line);
+  }
+  return lines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+}
 
-  const titleMatch = /^#\s+(.*?)(?:\s*[—-]\s*Magnetic Script\s*)?$/m.exec(md);
-  const title = titleMatch ? titleMatch[1].trim() : '';
+function workingTitle(output) {
+  const match = /^(?:TITLE:\s*|#\s+)([^\n]+)$/im.exec(output);
+  return match ? match[1].replace(/\s*[—-]\s*Magnetic Script\s*$/i, '').trim() : '';
+}
 
-  const headingRe = (label) => new RegExp(`^##\\s+${label}\\b[^\\n]*$`, 'im');
-  const aHead = headingRe('Version\\s+A').exec(md);
-  const bHead = headingRe('Version\\s+B').exec(md);
-  const notesHead = headingRe('Engine notes').exec(md);
+function parseGateway(output, { duration, icp }) {
+  const raw = String(output || '').trim();
+
+  const titleMatch = /^(?:TITLE:\s*|#\s+)([^\n]+)$/im.exec(raw);
+  const title = workingTitle(raw);
+
+  const headingRe = (label) => new RegExp(`^(?:##\\s+)?${label}\\b[^\\n]*$`, 'im');
+  const aHead = headingRe('Version\\s+A').exec(raw);
+  const bHead = headingRe('Version\\s+B').exec(raw);
+  const notesHead = headingRe('Engine\\s+notes').exec(raw);
 
   if (!aHead || !bHead || bHead.index < aHead.index) {
     return { ok: false, fields: null };
   }
 
-  // preface = anything after the title line and before "## Version A".
+  // Preface is anything after the title line and before Version A.
   const titleEnd = titleMatch ? titleMatch.index + titleMatch[0].length : 0;
-  const preface_md = md.slice(titleEnd, aHead.index).trim();
+  const preface_text = toPlainText(raw.slice(titleEnd, aHead.index));
 
   const versionTitle = (headMatch) =>
-    headMatch[0].replace(/^##\s+Version\s+[AB]\s*[—-]?\s*/i, '').trim();
+    headMatch[0].replace(/^(?:##\s+)?Version\s+[AB]\s*[—-]?\s*/i, '').trim();
 
-  const bEnd = notesHead ? notesHead.index : md.length;
-  const version_a_md = md.slice(aHead.index + aHead[0].length, bHead.index).trim();
-  const version_b_md = md.slice(bHead.index + bHead[0].length, bEnd).trim();
-  const engine_notes_md = notesHead ? md.slice(notesHead.index).trim() : '';
+  const bEnd = notesHead ? notesHead.index : raw.length;
+  const version_a_text = toPlainText(raw.slice(aHead.index + aHead[0].length, bHead.index));
+  const version_b_text = toPlainText(raw.slice(bHead.index + bHead[0].length, bEnd));
+  const engine_notes_text = notesHead ? toPlainText(raw.slice(notesHead.index)) : '';
+  if (!version_a_text || !version_b_text) return { ok: false, fields: null };
 
   return {
     ok: true,
@@ -124,29 +149,36 @@ function parseGateway(markdown, { duration, icp }) {
       title,
       duration,
       icp,
-      preface_md,
+      preface_text,
       version_a_title: versionTitle(aHead),
-      version_a_md,
+      version_a_text,
       version_b_title: versionTitle(bHead),
-      version_b_md,
-      engine_notes_md,
+      version_b_text,
+      engine_notes_text,
+      // Existing API consumers can read the old keys during migration. Their
+      // values are plain text too, never raw Markdown.
+      preface_md: preface_text,
+      version_a_md: version_a_text,
+      version_b_md: version_b_text,
+      engine_notes_md: engine_notes_text,
     },
   };
 }
 
 // A section is safe to display only after the next heading has arrived. This avoids
 // exposing an unfinished script while Claude is still streaming its text.
-function completedVersion(markdown, letter) {
-  const current = new RegExp(`^##\\s+Version\\s+${letter}[^\\n]*\\n`, 'im').exec(markdown);
+function completedVersion(output, letter) {
+  const current = new RegExp(`^(?:##\\s+)?Version\\s+${letter}[^\\n]*\\n`, 'im').exec(output);
   const next = (letter === 'A'
-    ? /^##\s+Version\s+B[^\n]*\n/im
-    : /^##\s+Engine notes[^\n]*\n/im).exec(markdown);
+    ? /^(?:##\s+)?Version\s+B[^\n]*\n/im
+    : /^(?:##\s+)?Engine\s+notes[^\n]*\n/im).exec(output);
   if (!current || !next || next.index <= current.index) return null;
-  const body = markdown.slice(current.index + current[0].length, next.index).trim();
-  if (!/^###\s+Hook\b/im.test(body) || !/^###\s+Script\b/im.test(body)) return null;
+  const body = output.slice(current.index + current[0].length, next.index).trim();
+  if (!/^(?:###\s+)?Hook\b/im.test(body) || !/^(?:###\s+)?Script\b/im.test(body)) return null;
   return {
-    title: current[0].replace(/^##\s+Version\s+[AB]\s*[—-]?\s*/i, '').trim(),
-    markdown: body,
+    workingTitle: workingTitle(output),
+    title: current[0].replace(/^(?:##\s+)?Version\s+[AB]\s*[—-]?\s*/i, '').trim(),
+    text: toPlainText(body),
   };
 }
 
@@ -476,6 +508,57 @@ async function readForm(req) {
   return request.formData();
 }
 
+async function handleDownloadPdf(req, res) {
+  const chunks = [];
+  let size = 0;
+  for await (const chunk of req) {
+    size += chunk.length;
+    if (size > 80_000) return json(res, 413, { error: 'Script is too large for PDF download.' });
+    chunks.push(chunk);
+  }
+  let input;
+  try { input = JSON.parse(Buffer.concat(chunks).toString('utf8')); }
+  catch { return json(res, 400, { error: 'Invalid PDF request.' }); }
+  const version = input?.version;
+  const title = String(input?.title || '').replace(/[\r\n\x00-\x1f]/g, ' ').trim().slice(0, 200);
+  const style = String(input?.style || '').replace(/[\r\n\x00-\x1f]/g, ' ').trim().slice(0, 120);
+  const duration = String(input?.duration || '').replace(/[\r\n\x00-\x1f]/g, ' ').trim().slice(0, 40);
+  const script = toPlainText(input?.text).slice(0, 50_001);
+  if (!['A', 'B'].includes(version) || !script || script.length > 50_000) {
+    return json(res, 400, { error: 'Provide one complete Version A or B script.' });
+  }
+
+  const doc = new PDFDocument({ size: 'A4', margins: { top: 54, bottom: 54, left: 54, right: 54 },
+    info: { Title: `Magnetic Script - Version ${version}`, Author: 'Magnetic Script Studio' } });
+  doc.on('error', (error) => { console.error('PDF generation failed:', error.message); res.destroy(error); });
+  res.writeHead(200, {
+    'Content-Type': 'application/pdf',
+    'Content-Disposition': `attachment; filename="magnetic-script-version-${version.toLowerCase()}.pdf"`,
+    'Cache-Control': 'no-store',
+  });
+  doc.pipe(res);
+  doc.rect(54, 52, doc.page.width - 108, 4).fill('#ff9436');
+  doc.moveDown(1);
+  doc.fillColor('#22252a').font('Helvetica-Bold').fontSize(18).text(title || 'Magnetic Script');
+  doc.moveDown(0.3);
+  doc.font('Helvetica-Bold').fontSize(11).text(`VERSION ${version}${style ? ` - ${style}` : ''}`);
+  if (duration) doc.font('Helvetica').fontSize(9).fillColor('#64748b').text(`Duration: ${duration}`);
+  doc.moveDown(1);
+  for (const line of script.split('\n')) {
+    if (!line.trim()) { doc.moveDown(0.45); continue; }
+    if (/^(HOOK\b|SCRIPT$)/i.test(line)) {
+      doc.moveDown(0.35);
+      doc.fillColor('#22252a').font('Helvetica-Bold').fontSize(12).text(line, { paragraphGap: 5 });
+    } else if (/^TIME:/i.test(line)) {
+      doc.moveDown(0.2);
+      doc.fillColor('#b45309').font('Helvetica-Bold').fontSize(9).text(line, { paragraphGap: 2 });
+    } else {
+      doc.fillColor('#22252a').font('Helvetica').fontSize(10).text(line, { lineGap: 3, paragraphGap: 2 });
+    }
+  }
+  doc.end();
+}
+
 // Call Messages API with streaming (avoids long-request timeouts).
 // Returns the final text, stop reason and token usage. `usage` is filled in as events arrive,
 // so a caller can still read partial usage if the stream fails midway.
@@ -548,8 +631,8 @@ async function callClaude(content, usage, onText = () => {}) {
       else if (ev.type === 'error') throw new Error(ev.error?.message || 'Upstream stream error');
     }
   }
-  // The skill returns plain markdown in the fixed Step 7 structure — never JSON.
-  // Strip a stray ```markdown fence in case the model wraps it anyway.
+  // The skill returns plain text in the fixed Step 7 structure — never JSON.
+  // Strip a stray code fence if an older skill version wraps it anyway.
   let markdown = text.trim();
   const fenced = markdown.match(/^```(?:markdown)?\s*([\s\S]*?)\s*```$/);
   if (fenced) markdown = fenced[1].trim();
@@ -658,7 +741,7 @@ async function handleGenerate(req, res) {
       `- Version B exact style name: ${STYLES[strategyPair.b]}\n` +
       `- Version B reference: ${STYLE_REFERENCES[strategyPair.b]}\n` +
       `At Step 4, read only those two style references. Do not swap the assigned styles.\n\n` +
-      `Return the final result in the skill's exact Step 7 format, as plain text — nothing else before or after it. Do not output JSON.` +
+      `Return the final result in the skill's exact Step 7 format, as plain text — nothing else before or after it. Do not use Markdown or JSON.` +
       (text ? `\n\n--- Pasted text / instructions ---\n${text}` : '');
 
     // From here on, the wait can run well past a minute — start the keep-alive.
@@ -684,7 +767,7 @@ async function handleGenerate(req, res) {
     };
     const { markdown, stopReason } = await callClaude([...blocks, { type: 'text', text: instruction }], usage, onText);
 
-    // Code-side gateway: turn the model's plain markdown into a stable field set.
+    // Code-side gateway: turn the model's plain text into a stable field set.
     // No AI involved in this step — pure parsing, so it costs no tokens and can't
     // fail on JSON syntax the way asking the model to hand-write JSON could.
     const parsed = parseGateway(markdown, { duration, icp: icpKey });
@@ -692,10 +775,10 @@ async function handleGenerate(req, res) {
     rec.stop_reason = stopReason;
 
     if (!parsed.ok) {
-      // Engine didn't follow the fixed heading structure — still hand back the raw
+      // Engine didn't follow the fixed heading structure — still hand back readable
       // text so nothing is lost; the frontend has a fallback path for this case.
       return finish({
-        markdown, skipped, stop_reason: stopReason,
+        text: toPlainText(markdown), skipped, stop_reason: stopReason,
         usage: { ...usage, est_cost_usd: estimateCost(usage), duration_s: Math.round((Date.now() - t0) / 100) / 10 },
       });
     }
@@ -778,6 +861,7 @@ http
         return json(res, 200, usageSummary());
       }
       if (req.method === 'POST' && pathname === '/api/generate') return await handleGenerate(req, res);
+      if (req.method === 'POST' && pathname === '/api/download-pdf') return await handleDownloadPdf(req, res);
       if (req.method === 'POST' && pathname === '/api/pick') return await handlePick(req, res);
       res.writeHead(404); res.end('Not found');
     } catch (err) {

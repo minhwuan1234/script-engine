@@ -100,6 +100,7 @@
                             <div class="tpw-output-title" id="tpw-title-a">-</div>
                             <div class="tpw-output-meta" id="tpw-meta-a"></div>
                             <div class="tpw-output-body" id="tpw-output-a"></div>
+                            <button class="tpw-download-btn" type="button" data-download="A" hidden>Download PDF</button>
                             <button class="tpw-pick-btn" type="button" data-pick="A" hidden>Choose Version A</button>
                         </div>
 
@@ -108,6 +109,7 @@
                             <div class="tpw-output-title" id="tpw-title-b">-</div>
                             <div class="tpw-output-meta" id="tpw-meta-b"></div>
                             <div class="tpw-output-body" id="tpw-output-b"></div>
+                            <button class="tpw-download-btn" type="button" data-download="B" hidden>Download PDF</button>
                             <button class="tpw-pick-btn" type="button" data-pick="B" hidden>Choose Version B</button>
                         </div>
                     </div>
@@ -210,6 +212,13 @@
 .tony-pixel-widget button.tpw-pick-btn:hover { background: #ff9436; }
 .tony-pixel-widget button.tpw-pick-btn:disabled { opacity: .55; cursor: default; }
 .tony-pixel-widget button.tpw-pick-btn[hidden] { display: none; }
+.tony-pixel-widget button.tpw-download-btn {
+    align-self: flex-start; margin-top: 12px; padding: 8px 14px; border: 1.5px solid #000; border-radius: 999px;
+    background: #fff; color: #000; font: inherit; font-size: 12px; font-weight: 800; cursor: pointer;
+}
+.tony-pixel-widget button.tpw-download-btn:hover { background: #ffedd5; }
+.tony-pixel-widget button.tpw-download-btn:disabled { opacity: .55; cursor: default; }
+.tony-pixel-widget button.tpw-download-btn[hidden] { display: none; }
 .tony-pixel-widget .tpw-pick-status { margin-top: 8px; font-size: 12px; font-weight: 700; color: #22252a; }
 .tony-pixel-widget .tpw-pick-status:empty { display: none; }
 
@@ -365,6 +374,7 @@
  */
 const API_URL = '/api/generate';
 const PICK_URL = '/api/pick';
+const PDF_URL = '/api/download-pdf';
 const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the server)
 
 (() => {
@@ -397,8 +407,10 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
     const metaA = $('#tpw-meta-a');
     const metaB = $('#tpw-meta-b');
     const pickButtons = root.querySelectorAll('.tpw-pick-btn');
+    const downloadButtons = root.querySelectorAll('.tpw-download-btn');
     const pickStatus = $('.tpw-pick-status');
     let currentPick = null;
+    const downloadable = { A: null, B: null };
     let pickBusy = false;
 
     let attachedFiles = [];
@@ -568,17 +580,66 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
     submitBtn.addEventListener('click', submit);
 
     /* ---------- render helpers ---------- */
-    // Backend now returns the engine's "output gateway": a JSON object whose fields are
-    // plain text/markdown per section (see SKILL.md Step 6). No regex-parsing of headings —
-    // and the JSON itself is never shown to the user, only the text inside each field.
-    const GATEWAY_FIELDS = [
-      'title', 'duration', 'icp', 'preface_md',
-      'version_a_title', 'version_a_md', 'version_b_title', 'version_b_md', 'engine_notes_md',
-    ];
-    const hasGatewayFields = (data) => GATEWAY_FIELDS.every((k) => typeof data[k] === 'string');
+    // The current skill returns text. Convert older Markdown responses during rollout
+    // so neither the cards nor the PDFs expose table syntax or heading markers.
+    function plainText(value) {
+      return String(value || '').split(/\r?\n/).flatMap((raw) => {
+        let line = raw.trim();
+        if (/^\|\s*(?:Time|[-: ]+)\s*\|/i.test(line)) return [];
+        if (/^\|.*\|$/.test(line)) {
+          const cells = line.slice(1, -1).split('|').map((cell) => cell.trim());
+          if (cells.length >= 3 && /^\d+:\d+\s*[-–]\s*\d+:\d+/.test(cells[0])) {
+            return [`TIME: ${cells[0]}`, `VOICEOVER: ${cells[1]}`, `ON SCREEN: ${cells.slice(2).join(' | ')}`, ''];
+          }
+        }
+        line = line.replace(/^#{1,6}\s+/, '').replace(/^[-*]\s+/, '').replace(/\*\*/g, '').replace(/`/g, '');
+        return [line];
+      }).join('\n').replace(/\n{3,}/g, '\n\n').trim();
+    }
+    const versionText = (data, letter) => data[`version_${letter.toLowerCase()}_text`] ?? data[`version_${letter.toLowerCase()}_md`];
+    const hasGatewayFields = (data) =>
+      ['title', 'duration', 'icp', 'version_a_title', 'version_b_title'].every((k) => typeof data[k] === 'string') &&
+      typeof versionText(data, 'A') === 'string' && typeof versionText(data, 'B') === 'string';
+    function setDownload(letter, title, text, duration, style = '') {
+      downloadable[letter] = text ? { version: letter, title, style, text, duration } : null;
+      const button = root.querySelector(`[data-download="${letter}"]`);
+      button.hidden = !downloadable[letter];
+      button.disabled = false;
+      button.textContent = 'Download PDF';
+      button.title = '';
+    }
+    downloadButtons.forEach((button) => button.addEventListener('click', async () => {
+      const data = downloadable[button.dataset.download];
+      if (!data || button.disabled) return;
+      button.disabled = true;
+      button.textContent = 'Preparing PDF...';
+      try {
+        const response = await fetch(PDF_URL, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
+        });
+        if (!response.ok) {
+          const error = await response.json().catch(() => ({}));
+          throw new Error(error.error || `PDF request failed (${response.status}).`);
+        }
+        const url = URL.createObjectURL(await response.blob());
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `magnetic-script-version-${data.version.toLowerCase()}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+        button.textContent = 'Download PDF';
+      } catch (error) {
+        button.textContent = 'Download failed — retry';
+        button.title = error.message || 'Could not create PDF.';
+      } finally { button.disabled = false; }
+    }));
 
     function showError(message) {
       currentPick = null;
+      setDownload('A', '', '', '');
+      setDownload('B', '', '', '');
       pickButtons.forEach((button) => { button.hidden = true; });
       pickStatus.textContent = '';
       usageLine.textContent = '';
@@ -601,8 +662,10 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
         // fallback: engine didn't return the expected gateway fields -> show raw text so nothing is lost
         titleA.textContent = 'Result'; titleB.textContent = '-';
         metaA.textContent = ''; metaB.textContent = '';
-        outputA.textContent = data.markdown || data.title || '(empty response)';
+        outputA.textContent = plainText(data.text || data.markdown || data.title || '(empty response)');
         outputB.textContent = '';
+        setDownload('A', '', '', '');
+        setDownload('B', '', '', '');
         return;
       }
 
@@ -613,8 +676,10 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
       titleA.textContent = data.version_a_title;
       titleB.textContent = data.version_b_title;
       metaA.textContent = meta; metaB.textContent = meta;
-      outputA.textContent = data.version_a_md;
-      outputB.textContent = data.version_b_md;
+      outputA.textContent = plainText(versionText(data, 'A'));
+      outputB.textContent = plainText(versionText(data, 'B'));
+      setDownload('A', data.title || data.version_a_title, outputA.textContent, data.duration, data.version_a_title);
+      setDownload('B', data.title || data.version_b_title, outputB.textContent, data.duration, data.version_b_title);
       currentPick = data.ab_pick || null;
       pickButtons.forEach((button) => { button.hidden = !currentPick; button.disabled = false; });
       if (currentPick) {
@@ -663,6 +728,8 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
       currentPick = null;
       pickStatus.textContent = '';
       pickButtons.forEach((button) => { button.hidden = true; });
+      setDownload('A', '', '', '');
+      setDownload('B', '', '', '');
 
       busy = true;
       mainContainer.classList.add('has-output');
@@ -672,7 +739,8 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
 
       const fd = new FormData();
       fd.append('text', text);
-      fd.append('duration', durationSelect.value);
+      const selectedDuration = durationSelect.value;
+      fd.append('duration', selectedDuration);
       attachedFiles.forEach((f) => fd.append('files', f, f.name));
 
       let receivedA = false;
@@ -697,16 +765,18 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
               outputA.classList.remove('is-error');
               outputB.classList.remove('is-error');
               titleA.textContent = event.title || 'Version A';
-              metaA.textContent = `Duration: ${durationSelect.value}`;
-              outputA.textContent = event.markdown || '';
+              metaA.textContent = `Duration: ${selectedDuration}`;
+              outputA.textContent = plainText(event.text ?? event.markdown);
+              setDownload('A', event.workingTitle || titleA.textContent, outputA.textContent, selectedDuration, titleA.textContent);
               titleB.textContent = 'Writing Version B...';
               metaB.textContent = '';
               outputB.textContent = 'The second script is being prepared.';
             } else if (event.type === 'version_b') {
               receivedB = true;
               titleB.textContent = event.title || 'Version B';
-              metaB.textContent = `Duration: ${durationSelect.value}`;
-              outputB.textContent = event.markdown || '';
+              metaB.textContent = `Duration: ${selectedDuration}`;
+              outputB.textContent = plainText(event.text ?? event.markdown);
+              setDownload('B', event.workingTitle || titleB.textContent, outputB.textContent, selectedDuration, titleB.textContent);
             } else if (event.type === 'complete') {
               completed = true;
               loadingOverlay.classList.remove('is-loading');
