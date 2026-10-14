@@ -580,7 +580,10 @@ async function callClaude(content, usage, onText = () => {}) {
       if (typeof u[k] === 'number') usage[k] = u[k];
     }
     if (typeof u.server_tool_use?.code_execution_requests === 'number') {
-      usage.code_execution_requests = u.server_tool_use.code_execution_requests;
+      usage.code_execution_requests = Math.max(
+        usage.code_execution_requests || 0,
+        u.server_tool_use.code_execution_requests,
+      );
     }
     if (typeof u.cache_creation?.ephemeral_5m_input_tokens === 'number') {
       usage.cache_write_5m_tokens = u.cache_creation.ephemeral_5m_input_tokens;
@@ -605,6 +608,10 @@ async function callClaude(content, usage, onText = () => {}) {
       let ev;
       try { ev = JSON.parse(dataLine.slice(6)); } catch { continue; }
       if (ev.type === 'message_start') pickUsage(ev.message?.usage);
+      else if (ev.type === 'content_block_start' && ev.content_block?.type === 'server_tool_use' &&
+        /code_execution/.test(ev.content_block.name || '')) {
+        usage.code_execution_requests = (usage.code_execution_requests || 0) + 1;
+      }
       else if (ev.type === 'content_block_delta' && ev.delta?.type === 'text_delta') {
         text += ev.delta.text;
         // A section closes at a heading line, so no scan is needed until a newline arrives.
