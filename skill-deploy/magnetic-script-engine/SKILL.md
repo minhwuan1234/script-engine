@@ -24,67 +24,56 @@ before completeness, style, vividness and duration.
 - Stop only when there is no usable source text. Otherwise note missing or conflicting
   information in `Engine notes` and continue without inventing it.
 
-## Progressive loading rule
+## Load the selected references once
 
-Read reference files only at the step named below. Do not preload all references.
-Use code execution to open the required files from this skill directory. Finish
-reading each required file before applying it.
+The app supplies the ICP key and both style keys. Before analyzing the document or
+drafting either version, use one code execution call to run this script from the
+directory containing this SKILL.md:
+
+`python3 scripts/load_references.py <icp_key> <version_a_style_key> <version_b_style_key>`
+
+Replace the bracketed arguments with the exact keys supplied by the app. Read the
+complete output in order. The loader opens the factual boundary, materials guide,
+only the selected ICP and two assigned styles, then script craft, final review and
+output format. Do not open other ICP or style files. If the loader fails, resolve
+the error and run it again before writing. Apply the loaded rules in the workflow
+below; loading them together does not merge or skip any step.
 
 ## Workflow
 
 ### Step 1 — Establish the factual boundary
 
-Read `references/source-accuracy.md` before extracting, ranking or rewriting any
-fact. Its rules apply to titles, hooks, questions, voiceover and on-screen direction.
+Apply `references/source-accuracy.md` before extracting, ranking or rewriting any
+fact. Its rules cover titles, hooks, questions, voiceover and on-screen direction.
 
 ### Step 2 — Build the internal materials sheet
 
-Read `references/materials-analysis.md`. Analyze the supplied document and privately
+Apply `references/materials-analysis.md`. Analyze the supplied document and privately
 build the job, locked facts, source-stated mechanism, understanding need, cut list
 and audience fit. Do not draft either script yet.
 
 ### Step 3 — Apply exactly one ICP lens
 
-The app supplies a selected ICP key. Read only its matching file:
-
-- `healthcare` → `references/icp-healthcare.md`
-- `corporate_lnd` → `references/icp-corporate-lnd.md`
-- `publishing` → `references/icp-publishing.md`
-- `ngo` → `references/icp-ngo.md`
-- `unclear` → `references/icp-unclear.md`
-
-Do not read unused ICP files. Treat the selected ICP as an editorial lens, never as
+Apply the selected ICP reference loaded above as an editorial lens, never as
 evidence about the source or audience. If the document clearly conflicts with the
-selected ICP, use `unclear` and state the mismatch in `Engine notes`.
+selected ICP, set the editorial lens to `unclear`, rely on the source-only rules and
+state the mismatch in `Engine notes`.
 
 ### Step 4 — Load only the two assigned styles
 
-The app supplies a Version A style key and Version B style key. Read only the two
-matching files:
-
-- `journey` → `references/style-journey.md`
-- `mechanism` → `references/style-mechanism.md`
-- `myth` → `references/style-myth.md`
-- `before_after` → `references/style-before-after.md`
-- `countdown` → `references/style-countdown.md`
-- `mystery` → `references/style-mystery.md`
-- `qa` → `references/style-qa.md`
-- `stakes` → `references/style-stakes.md`
-
-Do not read unused style files. Use the assigned style for each version exactly; do
-not swap or replace them. Style changes structure and presentation only, never facts.
+Apply the loaded Version A and Version B style references exactly. Do not swap or
+replace them. Style changes structure and presentation only, never facts.
 
 ### Step 5 — Prepare the shared plan and output rules
 
-Read `references/script-craft.md`, then `references/final-review.md` and
+Apply `references/script-craft.md`, `references/final-review.md` and
 `references/output-format.md` before composing viewer-facing text. Use the exact
 timing and word budget supplied by the app; do not recompute it and do not open a
 separate duration guide. Privately plan the shared locked facts and two distinct
 routes through them. Do not draft Version B before Version A has been released.
-For healthcare, apply the duration-specific editorial shape and healthcare craft
-checks in that reference and `references/icp-healthcare.md`. The app-assigned style
-still determines each version's form; the understanding need informs the opening
-and order within that form, never replaces an assigned style.
+For healthcare, apply the duration-specific shape in `references/script-craft.md`
+and checks in `references/icp-healthcare.md`. The assigned style still determines
+each version's form; the understanding need informs its opening and order.
 
 ### Step 6 — Write, verify and release Version A
 

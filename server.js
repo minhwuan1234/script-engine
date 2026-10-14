@@ -67,16 +67,6 @@ const icpSignalStore = createIcpSignalStore(ICP_SIGNAL_LOG, {
 });
 const DURATION_OPTIONS = ['30s-60s', '2-3 mins', 'upto 5 mins'];
 const DEFAULT_DURATION = '2-3 mins';
-const STYLE_REFERENCES = {
-  journey: 'references/style-journey.md',
-  mechanism: 'references/style-mechanism.md',
-  myth: 'references/style-myth.md',
-  before_after: 'references/style-before-after.md',
-  countdown: 'references/style-countdown.md',
-  mystery: 'references/style-mystery.md',
-  qa: 'references/style-qa.md',
-  stakes: 'references/style-stakes.md',
-};
 // Same three buckets the UI's dropdown offers, as [min_seconds, max_seconds].
 // 'upto 5 mins' has min 0 — "up to" means no floor, only a ceiling.
 const DURATION_TARGETS = {
@@ -216,32 +206,9 @@ function durationBudget(duration) {
 
 /* ---------- ICP guess: small/cheap model, not the main model ----------
  * A cheap/fast model (Haiku) reads a short excerpt and selects one ICP key. The main
- * model receives only that key plus the exact reference path to open at Step 3 of the
- * skill. This preserves progressive disclosure: unused ICP references stay unread.
+ * model receives only that key. The skill's loader opens just that ICP reference
+ * together with the two selected style references.
  */
-const ICP_LENSES = {
-  healthcare: {
-    label: 'Healthcare / pharma / patient education',
-    reference: 'references/icp-healthcare.md',
-  },
-  corporate_lnd: {
-    label: 'Corporate L&D / compliance / onboarding',
-    reference: 'references/icp-corporate-lnd.md',
-  },
-  publishing: {
-    label: 'Publishing / education',
-    reference: 'references/icp-publishing.md',
-  },
-  ngo: {
-    label: 'NGO / mission-driven',
-    reference: 'references/icp-ngo.md',
-  },
-  unclear: {
-    label: 'Unclear ICP',
-    reference: 'references/icp-unclear.md',
-  },
-};
-
 const ICP_EXCERPT_CHARS = 3000; // plenty to tell these 4 domains apart; keeps the classifier call tiny
 
 // Local signals provide a prior guess, but Haiku checks every input so the collection
@@ -612,6 +579,9 @@ async function callClaude(content, usage, onText = () => {}) {
     for (const k of ['input_tokens', 'output_tokens', 'cache_creation_input_tokens', 'cache_read_input_tokens']) {
       if (typeof u[k] === 'number') usage[k] = u[k];
     }
+    if (typeof u.server_tool_use?.code_execution_requests === 'number') {
+      usage.code_execution_requests = u.server_tool_use.code_execution_requests;
+    }
     if (typeof u.cache_creation?.ephemeral_5m_input_tokens === 'number') {
       usage.cache_write_5m_tokens = u.cache_creation.ephemeral_5m_input_tokens;
     }
@@ -712,6 +682,7 @@ async function handleGenerate(req, res) {
     }
     rec.files = fileTypes; // extensions only, never file names or contents
     rec.extract_modes = extractModes; // which extraction path ran — debugging/insight only
+    rec.extract_ms = Date.now() - t0;
     if (!text && blocks.length === 0) {
       rec.status = 'bad_request';
       return json(res, 400, {
@@ -726,13 +697,13 @@ async function handleGenerate(req, res) {
     const budget = durationBudget(duration);
 
     // Pre-computed here too: which ICP applies, guessed by a small/cheap model from a
-    // short excerpt. The main model receives its key and opens only that reference.
+    // short excerpt. The skill's loader opens only the selected reference.
     const classifyExcerpt = [text, ...blocks.filter((b) => b.type === 'text').map((b) => b.text)]
       .join('\n\n')
       .slice(0, ICP_EXCERPT_CHARS);
     const icpDecision = await classifyIcp(classifyExcerpt);
+    rec.icp_ready_ms = Date.now() - t0;
     const icpKey = icpDecision.icp;
-    const icpLens = ICP_LENSES[icpKey];
     const strategyPair = preferenceStore.choosePair(icpKey);
     rec.icp_guess = icpKey; // logging/debugging only, never document content
     rec.icp_source = icpDecision.source;
@@ -745,15 +716,12 @@ async function handleGenerate(req, res) {
       `Word/timing budget for this duration — pre-computed, use these numbers directly, do not recompute them:\n` +
       '```json\n' + JSON.stringify(budget, null, 2) + '\n```\n' +
       `Selected ICP key: ${icpKey}\n` +
-      `At Step 3, read only this ICP reference: ${icpLens.reference}\n\n` +
       `Narrative pair selected from prior A/B picks:\n` +
       `- Version A style key: ${strategyPair.a}\n` +
       `- Version A exact style name: ${STYLES[strategyPair.a]}\n` +
-      `- Version A reference: ${STYLE_REFERENCES[strategyPair.a]}\n` +
       `- Version B style key: ${strategyPair.b}\n` +
       `- Version B exact style name: ${STYLES[strategyPair.b]}\n` +
-      `- Version B reference: ${STYLE_REFERENCES[strategyPair.b]}\n` +
-      `At Step 4, read only those two style references. Do not swap the assigned styles.\n\n` +
+      `Load only the selected skill references once, as instructed by the skill, before Step 1. Do not swap the assigned styles.\n\n` +
       `Return the final result in the skill's exact Step 7 format, as plain text — nothing else before or after it. Do not use Markdown or JSON.` +
       (text ? `\n\n--- Pasted text / instructions ---\n${text}` : '');
 
@@ -771,11 +739,11 @@ async function handleGenerate(req, res) {
       if (!streamResults) return;
       if (!sentA) {
         const a = completedVersion(partial, 'A');
-        if (a) { sendEvent('version_a', a); sentA = true; }
+        if (a) { rec.version_a_ms = Date.now() - t0; sendEvent('version_a', a); sentA = true; }
       }
       if (sentA && !sentB) {
         const b = completedVersion(partial, 'B');
-        if (b) { sendEvent('version_b', b); sentB = true; }
+        if (b) { rec.version_b_ms = Date.now() - t0; sendEvent('version_b', b); sentB = true; }
       }
     };
     const { markdown, stopReason } = await callClaude([...blocks, { type: 'text', text: instruction }], usage, onText);
