@@ -675,8 +675,59 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
       fd.append('duration', durationSelect.value);
       attachedFiles.forEach((f) => fd.append('files', f, f.name));
 
+      let receivedA = false;
+      let receivedB = false;
       try {
-        const res = await fetch(API_URL, { method: 'POST', body: fd });
+        const res = await fetch(API_URL, {
+          method: 'POST', headers: { Accept: 'application/x-ndjson' }, body: fd,
+        });
+        if (res.headers.get('content-type')?.includes('application/x-ndjson')) {
+          if (!res.body) throw new Error('Streaming response is unavailable.');
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = '';
+          let completed = false;
+          const handleEvent = (event) => {
+            if (event.type === 'heartbeat') return;
+            if (event.type === 'error') throw new Error(event.error || 'Generation failed.');
+            if (event.type === 'version_a') {
+              receivedA = true;
+              loadingOverlay.classList.remove('is-loading');
+              resultBox.classList.add('is-ready');
+              outputA.classList.remove('is-error');
+              outputB.classList.remove('is-error');
+              titleA.textContent = event.title || 'Version A';
+              metaA.textContent = `Duration: ${durationSelect.value}`;
+              outputA.textContent = event.markdown || '';
+              titleB.textContent = 'Writing Version B...';
+              metaB.textContent = '';
+              outputB.textContent = 'The second script is being prepared.';
+            } else if (event.type === 'version_b') {
+              receivedB = true;
+              titleB.textContent = event.title || 'Version B';
+              metaB.textContent = `Duration: ${durationSelect.value}`;
+              outputB.textContent = event.markdown || '';
+            } else if (event.type === 'complete') {
+              completed = true;
+              loadingOverlay.classList.remove('is-loading');
+              showResult(event.data || {});
+              if (event.data?.skipped?.length) metaB.textContent = `Skipped (unsupported): ${event.data.skipped.join(', ')}`;
+            }
+          };
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            let newline;
+            while ((newline = buffer.indexOf('\n')) !== -1) {
+              const line = buffer.slice(0, newline).trim();
+              buffer = buffer.slice(newline + 1);
+              if (line) handleEvent(JSON.parse(line));
+            }
+          }
+          if (!completed) throw new Error('Generation ended before the final result arrived.');
+          return;
+        }
         const data = await res.json().catch(() => ({}));
         // The server sends its response headers as soon as it starts working (so the
         // connection stays visibly alive during a long generation) and can no longer change
@@ -692,7 +743,17 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
         }
       } catch (err) {
         loadingOverlay.classList.remove('is-loading');
-        showError(err.message || 'Something went wrong.');
+        if (receivedA) {
+          if (!receivedB) {
+            titleB.textContent = 'Version B unavailable';
+            metaB.textContent = '';
+            outputB.textContent = err.message || 'Something went wrong.';
+            outputB.classList.add('is-error');
+          }
+          pickStatus.textContent = receivedB
+            ? `Both scripts are available, but final request details could not be saved: ${err.message || 'Unknown error.'}`
+            : 'Version A is available above. A/B selection requires both versions.';
+        } else showError(err.message || 'Something went wrong.');
       } finally {
         busy = false;
       }

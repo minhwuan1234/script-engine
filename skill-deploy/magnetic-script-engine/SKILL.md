@@ -74,27 +74,34 @@ matching files:
 Do not read unused style files. Use the assigned style for each version exactly; do
 not swap or replace them. Style changes structure and presentation only, never facts.
 
-### Step 5 — Draft both versions
+### Step 5 — Prepare the shared plan and output rules
 
-Read `references/script-craft.md` immediately before drafting. Use the exact timing
-and word budget supplied by the app; do not recompute it and do not open a separate
-duration guide. Both versions must preserve the same locked facts while differing in
-structure and source of tension.
+Read `references/script-craft.md`, then `references/final-review.md` and
+`references/output-format.md` before composing viewer-facing text. Use the exact
+timing and word budget supplied by the app; do not recompute it and do not open a
+separate duration guide. Privately plan the shared locked facts and two distinct
+routes through them. Do not draft Version B before Version A has been released.
 For healthcare, apply the duration-specific editorial shape and healthcare craft
 checks in that reference and `references/icp-healthcare.md`. The app-assigned style
 still determines each version's form; the understanding need informs the opening
 and order within that form, never replaces an assigned style.
 
-### Step 6 — Verify before output
+### Step 6 — Write, verify and release Version A
 
-Read `references/final-review.md` only after both drafts exist. Build a private source
-ledger, remove or repair every unsupported statement, and apply every review check.
-Do not merely report a failed check.
+Draft Version A in its assigned style. Build a private source ledger for its title,
+hook, voiceover and visuals; remove or repair every unsupported statement and apply
+the relevant checks in `references/final-review.md`. Only after Version A passes,
+start the response with the working title and the complete Version A section in
+the exact `references/output-format.md` structure. Do not release an unreviewed or
+incomplete Version A.
 
-### Step 7 — Return the fixed deliverable
+### Step 7 — Write, verify and release Version B
 
-Read `references/output-format.md` immediately before responding. Follow it exactly.
-Return only the two scripts and `Engine notes`, with nothing before or after them.
+Draft Version B using the same locked facts and its own assigned style. Review its
+claims against the source, then check that both versions retain the same locked
+facts and differ structurally. Repair Version B before releasing it. Continue the
+same response with the complete Version B section and `Engine notes` in the exact
+output format. Return nothing else before, between or after these sections.
 
 ## Non-negotiable final rules
 

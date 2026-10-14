@@ -1,6 +1,7 @@
 # Final review
 
-Review only after both versions exist. Fix every failure before output.
+Review each version after drafting it and before releasing that version. Review
+Version B against Version A before releasing B. Fix every failure before output.
 
 ## Build a private source ledger
 
@@ -8,7 +9,8 @@ For every factual statement in titles, hooks, questions, voiceover and visuals, 
 
 - the exact supporting source passage
 - the fact with every condition and qualifier attached
-- where it appears in Version A and Version B
+- where it appears in the version being reviewed; compare the two ledgers before
+  releasing Version B
 - whether its phrasing implies anything beyond the source
 
 Delete any statement without an exact supporting passage. Do not print the ledger.
@@ -41,7 +43,8 @@ Delete any statement without an exact supporting passage. Do not print the ledge
   a sparse source is never padded to meet a suggested count.
 - The hook is 30–40 words, passes the swap, clarity and promise tests, and is
   paid off by the script without withholding a source-stated urgent action.
-- Both versions contain the same locked facts but differ structurally.
+- Before releasing Version B, both versions contain the same locked facts but differ
+  structurally.
 - Each on-screen direction explains a source-supported action, sequence or contrast;
   remove decorative rows and any implied fact without a source passage.
 - Each version ends on one observable, source-supported action at the source-stated

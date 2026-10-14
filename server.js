@@ -134,6 +134,22 @@ function parseGateway(markdown, { duration, icp }) {
   };
 }
 
+// A section is safe to display only after the next heading has arrived. This avoids
+// exposing an unfinished script while Claude is still streaming its text.
+function completedVersion(markdown, letter) {
+  const current = new RegExp(`^##\\s+Version\\s+${letter}[^\\n]*\\n`, 'im').exec(markdown);
+  const next = (letter === 'A'
+    ? /^##\s+Version\s+B[^\n]*\n/im
+    : /^##\s+Engine notes[^\n]*\n/im).exec(markdown);
+  if (!current || !next || next.index <= current.index) return null;
+  const body = markdown.slice(current.index + current[0].length, next.index).trim();
+  if (!/^###\s+Hook\b/im.test(body) || !/^###\s+Script\b/im.test(body)) return null;
+  return {
+    title: current[0].replace(/^##\s+Version\s+[AB]\s*[—-]?\s*/i, '').trim(),
+    markdown: body,
+  };
+}
+
 /* ---------- duration -> word/timing budget: code-side, not AI-side ----------
  * The visitor already picked a duration bucket in the UI. Instead of making the model read
  * word-per-minute arithmetic itself every run, compute
@@ -463,7 +479,7 @@ async function readForm(req) {
 // Call Messages API with streaming (avoids long-request timeouts).
 // Returns the final text, stop reason and token usage. `usage` is filled in as events arrive,
 // so a caller can still read partial usage if the stream fails midway.
-async function callClaude(content, usage) {
+async function callClaude(content, usage, onText = () => {}) {
   const upstream = await fetch(ANTHROPIC_API_URL, {
     method: 'POST',
     headers: {
@@ -523,7 +539,11 @@ async function callClaude(content, usage) {
       let ev;
       try { ev = JSON.parse(dataLine.slice(6)); } catch { continue; }
       if (ev.type === 'message_start') pickUsage(ev.message?.usage);
-      else if (ev.type === 'content_block_delta' && ev.delta?.type === 'text_delta') text += ev.delta.text;
+      else if (ev.type === 'content_block_delta' && ev.delta?.type === 'text_delta') {
+        text += ev.delta.text;
+        // A section closes at a heading line, so no scan is needed until a newline arrives.
+        if (ev.delta.text.includes('\n')) onText(text);
+      }
       else if (ev.type === 'message_delta') { stopReason = ev.delta?.stop_reason || stopReason; pickUsage(ev.usage); }
       else if (ev.type === 'error') throw new Error(ev.error?.message || 'Upstream stream error');
     }
@@ -548,19 +568,24 @@ async function handleGenerate(req, res) {
   const rec = { ts: new Date().toISOString(), visitor: visitorId(ip), status: 'error', model: CLAUDE_MODEL };
   const usage = {};
   let heartbeat = null;
+  const streamResults = String(req.headers.accept || '').includes('application/x-ndjson');
+  let sentA = false;
+  let sentB = false;
+  const sendEvent = (type, payload = {}) => {
+    if (streamResults && !res.destroyed) res.write(JSON.stringify({ type, ...payload }) + '\n');
+  };
 
   // Once callClaude() starts, this can run for a while. Node was already streaming from
   // Anthropic internally, but the browser never saw a byte until everything was done —
   // on a slow run, a proxy or the browser itself can give up waiting on a connection with
-  // no traffic. finish() sends the response headers up front, then a small space character
-  // every 15s to keep the connection visibly alive, and writes the real JSON as the last
-  // chunk. Because headers go out early with status 200, success/failure from this point on
-  // is signalled by an `error` field inside the JSON body, not the HTTP status — the
-  // frontend checks that field first (see index.html).
+  // no traffic. The browser requests NDJSON so each completed version can arrive early;
+  // older clients still receive one JSON object. Heartbeats keep either response alive.
+  // Since headers go out early with status 200, later errors live in the response body.
   const finish = (obj) => {
     if (heartbeat) { clearInterval(heartbeat); heartbeat = null; }
     try {
-      res.write(JSON.stringify(obj));
+      if (streamResults) sendEvent(obj.error ? 'error' : 'complete', obj.error ? { error: obj.error } : { data: obj });
+      else res.write(JSON.stringify(obj));
       res.end();
     } catch {} // client likely disconnected — nothing to do
   };
@@ -637,10 +662,27 @@ async function handleGenerate(req, res) {
       (text ? `\n\n--- Pasted text / instructions ---\n${text}` : '');
 
     // From here on, the wait can run well past a minute — start the keep-alive.
-    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-    heartbeat = setInterval(() => { try { res.write(' '); } catch {} }, 15000);
+    res.writeHead(200, {
+      'Content-Type': streamResults ? 'application/x-ndjson; charset=utf-8' : 'application/json; charset=utf-8',
+      'Cache-Control': 'no-cache, no-transform',
+      'X-Accel-Buffering': 'no',
+    });
+    heartbeat = setInterval(() => {
+      try { if (streamResults) sendEvent('heartbeat'); else res.write(' '); } catch {}
+    }, 15000);
 
-    const { markdown, stopReason } = await callClaude([...blocks, { type: 'text', text: instruction }], usage);
+    const onText = (partial) => {
+      if (!streamResults) return;
+      if (!sentA) {
+        const a = completedVersion(partial, 'A');
+        if (a) { sendEvent('version_a', a); sentA = true; }
+      }
+      if (sentA && !sentB) {
+        const b = completedVersion(partial, 'B');
+        if (b) { sendEvent('version_b', b); sentB = true; }
+      }
+    };
+    const { markdown, stopReason } = await callClaude([...blocks, { type: 'text', text: instruction }], usage, onText);
 
     // Code-side gateway: turn the model's plain markdown into a stable field set.
     // No AI involved in this step — pure parsing, so it costs no tokens and can't
