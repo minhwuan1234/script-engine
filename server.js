@@ -6,7 +6,8 @@
 // Env vars (set in Railway Variables):
 //   CLAUDE_API          required  (ANTHROPIC_API_KEY also accepted)
 //   SKILL_ID            required  (skill_01... from the skill upload)
-//   CLAUDE_MODEL        optional  default claude-sonnet-4-5
+//   CLAUDE_MODEL        optional  default claude-haiku-5-5
+//   ICP_MODEL           optional  default claude-haiku-5-5
 //   MAX_TOKENS          optional  default 16000
 //   RATE_LIMIT_PER_HOUR optional  default 10 (per IP)
 //   ADMIN_TOKEN         optional  enables GET /api/usage (send as ?key=... or Authorization: Bearer ...)
@@ -14,8 +15,8 @@
 //                                 (Railway disk is wiped on redeploy: mount a Volume at /data and set /data/usage.jsonl)
 //   ICP_SIGNAL_LOG      optional  learned ICP words/phrases. Default ./icp-signals.jsonl
 //   ICP_SIGNAL_MIN_COUNT optional observations before a learned signal can select an ICP. Default 3
-//   PRICE_IN_PER_M      optional  USD per 1M input tokens, default 3   (cost is an ESTIMATE; set to your model's price)
-//   PRICE_OUT_PER_M     optional  USD per 1M output tokens, default 15
+//   PRICE_IN_PER_M      optional  USD per 1M input tokens, default 0.10 for Haiku 5.5
+//   PRICE_OUT_PER_M     optional  USD per 1M output tokens, default 0.50 for Haiku 5.5
 //   PORT                set by Railway
 //
 // After pulling this version: run `npm install` (adds mammoth, pdf-parse, jszip to node_modules).
@@ -40,8 +41,8 @@ import { createIcpSignalStore, ICP_KEYS } from './icp-signal-store.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const {
   SKILL_ID,
-  CLAUDE_MODEL = 'claude-sonnet-4-5',
-  ICP_MODEL = 'claude-haiku-4-5-20251001', // small/cheap model, only for the ICP guess below
+  CLAUDE_MODEL = 'claude-haiku-5-5',
+  ICP_MODEL = 'claude-haiku-5-5', // small/cheap model, only for the ICP guess below
   MAX_TOKENS = '16000',
   RATE_LIMIT_PER_HOUR = '10',
   ADMIN_TOKEN,
@@ -49,8 +50,8 @@ const {
   PREFERENCE_LOG = path.join(__dirname, 'preferences.jsonl'),
   ICP_SIGNAL_LOG = path.join(__dirname, 'icp-signals.jsonl'),
   ICP_SIGNAL_MIN_COUNT = '3',
-  PRICE_IN_PER_M = '3',
-  PRICE_OUT_PER_M = '15',
+  PRICE_IN_PER_M = CLAUDE_MODEL === 'claude-haiku-5-5' ? '0.10' : '3',
+  PRICE_OUT_PER_M = CLAUDE_MODEL === 'claude-haiku-5-5' ? '0.50' : '15',
   ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages', // overridable for testing
   PORT = '3000',
 } = process.env;
@@ -259,7 +260,8 @@ async function classifyIcp(excerpt) {
       },
       body: JSON.stringify({
         model: ICP_MODEL,
-        max_tokens: 300,
+        max_tokens: ICP_MODEL === 'claude-haiku-5-5' ? 1024 : 300,
+        ...(ICP_MODEL === 'claude-haiku-5-5' ? { output_config: { effort: 'low' } } : {}),
         system:
           'Classify which audience a document excerpt is written for. Return only valid JSON in this shape: ' +
           '{"icp":"healthcare|corporate_lnd|publishing|ngo|unclear","confidence":0.0,"signals":["exact phrase"]}. ' +
@@ -276,7 +278,8 @@ async function classifyIcp(excerpt) {
     });
     if (!res.ok) return local.confident ? { ...local, source: 'signals_fallback' } : { icp: 'unclear', source: 'model_error' };
     const data = await res.json();
-    const raw = String(data.content?.[0]?.text || '').trim().replace(/^```(?:json)?\s*|\s*```$/g, '');
+    const raw = String(data.content?.find((block) => block.type === 'text')?.text || '')
+      .trim().replace(/^```(?:json)?\s*|\s*```$/g, '');
     const answer = JSON.parse(raw);
     const modelIcp = ICP_KEYS.includes(answer.icp) ? answer.icp : 'unclear';
     const confidence = Math.max(0, Math.min(1, Number(answer.confidence) || 0));
@@ -405,12 +408,18 @@ try {
 }
 
 function estimateCost(u) {
-  const pin = Number(PRICE_IN_PER_M);
-  const pout = Number(PRICE_OUT_PER_M);
+  const promptTokens = (u.input_tokens || 0) + (u.cache_creation_input_tokens || 0) + (u.cache_read_input_tokens || 0);
+  const haikuLongPrompt = CLAUDE_MODEL === 'claude-haiku-5-5' && promptTokens > 100_000;
+  const pin = Number(PRICE_IN_PER_M) * (haikuLongPrompt ? 5 : 1);
+  const pout = Number(PRICE_OUT_PER_M) * (haikuLongPrompt ? 5 : 1);
+  const cacheWrite5m = u.cache_write_5m_tokens || 0;
+  const cacheWrite1h = u.cache_write_1h_tokens || 0;
+  const cacheWriteOther = Math.max(0, (u.cache_creation_input_tokens || 0) - cacheWrite5m - cacheWrite1h);
   const usd =
     ((u.input_tokens || 0) * pin +
-      (u.cache_creation_input_tokens || 0) * pin * 1.25 + // cache write = 1.25x input
-      (u.cache_read_input_tokens || 0) * pin * 0.1 + //      cache read  = 0.1x input
+      cacheWrite5m * pin * 1.25 +
+      (cacheWrite1h + cacheWriteOther) * pin * 2 +
+      (u.cache_read_input_tokens || 0) * pin * 0.1 +
       (u.output_tokens || 0) * pout) /
     1e6;
   return Math.round(usd * 10000) / 10000;
@@ -453,7 +462,7 @@ function usageSummary() {
   }
   return {
     model: CLAUDE_MODEL,
-    note: 'Costs are estimates from token counts x PRICE_IN_PER_M / PRICE_OUT_PER_M; other charges (e.g. code execution) are not included.',
+    note: 'Costs are estimates using model token prices, cache write duration, and Haiku 5.5 long-prompt pricing. ICP classification and other charges (e.g. code execution) are not included.',
     records_in_memory: records.length,
     unique_visitors: new Set(records.map((r) => r.visitor)).size,
     all_time: totals(records),
@@ -604,6 +613,12 @@ async function callClaude(content, usage, onText = () => {}) {
     if (!u) return;
     for (const k of ['input_tokens', 'output_tokens', 'cache_creation_input_tokens', 'cache_read_input_tokens']) {
       if (typeof u[k] === 'number') usage[k] = u[k];
+    }
+    if (typeof u.cache_creation?.ephemeral_5m_input_tokens === 'number') {
+      usage.cache_write_5m_tokens = u.cache_creation.ephemeral_5m_input_tokens;
+    }
+    if (typeof u.cache_creation?.ephemeral_1h_input_tokens === 'number') {
+      usage.cache_write_1h_tokens = u.cache_creation.ephemeral_1h_input_tokens;
     }
   };
 
