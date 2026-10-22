@@ -41,7 +41,8 @@ merely because the source is a leaflet rather than a screenplay.
 The backend reads the reference files from the repository and includes their full
 contents in this system prompt: source accuracy, materials analysis, script craft,
 hook quality,
-final review, output format, one selected ICP and two assigned narrative styles.
+final review, output format, example guidance, one selected complete A/B writing
+example, one selected ICP and two assigned narrative styles.
 Apply these supplied references directly in the workflow below. Do not call tools,
 run scripts, or attempt to open files. No external skill container is required.
 
@@ -75,6 +76,10 @@ the source understandable; adapt a poorly fitting technique instead of forcing i
 Style changes presentation, not facts. Apply this flexibility to every loaded style.
 
 ### Step 5 — Build a storytelling concept for each version
+
+Apply `references/example-guidance.md` to the supplied A/B example. Learn its
+progression and visual storytelling, then create a distinct approach grounded in
+the current input. Example content is never evidence for the new script.
 
 Apply `references/script-craft.md`, `references/hook-quality.md`,
 `references/final-review.md` and

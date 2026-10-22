@@ -31,3 +31,13 @@ ICP classification uses `gpt-5.6-luna` through OpenAI Responses with reasoning d
 The default provider remains `anthropic` for existing deployments. `/api/health` reports the active writing provider/model and whether the required keys are configured. Never commit keys. Run adapter tests with `node --test openai-writer.test.js`.
 
 OpenAI cost estimates use standard GPT-6 Sol rates: $2/M input, $0.20/M cached reads, $2.50/M cache writes (30 minutes), and $10/M output including reasoning. Above 272K prompt tokens, input/cache rates double and output is 1.5x. Override `OPENAI_PRICE_IN_PER_M` and `OPENAI_PRICE_OUT_PER_M` if applicable rates change. ICP classification is excluded from these estimates. Sources: [model documentation](https://developers.openai.com/api/docs/models/gpt-6-sol), [prompt caching](https://developers.openai.com/api/docs/guides/prompt-caching).
+
+## Writing examples
+
+`skill-deploy/magnetic-script-engine/examples/` preserves the three supplied A/B
+reference pairs (HOPES, colonoscopy, cirrhosis). `writing-instructions.js` loads one
+complete pair per request, selected by narrative-style weights, not by medical topic.
+All examples are read at startup; restart after edits. `references/example-guidance.md`
+explains how to transfer narrative progression and visual motifs while excluding
+sample facts, Markdown formatting and fixed durations. The samples are not medical
+source documents. The current upload remains the factual basis for each script.
