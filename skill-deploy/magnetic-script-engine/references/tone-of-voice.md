@@ -32,8 +32,8 @@ Keep the exact source conditions when moving from an explanation to an action.
 
 This is an available storytelling relationship, not a required beat sequence.
 Do not make every script Myth-buster, add three beliefs, open every line “You might
-think”, or assume A/B labels determine perspective. Journey can carry the realization
-through a character; an explainer can let a visual relationship make it click.
+think”, or assume A/B labels determine perspective. A character exchange can make the distinction recognizable; an explainer can
+let a visual relationship make it click.
 Preserve the assigned styles and let each develop its own experience.
 
 The screenshot is a voice reference, not a factual source for new scripts. Its

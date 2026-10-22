@@ -42,7 +42,7 @@ unfinished action should lead into the relevant fact; that fact should change wh
 the viewer understands, notices or does next. This is a writing test, not a formula
 that every beat must announce.
 
-For a journey, let a source-supported rule enter at the moment the character needs
+In an illustrative scene, let a source-supported rule enter when the character needs
 it. For an explainer, let a detail or demonstration create the need for the next
 connection. The source supplies the reason behind a rule when available. When it
 does not, show how to apply the instruction without inventing a clinical “because”.
@@ -59,8 +59,8 @@ Develop an independent creative concept for each assigned style, sharing one
 communication objective and the same selected locked facts. Before releasing A,
 know enough about both concepts to see how the viewing experiences will differ.
 B should grow from its own concept, rather than come from rephrasing A after it is
-written. A and B labels do not determine narrator or perspective; an explicit
-first-person style still calls for its own appropriate point of view.
+written. A and B labels do not determine narrator or perspective; choose a viewpoint
+that serves each active assigned style.
 
 Perspective, opening, beat order, explanation, visual motif and ending are choices,
 not fields to fill or a required outline. Ask how the viewer will encounter and

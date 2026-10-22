@@ -35,7 +35,7 @@ facts, with independent creative concepts and genuinely different experiences.
 Each version should be worth watching by itself. Do not mechanically attach a
 question, myth or callback to every idea.
 
-The supplied A/B example shows craft, not evidence. Use
+The supplied compatible writing excerpt shows craft, not evidence. Use
 `references/example-guidance.md` to learn from its narrative movement without
 copying its facts, lines, timestamps or format. The current input is the factual
 basis for the new work.

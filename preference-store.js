@@ -4,7 +4,6 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 
 export const STYLES = {
-  journey: 'First-person journey',
   mechanism: 'Explainer / mechanism reveal',
   myth: 'Myth-buster',
   before_after: 'Before/after scenario',
@@ -14,10 +13,10 @@ export const STYLES = {
   stakes: 'Stakes story (NGO)',
 };
 
-// Each pair has a distinct narrative axis, matching references/narrative-styles.md.
+// Eligible pairs combine different narrative approaches.
 const PAIRS = [
-  ['journey', 'mechanism'],
-  ['myth', 'journey'],
+  ['before_after', 'mechanism'],
+  ['myth', 'mechanism'],
   ['countdown', 'before_after'],
   ['qa', 'mystery'],
 ];
@@ -25,10 +24,12 @@ const PAIRS_BY_ICP = {
   healthcare: [PAIRS[0], PAIRS[1], PAIRS[2]],
   corporate_lnd: [PAIRS[1], PAIRS[2], PAIRS[3]],
   publishing: [PAIRS[0], PAIRS[1], PAIRS[3]],
-  ngo: [['stakes', 'mechanism'], ['stakes', 'journey'], PAIRS[3]],
+  ngo: [['stakes', 'mechanism'], ['stakes', 'before_after'], PAIRS[3]],
   unclear: [PAIRS[0], PAIRS[1], PAIRS[2], PAIRS[3]],
 };
 const VALID_ICP = new Set(['healthcare', 'corporate_lnd', 'publishing', 'ngo', 'unclear']);
+// Retain old comparisons without making retired styles eligible for new requests.
+const KNOWN_STYLES = new Set([...Object.keys(STYLES), 'journey']);
 const VOTE_TTL_MS = 30 * 24 * 3600_000;
 
 export function createPreferenceStore(filename) {
@@ -41,7 +42,7 @@ export function createPreferenceStore(filename) {
         try {
           const event = JSON.parse(line);
           if (event.type === 'generated' && VALID_ICP.has(event.icp) &&
-              STYLES[event.a] && STYLES[event.b] && !generations.has(event.id)) {
+              KNOWN_STYLES.has(event.a) && KNOWN_STYLES.has(event.b) && !generations.has(event.id)) {
             generations.set(event.id, event);
           } else if (event.type === 'picked' && generations.has(event.id) && !votes.has(event.id) &&
                      ['A', 'B'].includes(event.choice)) {
@@ -67,6 +68,7 @@ export function createPreferenceStore(filename) {
       if (!row) continue;
       for (const [side, style] of [['A', row.a], ['B', row.b]]) {
         const s = out[style];
+        if (!s) continue; // Keep the active opponent's history from a retired-style comparison.
         s.globalN++;
         if (side === choice) s.globalWins++;
         if (row.icp === icp) {
@@ -103,6 +105,9 @@ export function createPreferenceStore(filename) {
   }
 
   function createGeneration(icp, pair) {
+    if (!pair || !Object.hasOwn(STYLES, pair.a) || !Object.hasOwn(STYLES, pair.b) || pair.a === pair.b) {
+      throw new Error('Invalid or retired narrative style.');
+    }
     const id = crypto.randomUUID();
     const token = crypto.randomBytes(32).toString('hex');
     const event = {

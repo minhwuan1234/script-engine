@@ -14,7 +14,6 @@ ICP = {
 }
 
 STYLE = {
-    "journey": "style-journey.md",
     "mechanism": "style-mechanism.md",
     "myth": "style-myth.md",
     "before_after": "style-before-after.md",

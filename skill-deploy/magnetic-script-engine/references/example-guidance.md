@@ -1,6 +1,7 @@
 # Learn storytelling from the supplied example
 
-The application supplies one complete A/B example from the user's reference pack.
+The application supplies one compatible writing excerpt from the user's reference
+pack. Retired-style sections are excluded from the prompt.
 It demonstrates writing craft, not evidence for the current document. “Approved”
 in an example's title is the pack's label, not independent clinical verification.
 Original source documents for these samples are not included.
@@ -10,18 +11,15 @@ Original source documents for these samples are not included.
 Notice the narrative engine: a concrete opening creates a need for the next piece
 of information; each new fact changes the viewer's understanding or next action.
 The visual motif evolves and the ending returns to the opening with a useful payoff.
-Study how A and B reach the takeaway by different routes rather than copying a
-particular sentence, setting or character.
+Study how the excerpt develops its takeaway, then find independent approaches for
+the two assigned styles rather than copying a sentence, setting or character.
 
-- HOPES: incomplete views of medicines become one shared list; a pharmacy question
-  returns at the end with a different response. Borrow progressive discovery and
-  an object that carries the resolution.
-- Colonoscopy: a decision moment leads into the reason behind a rule; the other
-  version uses a sustained visual analogy. Borrow the reason-to-action progression
-  or a narrow visual mapping when the current source supports it.
-- Cirrhosis: an object/system viewpoint and a person's experience reveal the same
-  relationship differently. Borrow viewpoint, voice, pacing and a meaningful
-  reversal, without importing the medical claims or blaming the viewer.
+- HOPES: incomplete views of medicines become one shared list. Borrow progressive
+  discovery and an object that carries the resolution from the investigation excerpt.
+- Colonoscopy: a sustained visual analogy makes the explanation concrete. Borrow
+  a narrow visual mapping when the current source supports it.
+- Cirrhosis: an object/system narrator reveals the relationship differently. Borrow
+  viewpoint, voice, pacing and meaningful reversal without importing medical claims.
 
 Privately identify the selected example's opening → development → payoff pattern,
 then design a new pattern that fits the current source and assigned styles. The
@@ -39,6 +37,7 @@ The current runtime rules override sample conventions: English plain-text labele
 blocks, the assigned style names, current duration budget, hook at most 15 seconds
 with no separate word limit, and the same selected locked facts in both versions.
 Do not copy the samples' Markdown tables, fixed timestamps, edit annotations, brand
-cards, or differences in factual coverage. Keep all source-accuracy boundaries.
+cards, or differences in factual coverage. Reference version letters and sample perspectives are not assignments for the new
+A/B pair. Keep the active assigned styles and all source-accuracy boundaries.
 
 Do not mention the reference examples or this comparison process in the output.

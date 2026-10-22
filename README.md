@@ -36,7 +36,9 @@ OpenAI cost estimates use standard GPT-6 Sol rates: $2/M input, $0.20/M cached r
 
 `skill-deploy/magnetic-script-engine/examples/` preserves the three supplied A/B
 reference pairs (HOPES, colonoscopy, cirrhosis). `writing-instructions.js` loads one
-complete pair per request, selected by narrative-style weights, not by medical topic.
+compatible excerpt per request, selected by narrative-style weights, not by medical
+topic. First-person journey has been removed from new generation; its sections are
+filtered from runtime examples while the original reference files are preserved.
 All examples are read at startup; restart after edits. `references/example-guidance.md`
 explains how to transfer narrative progression and visual motifs while excluding
 sample facts, Markdown formatting and fixed durations. The samples are not medical
@@ -53,3 +55,8 @@ on other styles or treating its medical content as source evidence. It is editor
 and supplied references, rather than an official brand manual. The loader includes
 it once in the shared system prefix; ICP and narrative styles adapt the context
 without adding separate competing brand voices. Restart after editing it.
+
+Retired style history is retained for active opponents' statistics, but retired
+styles cannot be selected or registered for new generations. Current styles:
+mechanism, myth, before_after, countdown, mystery, qa and stakes. The 60/40
+selection policy remains in effect.
