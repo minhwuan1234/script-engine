@@ -87,7 +87,7 @@ const DURATION_TARGETS = {
 };
 
 /* ---------- output gateway: code-side, not AI-side ----------
- * The model writes plain text in the fixed Step 7 structure (see SKILL.md). The
+ * The model writes plain text in the required labeled structure (see output-format.md). The
  * parser also accepts the old Markdown headings/tables while skill versions roll out.
  * It is never asked to produce JSON. This deterministic gateway creates stable
  * fields without model tokens or model-authored JSON syntax.
@@ -624,7 +624,7 @@ async function callClaude(content, system, usage, onText = () => {}) {
       else if (ev.type === 'error') throw new Error(ev.error?.message || 'Upstream stream error');
     }
   }
-  // The skill returns plain text in the fixed Step 7 structure — never JSON.
+  // The skill returns plain text in the required labeled structure — never JSON.
   // Strip a stray code fence if an older skill version wraps it anyway.
   let markdown = text.trim();
   const fenced = markdown.match(/^```(?:markdown)?\s*([\s\S]*?)\s*```$/);
@@ -735,7 +735,7 @@ async function handleGenerate(req, res) {
       `- Version B style key: ${strategyPair.b}\n` +
       `- Version B exact style name: ${STYLES[strategyPair.b]}\n` +
       `The system prompt includes all required writing rules and the selected references. Apply them directly. Do not swap the assigned styles.\n\n` +
-      `Return the final result in the skill's exact Step 7 format, as plain text — nothing else before or after it. Do not use Markdown or JSON.` +
+      `Return the final result in the skill's required output-format.md structure, as plain text — nothing else before or after it. Do not use Markdown or JSON.` +
       (text ? `\n\n--- Pasted text / instructions ---\n${text}` : '');
 
     // From here on, the wait can run well past a minute — start the keep-alive.

@@ -1,22 +1,23 @@
 # Materials analysis
 
-Build this sheet privately before drafting. Read as the end viewer, not as the client
-who wants every section included.
+Use these questions when they help you choose material. No worksheet or fixed
+analysis order is required. Read as the end viewer, not as a client wanting every
+section included.
 
 ## Select the critical material
 
-- Select the four or five most critical source passages that the viewer must act on.
+- Select the source passages needed for the chosen takeaway; there is no passage quota.
 - Choose one observable job: the behavior the viewer should be able to perform after
   watching.
 - Use the source's urgency, warnings and emphasis to identify critical content.
   You may choose an editorial order for comprehension; do not imply a new clinical
   priority or change a required procedural sequence.
-- Choose ONE main teaching challenge for the selected job. Describe the gap as an
+- When useful, choose a main teaching challenge for the selected job. Describe it as an
   observable moment: what can the viewer notice or do, and what still needs to make
   sense before the next action? A category label alone is not a useful diagnosis.
   Treat this as an editorial hypothesis, not evidence of actual viewer behavior.
 
-Supported internal lenses:
+Possible internal lenses; choose one only if it helps:
 
 - `False Certainty`: a rule counters a possible incorrect interpretation; do not claim
   that viewers actually hold it without evidence.
@@ -29,7 +30,7 @@ Supported internal lenses:
 
 Never present an internal diagnosis as a fact about the audience.
 
-## Assemble six fields
+## Optional planning lenses
 
 - `job`: one observable behavior.
 - `lockedFacts`: exact locked items with source locations.

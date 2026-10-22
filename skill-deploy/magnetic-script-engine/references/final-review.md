@@ -1,11 +1,13 @@
 # Final review
 
-Review each version after drafting it and before releasing that version. Review
-Version B against Version A before releasing B. Fix every failure before output.
+Use these criteria to judge and improve the piece, without a prescribed review
+sequence or mandatory written checklist. Check each version before releasing it,
+and compare B with A before releasing B.
 
-## Build a private source ledger
+## Trace factual claims
 
-For every factual statement in titles, hooks, questions, voiceover and visuals, record:
+For factual statements in titles, hooks, questions, voiceover and visuals, be able
+to identify the support. A private ledger is optional; the relevant checks are:
 
 - the exact supporting source passage
 - the fact with every condition and qualifier attached
@@ -61,7 +63,7 @@ choices and framing for implied claims; they do not need verbatim source wording
   freely without affecting the experience, strengthen the throughline. A sourced
   reason, a meaningful decision or a demonstration can do this; invented stakes cannot.
 
-## Gate 1 — Each version on its own
+## Each version on its own
 
 Apply the required checks below to A before releasing A, and to B before releasing
 B. Also check that the voice is speakable and consistent, information arrives in a
@@ -73,7 +75,7 @@ For a failure, privately identify the weak line or beat and its root cause. Revi
 the outline or wording as needed, then recheck the whole version for factual and
 narrative effects. Keep this diagnosis out of the viewer-facing output.
 
-## Gate 2 — The pair, before releasing B
+## The pair, before releasing B
 
 - Both versions address the same job and legitimate takeaway, retaining the same
   locked facts and their conditions.
@@ -83,7 +85,7 @@ narrative effects. Keep this diagnosis out of the viewer-facing output.
   fixed beat template. Renaming or synonym substitution is insufficient.
 - Both versions stand on their own; do not make one deliberately weaker.
 - If the beat sequences are effectively identical, rebuild B's outline within its
-  assigned style and reapply Gate 1. A has already been released and must not be
+  assigned style and recheck its quality. A has already been released and must not be
   rewritten. Do not sacrifice accuracy for contrast; disclose a source limitation
   in Engine notes when the two-dimension target cannot be met safely.
 
@@ -98,8 +100,8 @@ against source documents is still needed to assess fidelity and usefulness.
 - No title, question, transition or visual smuggles in a new premise.
 - Red-flag rules for the chosen job remain present.
 - Voiceover fits the app-supplied word budget.
-- For healthcare, the content follows the selected duration's job, step and recap
-  limits. Q&A answers and Myth-buster corrections are supported by the source;
+- For healthcare, scope fits the time available without forcing a step count or
+  recap. Q&A answers and Myth-buster corrections are supported by the source;
   unsourced interpretations and scenes are clearly hypothetical;
   a sparse source is never padded to meet a suggested count.
 - The hook lasts at most 15 seconds at a natural spoken pace, has no separate
@@ -110,7 +112,7 @@ against source documents is still needed to assess fidelity and usefulness.
   structurally.
 - Each on-screen direction explains a source-supported action, sequence or contrast;
   remove decorative rows and any implied fact without a source passage.
-- Each version ends on one observable, source-supported action at the source-stated
-  time.
+- Each ending completes the thought. Where the job requires an action, its
+  source-stated conditions and timing remain clear.
 - Missing definitions, mechanisms and conflicts appear only in `Engine notes`.
 - Factual assumptions: none.

@@ -3,18 +3,13 @@
 A document is written to be complete; a script is written to be followed. Rebuild the
 source around one observable job instead of narrating every section.
 
-## Shared spine
+## Narrative movement
 
-Both versions use the same source facts and carry this spine:
-
-1. `Tension`: a source-supported decision, contrast, warning or action.
-2. `Explanation`: the source-stated reason or mechanism, when one exists.
-3. `Action`: one specific thing to do, including its source-stated trigger or timing.
-
-Build tension from a decision, an unanswered source-grounded question or a clearly
-hypothetical interpretation the source corrects. Do not assert an audience belief,
-behavior or consequence without evidence. If the
-source supplies no mechanism, teach the exact rule without adding a reason.
+Give the viewer a reason to follow the thought from one beat to the next. A
+source-supported decision, explanation, contrast or action can supply that movement,
+but no particular order or combination is compulsory. Choose the shape that makes
+the material clear and memorable. A continuous scene, a visual explanation or a
+conversation can work without fitting “tension → explanation → action”.
 
 ## Choose a storytelling concept before writing
 
@@ -57,9 +52,9 @@ a real-world success, belief or outcome just to close the loop.
 
 ## Two narrative plans
 
-Before drafting A, privately outline both assigned versions: speaker/viewer
-position, opening move, beat sequence, where a source-stated explanation appears,
-source-supported memory anchor, closing payoff, and action when provided.
+Consider how the two assigned versions will differ before releasing A. Perspective,
+opening, beat order, explanation, visual motif and ending are available choices,
+not fields you must fill or an outline you must complete before writing.
 Preserve the same job, locked facts and legitimate takeaway. A misconception can be sourced or a clearly hypothetical interpretation directly
 contradicted by the source; never present an editorial hypothesis as audience data.
 
@@ -120,10 +115,9 @@ condition, number or urgent instruction. A short, honest piece beats padded bant
 
 ## Structure
 
-- Privately map a short sequence before writing lines: hook promise → the minimum
-  source facts needed to understand the job → the exact action and its trigger.
-  Place each locked fact at the beat where the viewer needs it; never detach its
-  condition or repeat it only to fill time.
+- Place information where it helps the viewer understand the thought or action.
+  Discover the sequence through the approach that works for the piece; there is
+  no required outline. Keep conditions attached and avoid repetition for padding.
 - Give each beat one explanatory job.
 - Where source detail allows it, vary the beat about every 5–8 seconds. A new beat
   must contribute a source-supported decision, explanation or action, not padding.
@@ -144,57 +138,24 @@ condition, number or urgent instruction. A short, honest piece beats padded bant
   adding a source-supported clarification, decision or action. Keep useful repetition
   only when it reinforces an exact trigger or prohibition.
 
-## Healthcare shape by duration
+## Healthcare scope and duration
 
-Apply this editorial shape when the selected ICP is `healthcare`. The app-supplied
-word and timing budget remains authoritative. These are content limits, not a
-request to recalculate or override that budget. Both versions cover the same chosen
-job and the same essential locked facts; vary the route through them according to
-the two assigned styles. Never cut a red-flag rule or its condition for the chosen
-job merely to hit a word target. If the source is thin, use the low end of the
-budget; if even that requires padding, write shorter and explain the limitation in
-`Engine notes`.
+Let the duration influence how much material the viewer can absorb, not dictate
+the plot. A 30–60-second piece usually needs one focused job; a longer piece can
+support connected tasks or a fuller explanation when the source warrants it.
+Choose the number of beats, questions, examples and returns to the opening freely.
+No fixed step count, timestamp for a reveal or mandatory recap applies.
 
-### 30–60 seconds
+Keep the source-stated red-flag rules for the selected job, including every
+condition. Do not replace them with a joke or cut them to make room for background.
+When the document gives a mechanism, choose how to make it understandable; when it
+does not, demonstrate the action without inventing a clinical reason. Preserve
+source-required procedural sequences inside whatever narrative structure you choose.
 
-- Cover one job only. Select the two or three highest-priority locked items needed
-  for it, plus every source-stated red-flag rule tied to that job. Keep every
-  condition attached to the selected items.
-- Use one short source-stated mechanism at most. Omit history, background, secondary
-  jobs and recap.
-- Shape: brief hook within the supplied limit → one core explanation or decision → exact action in the
-  last ten seconds.
-- For Q&A or Myth-buster, choose the number of questions or contrasts that serves
-  the one job; there is no required count.
-
-### 2–3 minutes
-
-- Lead with one job. Include at most two supporting jobs only when the source
-  clearly connects them to the main job. Use up to five relevant locked items,
-  plus all red-flag rules for the included jobs.
-- Shape: hook → source-stated reason or mechanism, if present → what to do in no
-  more than three steps → when to call or act, if stated → one-line action recap.
-  A clearly illustrative example may make the sourced mechanism concrete without
-  adding symptoms, measurements, outcomes or clinical advice.
-- For Q&A or Myth-buster, allow connected answers or contrasts to develop without
-  enforcing a question count or repeating the same beat pattern.
-
-### Up to 5 minutes
-
-- Include up to three source-supported jobs when there is enough critical content.
-  Use up to eight relevant locked items, plus all red-flag rules for those jobs.
-  Preserve the source's priority and sequence where changing them could alter
-  meaning or imply a new clinical ranking.
-- Shape: hook → one beat per job with a one-sentence recap when useful → closing
-  checklist of source-stated actions. Include missed-step advice or common
-  mistakes only if the source explicitly provides them.
-- For Q&A or Myth-buster, use only as many questions or contrasts as the explanation
-  needs. Never pad a sparse document to reach a count or the time ceiling.
-
-Across all durations, cut illustrative detail first, then background, then
-secondary jobs. Preserve exact wording for numbers, medication or procedural
-instructions, prohibitions and `when to call` triggers. A longer duration permits
-more source material; it does not permit more assumed facts.
+Fit the app-supplied duration and word budget with natural pacing. Cut secondary
+material rather than rush locked instructions. If the source cannot support the
+requested length without padding, write a shorter complete piece and state why in
+Engine notes. The hook remains at most 15 seconds with no separate word limit.
 
 ## On-screen direction
 
@@ -213,9 +174,10 @@ Avoid decorative icons and filler that teach nothing.
 
 ## Ending
 
-End on one observable, source-supported action with its exact trigger or timing. A
-callback may be used only if it introduces no new premise. Do not add fake urgency,
-reassurance, a brand call to action or a promise of another episode.
+End where the thought feels complete: a useful sourced action, a clarified
+distinction or an image whose meaning has developed. Include an action and its
+trigger when the chosen job requires one. A callback is available, not mandatory.
+Do not invent urgency, reassurance, a sales CTA or a promise of another episode.
 
 ## Small examples of spoken craft
 
