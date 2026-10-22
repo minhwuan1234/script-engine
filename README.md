@@ -10,11 +10,11 @@ The skill returns plain text with labeled time, voiceover and on-screen lines. T
 
 The backend reads writing instructions directly from `skill-deploy/magnetic-script-engine/` using `writing-instructions.js`. Shared rules form a stable cached system-prompt prefix; only the selected ICP and two styles are appended. No Anthropic custom skill, `SKILL_ID`, code execution tool, or skill upload is required. Restart/redeploy after editing the instruction files. The old Python publishing/loader scripts are legacy utilities and are not used by the app. Automatic skill publishing has been removed.
 
-For local use: run `npm ci`, set `CLAUDE_API` (or `ANTHROPIC_API_KEY`), then run `npm start`. The default writing model is Sonnet 5.5 with medium effort; ICP classification uses Haiku 4.5.
+For local use: run `npm ci`, set `OPENAI_API_KEY` for ICP and `CLAUDE_API` (or `ANTHROPIC_API_KEY`) for Anthropic writing, then run `npm start`. The default writing model is Sonnet 5.5 with medium effort; ICP classification uses GPT-5.6 Luna with reasoning disabled.
 
 Set `PREFERENCE_LOG=/data/preferences.jsonl` and mount a persistent Railway Volume at `/data` to retain picks across redeploys. Otherwise the default file `./preferences.jsonl` is ephemeral on Railway. Do not commit this file. The log contains only ICP, style IDs, timestamps, opaque generation IDs, hashed bearer tokens and the A/B choice; it stores no uploaded documents or generated scripts.
 
-Deploy the complete repository, including `writing-instructions.js` and `skill-deploy/magnetic-script-engine/`. Only the API key is required; existing `SKILL_ID` environment variables are ignored.
+Deploy the complete repository, including `writing-instructions.js` and `skill-deploy/magnetic-script-engine/`. The API keys for the configured stages are required; existing `SKILL_ID` environment variables are ignored.
 
 ## Try GPT-6 Sol for writing
 
@@ -26,7 +26,7 @@ OPENAI_MODEL=gpt-6-sol
 OPENAI_API_KEY=your-key
 ```
 
-Keep `CLAUDE_API` for the existing Haiku ICP classifier. Only the writing step switches to OpenAI Responses with medium reasoning effort. The same repository instructions, PDF extraction, incremental A/B display, and PDF downloads are used. Scanned PDFs that cannot be extracted locally are sent as PDF inputs. There is no automatic provider fallback on errors.
+ICP classification uses `gpt-5.6-luna` through OpenAI Responses with reasoning disabled, a 600-token cap, and a 15-second timeout. Set `ICP_MODEL=gpt-5.6-luna` if overriding an older deployment value. With OpenAI writing selected, both stages use `OPENAI_API_KEY`; no Anthropic key is needed. Writing uses medium reasoning effort. The same repository instructions, PDF extraction, incremental A/B display, and PDF downloads are used. Scanned PDFs that cannot be extracted locally are sent as PDF inputs. There is no automatic provider fallback on errors.
 
 The default provider remains `anthropic` for existing deployments. `/api/health` reports the active writing provider/model and whether the required keys are configured. Never commit keys. Run adapter tests with `node --test openai-writer.test.js`.
 

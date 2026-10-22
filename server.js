@@ -5,11 +5,11 @@
 //
 // Env vars (set in Railway Variables):
 //   WRITING_PROVIDER    optional  anthropic (default) or openai
-//   OPENAI_API_KEY      required when WRITING_PROVIDER=openai
+//   OPENAI_API_KEY      required for Luna ICP and OpenAI writing
 //   OPENAI_MODEL        optional  default gpt-6-sol (medium effort)
-//   CLAUDE_API          required  (ANTHROPIC_API_KEY also accepted)
+//   CLAUDE_API          required for Anthropic writing  (ANTHROPIC_API_KEY also accepted)
 //   CLAUDE_MODEL        optional  default claude-sonnet-5-5
-//   ICP_MODEL           optional  default claude-haiku-4-5-20251001
+//   ICP_MODEL           optional  default gpt-5.6-luna
 //   MAX_TOKENS          optional  default 32000 (thinking and visible text share this cap)
 //   RATE_LIMIT_PER_HOUR optional  default 10 (per IP)
 //   ADMIN_TOKEN         optional  enables GET /api/usage (send as ?key=... or Authorization: Bearer ...)
@@ -50,7 +50,7 @@ const {
   OPENAI_PRICE_IN_PER_M = '2',
   OPENAI_PRICE_OUT_PER_M = '10',
   CLAUDE_MODEL = 'claude-sonnet-5-5',
-  ICP_MODEL = 'claude-haiku-4-5-20251001', // small/cheap model, only for the ICP guess below
+  ICP_MODEL = 'gpt-5.6-luna', // small/cheap model, only for the ICP guess below
   MAX_TOKENS = '32000',
   RATE_LIMIT_PER_HOUR = '10',
   ADMIN_TOKEN,
@@ -222,24 +222,24 @@ function durationBudget(duration) {
  */
 const ICP_EXCERPT_CHARS = 3000; // plenty to tell these 4 domains apart; keeps the classifier call tiny
 
-// Local signals provide a prior guess, but Haiku checks every input so the collection
+// Local signals provide a prior guess, but Luna checks every input so the collection
 // keeps learning new phrases instead of stopping once a confident local match exists.
 async function classifyIcp(excerpt) {
   if (!excerpt || excerpt.trim().length < 20) return { icp: 'unclear', source: 'no_text' };
   const local = icpSignalStore.classify(excerpt);
   const refresh = local.confident;
   try {
-    const res = await fetch(ANTHROPIC_API_URL, {
+    const res = await fetch('https://api.openai.com/v1/responses', {
       method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        'x-api-key': ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
-      },
+      signal: AbortSignal.timeout(15000),
+      headers: { 'content-type': 'application/json', authorization: `Bearer ${OPENAI_API_KEY}` },
       body: JSON.stringify({
         model: ICP_MODEL,
-        max_tokens: 300,
-        system:
+        reasoning: { effort: 'none' },
+        max_output_tokens: 600,
+        store: false,
+        text: { format: { type: 'json_object' } },
+        instructions:
           'Classify which audience a document excerpt is written for. Return only valid JSON in this shape: ' +
           '{"icp":"healthcare|corporate_lnd|publishing|ngo|unclear","confidence":0.0,"signals":["exact phrase"]}. ' +
           'Signals must be 1-5 word lowercase phrases copied exactly from the excerpt. Return 2-8 distinctive ' +
@@ -250,12 +250,15 @@ async function classifyIcp(excerpt) {
           '- publishing: educational/editorial material (textbook chapters, course notes, ebooks, study guides)\n' +
           '- ngo: mission-driven material (impact reports, program briefs, advocacy papers)\n' +
           '- unclear: none of these fit clearly',
-        messages: [{ role: 'user', content: excerpt.slice(0, ICP_EXCERPT_CHARS) }],
+        input: [{ role: 'user', content: [{ type: 'input_text', text: 'Return JSON for this excerpt:\n' + excerpt.slice(0, ICP_EXCERPT_CHARS) }] }],
       }),
     });
     if (!res.ok) return local.confident ? { ...local, source: 'signals_fallback' } : { icp: 'unclear', source: 'model_error' };
     const data = await res.json();
-    const raw = String(data.content?.[0]?.text || '').trim().replace(/^```(?:json)?\s*|\s*```$/g, '');
+    if (data.status !== 'completed') throw new Error('ICP response incomplete');
+    const raw = (data.output || []).filter(item => item.type === 'message')
+      .flatMap(item => item.content || []).filter(part => part.type === 'output_text')
+      .map(part => part.text).join('').trim();
     const answer = JSON.parse(raw);
     const modelIcp = ICP_KEYS.includes(answer.icp) ? answer.icp : 'unclear';
     const confidence = Math.max(0, Math.min(1, Number(answer.confidence) || 0));
@@ -631,16 +634,16 @@ async function callClaude(content, system, usage, onText = () => {}) {
 
 /* ---------- routes ---------- */
 async function handleGenerate(req, res) {
-  if (WRITING_PROVIDER === 'openai' && !OPENAI_API_KEY) {
+  if (!OPENAI_API_KEY) {
     return json(res, 500, { error: 'Server missing OPENAI_API_KEY.' });
   }
-  if (!ANTHROPIC_API_KEY) {
+  if (WRITING_PROVIDER === 'anthropic' && !ANTHROPIC_API_KEY) {
     return json(res, 500, { error: 'Server missing CLAUDE_API (or ANTHROPIC_API_KEY).' });
   }
 
   const ip = clientIp(req);
   const t0 = Date.now();
-  const rec = { ts: new Date().toISOString(), visitor: visitorId(ip), status: 'error', model: WRITING_MODEL, provider: WRITING_PROVIDER };
+  const rec = { ts: new Date().toISOString(), visitor: visitorId(ip), status: 'error', model: WRITING_MODEL, provider: WRITING_PROVIDER, icp_model: ICP_MODEL };
   const usage = {};
   let heartbeat = null;
   const streamResults = String(req.headers.accept || '').includes('application/x-ndjson');
@@ -861,7 +864,7 @@ http
       const { pathname } = url;
       if (req.method === 'GET' && (pathname === '/' || pathname === '/index.html')) return serveIndex(res);
       if (req.method === 'GET' && pathname === '/api/health') {
-        return json(res, 200, { ok: true, hasKey: !!ANTHROPIC_API_KEY && (WRITING_PROVIDER !== 'openai' || !!OPENAI_API_KEY), skillSource: 'repository', model: WRITING_MODEL, provider: WRITING_PROVIDER });
+        return json(res, 200, { ok: true, hasKey: !!OPENAI_API_KEY && (WRITING_PROVIDER !== 'anthropic' || !!ANTHROPIC_API_KEY), skillSource: 'repository', model: WRITING_MODEL, provider: WRITING_PROVIDER, icpModel: ICP_MODEL });
       }
       if (req.method === 'GET' && pathname === '/api/usage') {
         if (!isAdmin(req, url)) { res.writeHead(404); return res.end('Not found'); }
