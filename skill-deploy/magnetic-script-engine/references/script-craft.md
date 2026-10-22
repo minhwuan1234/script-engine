@@ -57,38 +57,10 @@ routes and record that limitation in Engine notes. Accuracy takes priority.
 
 ## Hook
 
-The hook establishes the narrative promise of this script. Plan how the later
-beats and ending answer or enrich that opening; it must not be a detachable teaser.
-A callback is useful only when it reinforces a supported takeaway, not as a required
-gimmick.
-
-The first 15 seconds must:
-
-- use a detail unique to this source in the first sentence
-- make the selected decision or action clear
-- contain only source-supported premises
-- work as a standalone preview
-- contain 30–40 voiceover words
-
-Choose a source-supported opening move: the stated decision moment, a contrast
-explicitly present in the source, a source-stated number, or a question the source
-answers. Do not invent a common belief, mistake, symptom or biographical character to
-create suspense. Give the viewer a useful reason to continue: seeing how to apply a rule, how a
-source-stated mechanism works, or how to distinguish stated conditions. Directly
-stating the takeaway is allowed; curiosity does not require withholding the answer; never withhold an urgent instruction
-merely to create suspense.
-
-Test the hook before drafting the rest:
-
-- **Swap:** if replacing the subject still makes the hook fit another document,
-  rewrite it around a source-specific detail.
-- **Clarity:** can someone unfamiliar with the document understand the exact
-  source-stated decision or action without assumed context?
-- **Promise:** does the script actually answer the question or deliver the contrast
-  opened by the hook, using only the supplied source?
-
-Fail the hook if it opens with generic importance, merely announces the topic,
-implies unsupported stakes or promises a reveal the script cannot support.
+Apply `references/hook-quality.md` to choose and review the opening. Establish one
+useful narrative promise, then let the body develop it. The app supplies a maximum
+hook duration and word count, not a required slot or a minimum quota. Keep the
+source-accuracy contract in force for every opening technique.
 
 ## Voiceover
 
@@ -161,7 +133,7 @@ budget; if even that requires padding, write shorter and explain the limitation 
   condition attached to the selected items.
 - Use one short source-stated mechanism at most. Omit history, background, secondary
   jobs and recap.
-- Shape: 0:00–0:15 hook → one core explanation or decision → exact action in the
+- Shape: brief hook within the supplied limit → one core explanation or decision → exact action in the
   last ten seconds.
 - If an assigned style is Q&A or Myth-buster, use one or two source-supported
   questions or corrected beliefs.

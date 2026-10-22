@@ -28,6 +28,7 @@ before completeness, style, vividness and duration.
 
 The backend reads the reference files from the repository and includes their full
 contents in this system prompt: source accuracy, materials analysis, script craft,
+hook quality,
 final review, output format, one selected ICP and two assigned narrative styles.
 Apply these supplied references directly in the workflow below. Do not call tools,
 run scripts, or attempt to open files. No external skill container is required.
@@ -59,7 +60,8 @@ replace them. Style changes structure and presentation only, never facts.
 
 ### Step 5 — Build a storytelling concept for each version
 
-Apply `references/script-craft.md`, `references/final-review.md` and
+Apply `references/script-craft.md`, `references/hook-quality.md`,
+`references/final-review.md` and
 `references/output-format.md` before composing viewer-facing text. Use the exact
 timing and word budget supplied by the app; do not recompute it and do not open a
 separate duration guide. Privately plan the shared locked facts and two distinct
