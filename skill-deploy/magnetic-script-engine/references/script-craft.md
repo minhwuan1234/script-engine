@@ -78,6 +78,10 @@ source-accuracy contract in force for every opening technique.
 
 ## Spoken voice and visual cooperation
 
+Use commas, periods, colons or parentheses instead of long dash punctuation. Rewrite
+around the pause naturally; do not use em dashes or en dashes in the deliverable.
+Keep an ordinary short hyphen for ranges such as timestamps.
+
 Write words for a person to say to someone, not for a narrator describing a PDF.
 Choose a speaker, a listener and what the speaker is trying to help them notice or
 do. Let that relationship govern the language. Use contractions, natural fragments,

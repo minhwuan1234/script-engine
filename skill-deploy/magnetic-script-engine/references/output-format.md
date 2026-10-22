@@ -6,7 +6,7 @@ sheet, a source ledger or a review checklist.
 
 TITLE: [Working title]
 
-VERSION A — [Exact assigned style name]
+VERSION A - [Exact assigned style name]
 
 HOOK (0:00-0:08)
 TIME: 0:00-0:08
@@ -18,7 +18,7 @@ TIME: 0:08-0:14
 VOICEOVER: [spoken line]
 ON SCREEN: [source-supported visual direction]
 
-VERSION B — [Exact assigned style name]
+VERSION B - [Exact assigned style name]
 
 HOOK (0:00-0:08)
 TIME: 0:00-0:08
@@ -42,3 +42,9 @@ Start each hook at 0:00 and choose its end within the app-supplied limit. Start
 the script at that actual end, with consecutive, non-overlapping ranges. If a notes category
 has no issue, state none. Keep one physical line per label; wrap long spoken lines
 only through the display, not by adding unlabeled lines.
+
+Use natural punctuation in the entire deliverable. Do not use em dashes, en dashes
+or long dash punctuation in titles, voiceover, visual direction or notes. Rewrite
+the sentence using a comma, period, colon or parentheses as appropriate. Use the
+ordinary short hyphen for timestamp and numeric ranges. This overrides punctuation
+in the supplied examples.

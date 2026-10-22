@@ -109,12 +109,14 @@ function toPlainText(section) {
     line = line.replace(/^#{1,6}\s+/, '').replace(/^[-*]\s+/, '').replace(/\*\*/g, '').replace(/`/g, '');
     lines.push(line);
   }
-  return lines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+  return lines.join('\n').replace(/(\d)[ \t]*[–—―][ \t]*(?=\d)/g, '$1-')
+    .replace(/[ \t]*[–—―][ \t]*/g, ', ').replace(/,\s*([,.!?;:])/g, '$1')
+    .replace(/\n{3,}/g, '\n\n').trim();
 }
 
 function workingTitle(output) {
   const match = /^(?:TITLE:\s*|#\s+)([^\n]+)$/im.exec(output);
-  return match ? match[1].replace(/\s*[—-]\s*Magnetic Script\s*$/i, '').trim() : '';
+  return match ? toPlainText(match[1].replace(/\s*[—-]\s*Magnetic Script\s*$/i, '')) : '';
 }
 
 function parseGateway(output, { duration, icp }) {
@@ -137,7 +139,7 @@ function parseGateway(output, { duration, icp }) {
   const preface_text = toPlainText(raw.slice(titleEnd, aHead.index));
 
   const versionTitle = (headMatch) =>
-    headMatch[0].replace(/^(?:##\s+)?Version\s+[AB]\s*[—-]?\s*/i, '').trim();
+    toPlainText(headMatch[0].replace(/^(?:##\s+)?Version\s+[AB]\s*[—-]?\s*/i, ''));
 
   const bEnd = notesHead ? notesHead.index : raw.length;
   const version_a_text = toPlainText(raw.slice(aHead.index + aHead[0].length, bHead.index));
@@ -179,7 +181,7 @@ function completedVersion(output, letter) {
   if (!/^(?:###\s+)?Hook\b/im.test(body) || !/^(?:###\s+)?Script\b/im.test(body)) return null;
   return {
     workingTitle: workingTitle(output),
-    title: current[0].replace(/^(?:##\s+)?Version\s+[AB]\s*[—-]?\s*/i, '').trim(),
+    title: toPlainText(current[0].replace(/^(?:##\s+)?Version\s+[AB]\s*[—-]?\s*/i, '')),
     text: toPlainText(body),
   };
 }
@@ -511,8 +513,8 @@ async function handleDownloadPdf(req, res) {
   try { input = JSON.parse(Buffer.concat(chunks).toString('utf8')); }
   catch { return json(res, 400, { error: 'Invalid PDF request.' }); }
   const version = input?.version;
-  const title = String(input?.title || '').replace(/[\r\n\x00-\x1f]/g, ' ').trim().slice(0, 200);
-  const style = String(input?.style || '').replace(/[\r\n\x00-\x1f]/g, ' ').trim().slice(0, 120);
+  const title = toPlainText(input?.title).replace(/[\r\n\x00-\x1f]/g, ' ').trim().slice(0, 200);
+  const style = toPlainText(input?.style).replace(/[\r\n\x00-\x1f]/g, ' ').trim().slice(0, 120);
   const duration = String(input?.duration || '').replace(/[\r\n\x00-\x1f]/g, ' ').trim().slice(0, 40);
   const script = toPlainText(input?.text).slice(0, 50_001);
   if (!['A', 'B'].includes(version) || !script || script.length > 50_000) {

@@ -5,32 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Magnetic Script Studio</title>
 <style>html,body{margin:0;padding:0}
-/* USAGE */
-.tony-pixel-widget .tpw-usage-line { margin-top: 10px; font-size: 12px; font-weight: 700; color: #000; text-align: right; }
-.tony-pixel-widget .tpw-usage-line:empty { display: none; }
-.tony-pixel-widget button.tpw-usage-btn {
-    position: absolute; right: 14px; bottom: 14px; z-index: 6; padding: 6px 12px; border: 1.5px solid #000 !important; border-radius: 999px !important;
-    background: #ffedd5 !important; color: #000 !important; font-size: 12px; font-weight: 800; cursor: pointer; box-shadow: 1px 2px 0 #000 !important;
-}
-.tony-pixel-widget button.tpw-usage-btn:hover { background: #ffdcae !important; }
-.tony-pixel-widget .tpw-usage-panel {
-    position: absolute; right: 14px; bottom: 56px; z-index: 7; width: min(360px, calc(100% - 28px)); max-height: 70%; overflow-y: auto;
-    padding: 12px; background: #fff; border: 2px solid #000; border-radius: 16px; box-shadow: 2px 3px 0 #000; font-size: 12.5px; color: #22252a;
-}
-.tony-pixel-widget .tpw-usage-panel[hidden] { display: none; }
-.tony-pixel-widget .tpw-usage-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 14px; }
-.tony-pixel-widget button.tpw-usage-close { border: 0 !important; background: none !important; color: #000 !important; font-size: 18px; font-weight: bold; cursor: pointer; padding: 0 !important; }
-.tony-pixel-widget .tpw-usage-auth { display: flex; gap: 6px; margin-bottom: 8px; }
-.tony-pixel-widget input.tpw-usage-key { flex: 1; min-width: 0; padding: 6px 10px; border: 1.5px solid #000; border-radius: 10px; font: inherit; font-size: 12.5px; background: #fff; }
-.tony-pixel-widget button.tpw-usage-load { padding: 6px 12px; border: 1.5px solid #000 !important; border-radius: 10px !important; background: #ff9436 !important; color: #000 !important; font-weight: 800; cursor: pointer; }
-.tony-pixel-widget .tpw-usage-msg { color: #b91c1c; font-weight: 600; margin-bottom: 6px; }
-.tony-pixel-widget .tpw-usage-msg:empty { display: none; }
-.tony-pixel-widget .tpw-usage-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
-.tony-pixel-widget .tpw-usage-table th, .tony-pixel-widget .tpw-usage-table td { padding: 4px 6px; border-bottom: 1px solid #e2e8f0; text-align: right; }
-.tony-pixel-widget .tpw-usage-table th:first-child, .tony-pixel-widget .tpw-usage-table td:first-child { text-align: left; font-weight: 700; }
-.tony-pixel-widget .tpw-usage-sub { font-weight: 800; margin: 8px 0 4px; }
-.tony-pixel-widget .tpw-usage-latest { font-size: 11.5px; line-height: 1.5; }
-.tony-pixel-widget .tpw-usage-note { margin-top: 6px; color: #64748b; font-size: 11px; }
 </style>
 </head>
 <body>
@@ -118,7 +92,6 @@
                             <div class="tpw-output-body" id="tpw-output-a"></div>
                             <div class="tpw-output-actions">
                                 <button class="tpw-download-btn" type="button" data-download="A" hidden>Download PDF</button>
-                                <button class="tpw-pick-btn" type="button" data-pick="A" hidden>Choose Version A</button>
                             </div>
                         </div>
 
@@ -129,31 +102,17 @@
                             <div class="tpw-output-body" id="tpw-output-b"></div>
                             <div class="tpw-output-actions">
                                 <button class="tpw-download-btn" type="button" data-download="B" hidden>Download PDF</button>
-                                <button class="tpw-pick-btn" type="button" data-pick="B" hidden>Choose Version B</button>
                             </div>
                         </div>
                     </div>
                     <div class="tpw-pick-status" role="status" aria-live="polite"></div>
 
-                    <div class="tpw-usage-line" id="tpw-usage-line"></div>
                 </div>
             </div>
 
         </div>
     </div>
-    <button class="tpw-usage-btn" type="button" aria-label="Usage">Usage</button>
-    <div class="tpw-usage-panel" hidden>
-        <div class="tpw-usage-head">
-            <strong>Usage</strong>
-            <button class="tpw-usage-close" type="button" aria-label="Close">×</button>
-        </div>
-        <div class="tpw-usage-auth">
-            <input class="tpw-usage-key" type="password" placeholder="Admin key" autocomplete="off">
-            <button class="tpw-usage-load" type="button">Load</button>
-        </div>
-        <div class="tpw-usage-msg"></div>
-        <div class="tpw-usage-body"></div>
-    </div>
+
 </div>
 
 <style>
@@ -245,19 +204,22 @@
 .tony-pixel-widget .tpw-script-plain { margin: 0 0 9px; white-space: pre-wrap; overflow-wrap: anywhere; }
 .tony-pixel-widget .tpw-output-actions { display: flex; align-items: center; gap: 8px; margin-top: 12px; flex: none; }
 .tony-pixel-widget .tpw-output-actions:not(:has(> button:not([hidden]))) { display: none; }
-.tony-pixel-widget button.tpw-pick-btn {
-    padding: 8px 10px; border: 1.5px solid #000; border-radius: 999px;
-    background: #ffedd5; color: #000; font: inherit; font-size: 11px; font-weight: 800; white-space: nowrap; cursor: pointer;
-}
-.tony-pixel-widget button.tpw-pick-btn:hover { background: #ff9436; }
-.tony-pixel-widget button.tpw-pick-btn:disabled { opacity: .55; cursor: default; }
-.tony-pixel-widget button.tpw-pick-btn[hidden] { display: none; }
 .tony-pixel-widget button.tpw-download-btn {
-    padding: 8px 10px; border: 1.5px solid #000; border-radius: 999px;
-    background: #fff; color: #000; font: inherit; font-size: 11px; font-weight: 800; white-space: nowrap; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    width: auto; min-height: 46px; padding: 11px 18px;
+    border: 2px solid #000; border-radius: 14px;
+    background: var(--tpw-orange); color: #000; font: inherit; font-size: 14px;
+    font-weight: 800; cursor: pointer; box-shadow: 3px 4px 0 #000;
+    transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
 }
-.tony-pixel-widget button.tpw-download-btn:hover { background: #ffedd5; }
-.tony-pixel-widget button.tpw-download-btn:disabled { opacity: .55; cursor: default; }
+.tony-pixel-widget button.tpw-download-btn::before {
+    content: ''; width: 18px; height: 18px; flex: none; background: currentColor;
+    clip-path: polygon(42% 0,58% 0,58% 49%,78% 29%,90% 41%,50% 81%,10% 41%,22% 29%,42% 49%,42% 0,42% 0);
+}
+.tony-pixel-widget button.tpw-download-btn:hover { background: var(--tpw-orange-hover); transform: translate(-1px, -1px); box-shadow: 4px 5px 0 #000; }
+.tony-pixel-widget button.tpw-download-btn:active { transform: translate(2px, 2px); box-shadow: 1px 2px 0 #000; }
+.tony-pixel-widget button.tpw-download-btn:focus-visible { outline: 3px solid #7c2d12; outline-offset: 4px; }
+.tony-pixel-widget button.tpw-download-btn:disabled { opacity: .65; cursor: wait; transform: none; }
 .tony-pixel-widget button.tpw-download-btn[hidden] { display: none; }
 .tony-pixel-widget .tpw-pick-status { margin-top: 8px; font-size: 12px; font-weight: 700; color: #22252a; }
 .tony-pixel-widget .tpw-pick-status:empty { display: none; }
@@ -429,7 +391,7 @@
     .tony-pixel-widget .tpw-actions { gap: 4px; }
     .tony-pixel-widget .tpw-output-title { font-size: 15px; }
     .tony-pixel-widget .tpw-output-actions { gap: 5px; }
-    .tony-pixel-widget button.tpw-download-btn, .tony-pixel-widget button.tpw-pick-btn { padding: 7px 8px; font-size: 10px; }
+    .tony-pixel-widget button.tpw-download-btn { padding: 11px 12px; font-size: 13px; }
 }
 </style>
 
@@ -440,7 +402,6 @@
 const API_URL = '/api/generate';
 const PICK_URL = '/api/pick';
 const PDF_URL = '/api/download-pdf';
-const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the server)
 
 (() => {
   document.querySelectorAll('.tony-pixel-widget').forEach(initPixelWidget);
@@ -475,12 +436,13 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
     const titleB = $('#tpw-title-b');
     const metaA = $('#tpw-meta-a');
     const metaB = $('#tpw-meta-b');
-    const pickButtons = root.querySelectorAll('.tpw-pick-btn');
     const downloadButtons = root.querySelectorAll('.tpw-download-btn');
     const pickStatus = $('.tpw-pick-status');
     let currentPick = null;
     const downloadable = { A: null, B: null };
-    let pickBusy = false;
+    let generationEpoch = 0;
+    let downloadedChoice = null;
+    let pickInFlight = null;
 
     let attachedFiles = [];
     let busy = false;
@@ -698,7 +660,9 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
         }
         line = line.replace(/^#{1,6}\s+/, '').replace(/^[-*]\s+/, '').replace(/\*\*/g, '').replace(/`/g, '');
         return [line];
-      }).join('\n').replace(/\n{3,}/g, '\n\n').trim();
+      }).join('\n').replace(/(\d)[ \t]*[–—―][ \t]*(?=\d)/g, '$1-')
+        .replace(/[ \t]*[–—―][ \t]*/g, ', ').replace(/,\s*([,.!?;:])/g, '$1')
+        .replace(/\n{3,}/g, '\n\n').trim();
     }
     function renderScript(container, text) {
       const fragment = document.createDocumentFragment();
@@ -742,16 +706,46 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
       ['title', 'duration', 'icp', 'version_a_title', 'version_b_title'].every((k) => typeof data[k] === 'string') &&
       typeof versionText(data, 'A') === 'string' && typeof versionText(data, 'B') === 'string';
     function setDownload(letter, title, text, duration, style = '') {
-      downloadable[letter] = text ? { version: letter, title, style, text, duration } : null;
+      downloadable[letter] = text ? { version: letter, title: plainText(title),
+        style: plainText(style), text: plainText(text), duration: plainText(duration) } : null;
       const button = root.querySelector(`[data-download="${letter}"]`);
       button.hidden = !downloadable[letter];
-      button.disabled = false;
-      button.textContent = 'Download PDF';
+      button.disabled = button.dataset.pending === 'true';
+      button.setAttribute('aria-label', `Download Version ${letter} as PDF`);
+      if (!button.disabled) button.textContent = 'Download PDF';
       button.title = '';
     }
+
+    // One preference per generation: the first successfully prepared download wins.
+    // Early streamed downloads wait for the final preference token.
+    async function saveDownloadedChoice() {
+      if (!currentPick || !downloadedChoice || pickInFlight?.epoch === generationEpoch) return;
+      const { id, token } = currentPick;
+      const choice = downloadedChoice;
+      const epoch = generationEpoch;
+      const attempt = { epoch };
+      pickInFlight = attempt;
+      try {
+        const response = await fetch(PICK_URL, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, token, choice }),
+        });
+        const result = await response.json();
+        if (!response.ok || !result.ok) throw new Error('Could not save download preference.');
+        if (epoch === generationEpoch && currentPick?.id === id) currentPick = null;
+      } catch (error) {
+        // A feedback failure must not prevent the PDF download. A later download can retry.
+        console.warn('Download preference could not be saved.');
+      } finally {
+        if (pickInFlight === attempt) pickInFlight = null;
+      }
+    }
+
     downloadButtons.forEach((button) => button.addEventListener('click', async () => {
       const data = downloadable[button.dataset.download];
       if (!data || button.disabled) return;
+      const epoch = generationEpoch;
+      button.dataset.pending = 'true';
       button.disabled = true;
       button.textContent = 'Preparing PDF...';
       try {
@@ -770,20 +764,28 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
         link.click();
         link.remove();
         setTimeout(() => URL.revokeObjectURL(url), 60000);
-        button.textContent = 'Download PDF';
+        if (epoch === generationEpoch) {
+          if (!downloadedChoice) downloadedChoice = data.version;
+          void saveDownloadedChoice();
+          button.textContent = 'Download PDF';
+          button.title = '';
+        }
       } catch (error) {
-        button.textContent = 'Download failed — retry';
-        button.title = error.message || 'Could not create PDF.';
-      } finally { button.disabled = false; }
+        if (epoch === generationEpoch) {
+          button.textContent = 'Download failed, retry';
+          button.title = error.message || 'Could not create PDF.';
+        }
+      } finally {
+        delete button.dataset.pending;
+        button.disabled = false;
+      }
     }));
 
     function showError(message) {
       currentPick = null;
       setDownload('A', '', '', '');
       setDownload('B', '', '', '');
-      pickButtons.forEach((button) => { button.hidden = true; });
       pickStatus.textContent = '';
-      usageLine.textContent = '';
       resultBox.classList.add('is-ready');
       titleA.textContent = 'Error'; titleB.textContent = '';
       metaA.textContent = ''; metaB.textContent = '';
@@ -797,13 +799,11 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
         return;
       }
       outputA.classList.remove('is-error');
-      renderUsageLine(data.usage);
       resultBox.classList.add('is-ready');
 
       if (!hasGatewayFields(data)) {
         currentPick = null;
-        pickButtons.forEach((button) => { button.hidden = true; });
-        pickStatus.textContent = 'A/B selection is unavailable because the result does not contain two complete versions.';
+        pickStatus.textContent = '';
         // fallback: engine didn't return the expected gateway fields -> show raw text so nothing is lost
         titleA.textContent = 'Result'; titleB.textContent = '-';
         metaA.textContent = ''; metaB.textContent = '';
@@ -818,8 +818,8 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
       // data.preface_md (doc diagnosis / setup / version-comparison notes) is still returned by
       // the API and available here if ever needed again — just not shown in this UI anymore.
 
-      titleA.textContent = data.version_a_title;
-      titleB.textContent = data.version_b_title;
+      titleA.textContent = plainText(data.version_a_title);
+      titleB.textContent = plainText(data.version_b_title);
       metaA.textContent = meta; metaB.textContent = meta;
       const scriptA = plainText(versionText(data, 'A'));
       const scriptB = plainText(versionText(data, 'B'));
@@ -828,53 +828,19 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
       setDownload('A', data.title || data.version_a_title, scriptA, data.duration, data.version_a_title);
       setDownload('B', data.title || data.version_b_title, scriptB, data.duration, data.version_b_title);
       currentPick = data.ab_pick || null;
-      pickButtons.forEach((button) => { button.hidden = !currentPick; button.disabled = false; });
-      if (currentPick) {
-        pickStatus.textContent = 'Which version do you prefer? Choose A or B to help the system learn.';
-      } else {
-        pickStatus.textContent = data.ab_pick_status === 'storage_unavailable'
-          ? 'A/B selection is unavailable because the server could not save preference data. Check PREFERENCE_LOG and the Railway Volume.'
-          : data.ab_pick_status === 'strategy_mismatch'
-            ? 'A/B selection is unavailable because the scripts did not follow the two assigned styles.'
-            : 'A/B selection is unavailable because the backend did not return a preference token.';
-      }
-
+      pickStatus.textContent = '';
+      void saveDownloadedChoice();
     }
-
-    pickButtons.forEach((button) => button.addEventListener('click', async () => {
-      if (!currentPick || pickBusy) return;
-      const { id, token } = currentPick;
-      pickBusy = true;
-      pickButtons.forEach((b) => { b.disabled = true; });
-      pickStatus.textContent = 'Saving your choice...';
-      try {
-        const response = await fetch(PICK_URL, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id, token, choice: button.dataset.pick }),
-        });
-        const result = await response.json();
-        if (!response.ok || !result.ok) throw new Error(result.error || 'Could not save your choice.');
-        if (currentPick?.id === id) {
-          currentPick = null;
-          pickButtons.forEach((b) => { b.hidden = true; });
-          pickStatus.textContent = `Version ${button.dataset.pick} saved. Thank you!`;
-        }
-      } catch (error) {
-        if (currentPick?.id === id) {
-          pickStatus.textContent = error.message || 'Could not save your choice.';
-          pickButtons.forEach((b) => { b.disabled = false; });
-        }
-      } finally { pickBusy = false; }
-    }));
 
     /* ---------- submit -> /api/generate ---------- */
     async function submit() {
       if (busy) return;
       const text = input.value.trim();
       if (!text && attachedFiles.length === 0) return;
+      generationEpoch += 1;
       currentPick = null;
+      downloadedChoice = null;
       pickStatus.textContent = '';
-      pickButtons.forEach((button) => { button.hidden = true; });
       setDownload('A', '', '', '');
       setDownload('B', '', '', '');
 
@@ -975,7 +941,7 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
           }
           pickStatus.textContent = receivedB
             ? `Both scripts are available, but final request details could not be saved: ${err.message || 'Unknown error.'}`
-            : 'Version A is available above. A/B selection requires both versions.';
+            : 'Version A is available above. Version B could not be completed.';
         } else showError(err.message || 'Something went wrong.');
       } finally {
         stopLoadingFacts();
@@ -983,90 +949,6 @@ const USAGE_URL = '/api/usage';   // admin-only stats (needs ADMIN_TOKEN on the 
       }
     }
 
-
-    /* ---------- usage: per-request line + admin panel ---------- */
-    const usageLine = $('#tpw-usage-line');
-    const usageBtn = $('.tpw-usage-btn');
-    const usagePanel = $('.tpw-usage-panel');
-    const usageKey = $('.tpw-usage-key');
-    const usageMsg = $('.tpw-usage-msg');
-    const usageBody = $('.tpw-usage-body');
-    const fmt = (n) => Number(n || 0).toLocaleString('en-US');
-
-    function renderUsageLine(u) {
-      if (!u) { usageLine.textContent = ''; return; }
-      const cache = u.cache_read_input_tokens ? ` (+${fmt(u.cache_read_input_tokens)} cached)` : '';
-      usageLine.textContent =
-        `Tokens: ${fmt(u.input_tokens)} in${cache} · ${fmt(u.output_tokens)} out · ~$${Number(u.est_cost_usd || 0).toFixed(3)} · ${u.duration_s}s`;
-    }
-
-    function getSaved() { try { return sessionStorage.getItem('tpw_admin_key') || ''; } catch { return ''; } }
-    function saveKey(k) { try { sessionStorage.setItem('tpw_admin_key', k); } catch {} }
-
-    function cell(tag, text) { const el = document.createElement(tag); el.textContent = text; return el; }
-
-    function renderUsage(d) {
-      usageBody.innerHTML = '';
-      const table = document.createElement('table');
-      table.className = 'tpw-usage-table';
-      const head = document.createElement('tr');
-      ['', 'Req', 'In', 'Out', 'Cost'].forEach((t) => head.appendChild(cell('th', t)));
-      table.appendChild(head);
-      [['Today', d.today], ['7 days', d.last_7_days], ['All', d.all_time]].forEach(([label, t]) => {
-        const tr = document.createElement('tr');
-        [label, fmt(t.requests), fmt(t.input_tokens), fmt(t.output_tokens), '$' + Number(t.est_cost_usd).toFixed(2)]
-          .forEach((v, i) => tr.appendChild(cell(i ? 'td' : 'td', v)));
-        table.appendChild(tr);
-      });
-      usageBody.appendChild(table);
-
-      const meta = document.createElement('div');
-      meta.textContent = `Visitors: ${fmt(d.unique_visitors)} · OK: ${fmt(d.all_time.ok)} · Errors: ${fmt(d.all_time.errors)} · Rate-limited: ${fmt(d.all_time.rate_limited)} · Avg: ${d.all_time.avg_duration_s}s`;
-      usageBody.appendChild(meta);
-
-      const sub = document.createElement('div');
-      sub.className = 'tpw-usage-sub';
-      sub.textContent = 'Latest';
-      usageBody.appendChild(sub);
-      const latest = document.createElement('div');
-      latest.className = 'tpw-usage-latest';
-      (d.latest || []).slice(0, 6).forEach((r) => {
-        const line = document.createElement('div');
-        const t = new Date(r.ts).toLocaleString('en-US', { hour12: false, day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
-        line.textContent = `${t} · ${r.status} · ${fmt((r.input_tokens || 0) + (r.output_tokens || 0))} tok · $${Number(r.est_cost_usd || 0).toFixed(3)}`;
-        latest.appendChild(line);
-      });
-      usageBody.appendChild(latest);
-
-      const note = document.createElement('div');
-      note.className = 'tpw-usage-note';
-      note.textContent = d.note || '';
-      usageBody.appendChild(note);
-    }
-
-    async function loadUsage() {
-      const key = usageKey.value.trim() || getSaved();
-      usageMsg.textContent = '';
-      if (!key) { usageMsg.textContent = 'Enter the admin key.'; return; }
-      try {
-        const res = await fetch(USAGE_URL, { headers: { 'x-admin-token': key } });
-        if (!res.ok) throw new Error(res.status === 404 ? 'Invalid key or ADMIN_TOKEN is not configured.' : `Error ${res.status}`);
-        saveKey(key);
-        usageKey.value = '';
-        renderUsage(await res.json());
-      } catch (err) {
-        usageBody.innerHTML = '';
-        usageMsg.textContent = err.message || 'Could not load usage data.';
-      }
-    }
-
-    usageBtn.addEventListener('click', () => {
-      usagePanel.hidden = !usagePanel.hidden;
-      if (!usagePanel.hidden && getSaved()) loadUsage();
-    });
-    $('.tpw-usage-close').addEventListener('click', () => { usagePanel.hidden = true; });
-    $('.tpw-usage-load').addEventListener('click', loadUsage);
-    usageKey.addEventListener('keydown', (e) => { if (e.key === 'Enter') loadUsage(); });
 
     /* ---------- start ---------- */
     resizeCanvas();
