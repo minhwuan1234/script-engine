@@ -89,8 +89,9 @@ source-accuracy contract in force for every opening technique.
 - Introduce information at the moment it helps answer the opening question or
   understand the selected job. Avoid a background dump before its relevance is clear.
 - Read the voiceover as speech: vary sentence length, use natural contractions and
-  transitions, and preserve technical meaning and all locked conditions. Cut forced
-  comedy, synthetic enthusiasm, repetitive questions and generic motivational endings.
+  transitions, and preserve technical meaning and all locked conditions. Apply
+  `references/flearning-voice.md` for purposeful wit, character and visual surprise.
+  Cut forced jokes, synthetic enthusiasm, repetitive questions and generic endings.
 - Let visuals explain a source-supported sequence or relationship while voiceover
   guides understanding. Avoid merely reading every on-screen word; repeat exact
   safety instructions or thresholds when that repetition helps comprehension.

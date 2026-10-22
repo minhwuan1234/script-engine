@@ -44,6 +44,11 @@ choices and framing for implied claims; they do not need verbatim source wording
   it? Repeated caption cards alone are insufficient when a useful demonstration is
   available. Do not add factual detail merely to create motion.
 
+- Apply the F.Learning voice review: when appropriate, does the voice or picture
+  have a playful, story-specific idea that supports understanding? Improve a dry
+  paraphrase through craft. No joke is required in a sensitive or urgent beat;
+  factual instructions remain clear and dignity is preserved.
+
 ## Gate 1 — Each version on its own
 
 Apply the required checks below to A before releasing A, and to B before releasing

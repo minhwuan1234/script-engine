@@ -13,7 +13,7 @@ const styles = {
 const read = (file) => fs.readFileSync(new URL(file, root), 'utf8').trim();
 const section = (file) => `===== ${file} =====\n${read(file)}`;
 // Load at startup: missing files fail visibly, and no disk reads are needed per request.
-const common = ['SKILL.md', ...['source-accuracy', 'materials-analysis', 'script-craft', 'hook-quality',
+const common = ['SKILL.md', ...['source-accuracy', 'materials-analysis', 'script-craft', 'hook-quality', 'flearning-voice',
   'final-review', 'output-format', 'example-guidance'].map((name) => `references/${name}.md`)]
   .map(section).join('\n\n');
 const selected = Object.fromEntries([...new Set([...Object.values(icps), ...Object.values(styles)])]
