@@ -6,7 +6,7 @@
 // Env vars (set in Railway Variables):
 //   CLAUDE_API          required  (ANTHROPIC_API_KEY also accepted)
 //   SKILL_ID            required  (skill_01... from the skill upload)
-//   CLAUDE_MODEL        optional  default claude-haiku-5-5
+//   CLAUDE_MODEL        optional  default claude-sonnet-5-5
 //   ICP_MODEL           optional  default claude-haiku-4-5-20251001
 //   MAX_TOKENS          optional  default 32000 (thinking and visible text share this cap)
 //   RATE_LIMIT_PER_HOUR optional  default 10 (per IP)
@@ -15,8 +15,8 @@
 //                                 (Railway disk is wiped on redeploy: mount a Volume at /data and set /data/usage.jsonl)
 //   ICP_SIGNAL_LOG      optional  learned ICP words/phrases. Default ./icp-signals.jsonl
 //   ICP_SIGNAL_MIN_COUNT optional observations before a learned signal can select an ICP. Default 3
-//   PRICE_IN_PER_M      optional  USD per 1M input tokens, default 0.10 for Haiku 5.5
-//   PRICE_OUT_PER_M     optional  USD per 1M output tokens, default 0.50 for Haiku 5.5
+//   PRICE_IN_PER_M      optional  USD per 1M input tokens, default 2 for Sonnet 5.5
+//   PRICE_OUT_PER_M     optional  USD per 1M output tokens, default 10 for Sonnet 5.5
 //   PORT                set by Railway
 //
 // After pulling this version: run `npm install` (adds mammoth, pdf-parse, jszip to node_modules).
@@ -41,7 +41,7 @@ import { createIcpSignalStore, ICP_KEYS } from './icp-signal-store.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const {
   SKILL_ID,
-  CLAUDE_MODEL = 'claude-haiku-5-5',
+  CLAUDE_MODEL = 'claude-sonnet-5-5',
   ICP_MODEL = 'claude-haiku-4-5-20251001', // small/cheap model, only for the ICP guess below
   MAX_TOKENS = '32000',
   RATE_LIMIT_PER_HOUR = '10',
@@ -50,8 +50,8 @@ const {
   PREFERENCE_LOG = path.join(__dirname, 'preferences.jsonl'),
   ICP_SIGNAL_LOG = path.join(__dirname, 'icp-signals.jsonl'),
   ICP_SIGNAL_MIN_COUNT = '3',
-  PRICE_IN_PER_M = CLAUDE_MODEL === 'claude-haiku-5-5' ? '0.10' : '3',
-  PRICE_OUT_PER_M = CLAUDE_MODEL === 'claude-haiku-5-5' ? '0.50' : '15',
+  PRICE_IN_PER_M = CLAUDE_MODEL === 'claude-haiku-5-5' ? '0.10' : CLAUDE_MODEL === 'claude-sonnet-5-5' ? '2' : '3',
+  PRICE_OUT_PER_M = CLAUDE_MODEL === 'claude-haiku-5-5' ? '0.50' : CLAUDE_MODEL === 'claude-sonnet-5-5' ? '10' : '15',
   ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages', // overridable for testing
   PORT = '3000',
 } = process.env;
@@ -384,7 +384,7 @@ function estimateCost(u) {
     ((u.input_tokens || 0) * pin +
       cacheWrite5m * pin * 1.25 +
       (cacheWrite1h + cacheWriteOther) * pin * 2 +
-      (u.cache_read_input_tokens || 0) * pin * 0.1 +
+      (u.cache_read_input_tokens || 0) * pin * (CLAUDE_MODEL === 'claude-sonnet-5-5' ? 0.05 : 0.1) +
       (u.output_tokens || 0) * pout) /
     1e6;
   return Math.round(usd * 10000) / 10000;
@@ -546,6 +546,7 @@ async function callClaude(content, usage, onText = () => {}) {
     },
     body: JSON.stringify({
       model: CLAUDE_MODEL,
+      ...(CLAUDE_MODEL === 'claude-sonnet-5-5' ? { output_config: { effort: 'medium' } } : {}),
       max_tokens: Number(MAX_TOKENS),
       stream: true,
       container: { skills: [{ type: 'custom', skill_id: SKILL_ID, version: 'latest' }] },
@@ -756,7 +757,7 @@ async function handleGenerate(req, res) {
     const { markdown, stopReason } = await callClaude([...blocks, { type: 'text', text: instruction }], usage, onText);
     rec.stop_reason = stopReason;
 
-    // Haiku 5.5 can spend the whole output budget on adaptive thinking before it
+    // Adaptive-thinking models can spend the whole output budget on adaptive thinking before it
     // emits any visible text. Never turn that case into a successful empty result.
     // A capped response may also contain an unfinished script, so don't present it
     // as a complete A/B pair. Already streamed versions remain visible in the UI.
