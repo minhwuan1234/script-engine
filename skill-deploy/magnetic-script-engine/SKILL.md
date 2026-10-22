@@ -106,7 +106,9 @@ each version's form; the understanding need informs its opening and order.
 
 ### Step 6 — Write, verify and release Version A
 
-Draft Version A in its assigned style. Build a private source ledger for its title,
+Draft Version A as spoken thoughts within its assigned style, then group them into
+visual beats. Read the voiceover continuously and repair stiff commentary about
+the source before release. Build a private source ledger for its title,
 hook, voiceover and visuals; remove or repair every unsupported statement and apply
 the relevant checks in `references/final-review.md`. Only after Version A passes,
 start the response with the working title and the complete Version A section in

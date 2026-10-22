@@ -29,17 +29,15 @@ read-aloud instructions should become a scene, relationship or image worth follo
 
 These are fictional craft demonstrations, not facts for another document.
 
-Source: “The handbook explains working hours and leave requests.”
-Flat: “The handbook contains information about working hours and leave requests.”
-Playful option: “Working hours? Leave requests? The handbook has those covered.”
-Visual: two question marks become tabs on the handbook; it closes with a small bow.
-The line does not claim the handbook answers every possible question.
+Source: “Return the device to its charging dock after use.”
+Flat: “The device should be returned to its charging dock after use.”
+Playful option: “Done? Back to base—the charging dock.”
+Visual: the device rolls into an illustrated parking bay around the dock, with a
+small satisfied wiggle. This is a production idea, not a claim of self-driving hardware.
 
-Source: “During the first week, complete the checklist and review it with your manager.”
-Playful option: “That checklist has a first-week appointment: a review with your manager.”
-Visual: the checklist slides into the review scene as “During the first week” stays
-visible. Keep the actual completion instruction in the surrounding narration; the
-metaphor must not add a booked meeting or a new deadline.
+Let playfulness belong to an unfolding action or the picture, rather than a list
+of nouns followed by question marks. A conversational voice can be lively without
+performing excitement, explaining the joke or inventing a personality for the viewer.
 
 The supplied cirrhosis example's object narrator demonstrates attitude and comic
 reversal; the HOPES pair demonstrates setup and callback. Borrow these techniques,

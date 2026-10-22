@@ -36,6 +36,25 @@ styles should not collapse into a sequence of questions. Sparse sources can stil
 support a compact action-led demonstration and a differently organized explanation;
 use directness rather than padding when they cannot support a reveal.
 
+## Make the information do something
+
+Use the materials sheet's one understanding gap to give the script a throughline.
+Ask why this viewer would need the next line now. A question, observation or
+unfinished action should lead into the relevant fact; that fact should change what
+the viewer understands, notices or does next. This is a writing test, not a formula
+that every beat must announce.
+
+For a journey, let a source-supported rule enter at the moment the character needs
+it. For an explainer, let a detail or demonstration create the need for the next
+connection. The source supplies the reason behind a rule when available. When it
+does not, show how to apply the instruction without inventing a clinical “because”.
+
+Carry one question, action or visual thread far enough to develop it, instead of
+resetting the story at every timestamp. Return to it when that gives the ending
+meaning: the same thing is seen differently or the next step is now clear. A callback
+is a consequence of the explanation, not an obligatory repeated line. Do not force
+a real-world success, belief or outcome just to close the loop.
+
 ## Two narrative plans
 
 Before drafting A, privately outline both assigned versions: speaker/viewer
@@ -62,42 +81,42 @@ hook duration of 15 seconds for every video length, with no separate hook word
 limit or word quota. Keep the
 source-accuracy contract in force for every opening technique.
 
-## Voiceover
+## Spoken voice and visual cooperation
 
-- Use one idea per sentence and natural spoken English.
-- Mix short emphasis with longer explanatory sentences. Write for a natural breath,
-  not a per-sentence word cap. Keep conditions attached to the instruction.
-- Prefer concrete nouns and observable verbs already supported by the source.
-- Keep locked wording, numbers, units and conditions exact.
-- Define a technical term only when the source supplies the definition.
-- Do not use `usually`, `typically`, `most people` or similar prevalence language
-  unless the source does.
-- Cut throat-clearing such as `In this video`, `Let us talk about` and `Did you know`.
+Write words for a person to say to someone, not for a narrator describing a PDF.
+Choose a speaker, a listener and what the speaker is trying to help them notice or
+do. Let that relationship govern the language. Use contractions, natural fragments,
+short reactions and longer explanations as the thought requires. There is no
+per-sentence word quota. Keep exact locked wording within otherwise flexible speech.
 
-## Human voice and visual cooperation
+Begin inside the subject: a task, an object, a question or a moment. Describe the
+source document only when the document itself is the thing the viewer needs to use.
+“The guide mentions the manager twice” explains a writer's observation; it does not
+give the viewer a reason to care. Move to the actual situation the rule addresses.
+“Working hours are in the handbook” can be useful; “the source establishes two
+separate information channels” sounds like analysis and belongs outside voiceover.
 
-- Keep production decisions out of voiceover. Stage the scene in ON SCREEN; let
-  speech address the viewer's task. A natural “Imagine...” can establish a
-  hypothetical moment, but never narrate that a scene avoids inventing a reply,
-  follows a source rule or has reached an evidence boundary. Omit the unsupported
-  detail silently and move to the next useful beat.
+Write the spoken thought before fitting it into timestamp blocks. Group speech by
+meaningful beats; do not add a stiff transition just to start a new block. Let the
+next thought grow out of the previous one: a question needs an answer, an observation
+needs its meaning, or a decision needs its action. Avoid counting facts, announcing
+structure or manufacturing a contrast between unrelated instructions.
 
-- Keep the speaker's viewpoint and knowledge consistent from beat to beat. Use
-  first person when compatible with the assigned style. A clearly illustrative
-  scene, question or inner dialogue may carry the sourced action; follow the
-  illustrative-scene boundaries in source accuracy.
-- Introduce information at the moment it helps answer the opening question or
-  understand the selected job. Avoid a background dump before its relevance is clear.
-- Read the voiceover as speech: vary sentence length, use natural contractions and
-  transitions, and preserve technical meaning and all locked conditions. Apply
-  `references/flearning-voice.md` for purposeful wit, character and visual surprise.
-  Cut forced jokes, synthetic enthusiasm, repetitive questions and generic endings.
-- Let visuals explain a source-supported sequence or relationship while voiceover
-  guides understanding. Avoid merely reading every on-screen word; repeat exact
-  safety instructions or thresholds when that repetition helps comprehension.
-- End with the promised payoff and an actionable trigger only when the source
-  supplies one. Do not invent a reason, mechanism or when-to-call instruction to
-  make the ending stronger.
+When first person suits the style, a voice can hesitate, wonder or make a small
+observation inside an illustrative moment. Establish fictional framing in ON SCREEN
+when needed; every script need not start “Imagine I am...”. Do not manufacture a
+biography, testimonial, symptoms or outcomes. Explain clinical or technical terms
+only as far as the source supports.
+
+Use `references/flearning-voice.md` for purposeful wit and a visual idea with
+personality. Let the picture do the staging so the voice can speak naturally. Do
+not read stage directions, evidence limits or editing decisions to the viewer.
+
+Before releasing a version, privately read just its voiceover as continuous speech.
+Would a person say these words in that situation? Repair bureaucratic nouns,
+explanatory scaffolding and repeated instructions. If a playful line needs a setup
+longer than the idea it teaches, simplify it. Keep a plain reading of every critical
+condition, number or urgent instruction. A short, honest piece beats padded banter.
 
 ## Structure
 
@@ -198,29 +217,21 @@ End on one observable, source-supported action with its exact trigger or timing.
 callback may be used only if it introduces no new premise. Do not add fake urgency,
 reassurance, a brand call to action or a promise of another episode.
 
-## Craft examples: presentation changes, facts stay fixed
+## Small examples of spoken craft
 
-These invented teaching examples demonstrate craft only. Do not import their facts
-or phrases into an unrelated script.
+These invented examples illustrate transformations, not facts to reuse elsewhere.
 
-Source: “Ask your manager when an instruction is unclear.”
-Flat: “Employees can ask their manager if an instruction is unclear.”
-Scene-led: “Imagine pausing over an instruction: ‘What does this mean?’ That is a
-question you can take to your manager.”
-Why: the question gives the rule a moment of use without adding a consequence.
+Source: “Return the device to its charging dock after use.”
+Stiff: “The document specifies a post-use device-return requirement.”
+Spoken: “Finished using it? Back to the charging dock.”
+Visual option: the dock appears as a little parking bay. Keep the real return
+instruction clear; the parking image is a metaphor, not a new device feature.
 
-Source: “New employees receive the handbook on day one. It explains working hours
-and leave requests. During the first week, complete the onboarding checklist and
-review it with your manager.”
-Flat: repeat that list in the hook, then repeat it again as three answers.
-Better route: open on the first-week checklist review; go back to day-one handbook
-access; show its two stated topics; return to completing and reviewing the checklist.
-Why: a destination gives the sequence shape. Do not invent what is in the checklist.
+Source: “When an instruction is unclear, ask your manager.”
+Stiff: “This is the second occasion on which the manager appears.”
+Spoken: “Hang on. What does that instruction mean? That's a question for my manager.”
+Why: the rule enters when the speaker needs it; no invented answer or result follows.
 
-Before releasing, read the lines as one spoken explanation. Would a person say this,
-or does it sound like labels read from a document? Repair stiff transitions and
-repetition while leaving locked facts intact. Once a complete action and its timing
-have been stated, do not immediately restate them as “That is how...” or a second
-summary sentence. Sparse sources may produce a shorter script; never manufacture
-length by replaying the same instruction. Creativity is not measured by how
-many questions, metaphors or invented details appear.
+A useful opening starts the thought; the body develops it. Do not repeat all of the
+opening's instructions in the next beats. The closing should complete the thought
+or reinforce its useful action, not explain that the narrative is now complete.

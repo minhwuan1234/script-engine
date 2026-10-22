@@ -38,8 +38,12 @@ choices and framing for implied claims; they do not need verbatim source wording
 - Does each beat advance the opening's useful promise, rather than repeat a question
   or reveal a trivial label? Replace artificial suspense with a direct action or
   a source-supported decision, relationship or explanation.
-- Are the lines natural speech rather than source sentences joined by transitions?
-  Preserve locked wording; rewrite surrounding language when needed.
+- Read only the voiceover as continuous speech. Does it sound like someone helping
+  the listener, or like someone explaining how the document was organized? Rework
+  commentary about passages, references, “two places” and writing choices into the
+  actual task or situation. Preserve useful references to documents the viewer uses.
+- Check that beats connect as thoughts, without formulaic transitions, arbitrary
+  “X does not replace Y” contrasts or a second telling of the same instruction.
 - Do visuals show progression or explain a relationship where the source permits
   it? Repeated caption cards alone are insufficient when a useful demonstration is
   available. Do not add factual detail merely to create motion.
@@ -48,6 +52,14 @@ choices and framing for implied claims; they do not need verbatim source wording
   have a playful, story-specific idea that supports understanding? Improve a dry
   paraphrase through craft. No joke is required in a sensitive or urgent beat;
   factual instructions remain clear and dignity is preserved.
+
+- Practical test from the original healthcare skill: after watching, could the
+  intended viewer apply the chosen action with its actual conditions, without a
+  clinician or subject expert having to correct it? For an explanatory subject,
+  could they explain the key distinction accurately?
+- Narrative test: why does the viewer need each next line? If facts can be shuffled
+  freely without affecting the experience, strengthen the throughline. A sourced
+  reason, a meaningful decision or a demonstration can do this; invented stakes cannot.
 
 ## Gate 1 — Each version on its own
 

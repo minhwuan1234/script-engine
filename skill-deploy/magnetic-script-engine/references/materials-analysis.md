@@ -8,11 +8,13 @@ who wants every section included.
 - Select the four or five most critical source passages that the viewer must act on.
 - Choose one observable job: the behavior the viewer should be able to perform after
   watching.
-- Use only urgency, warnings, emphasis or ordering explicitly present in the source to
-  rank content. If the source gives no ranking, preserve its priority or order.
-- Choose the most useful teaching challenge from the density, terminology,
-  disconnected steps or decisions in the document. Treat it as an editorial
-  hypothesis, not a diagnosis of actual viewer behavior.
+- Use the source's urgency, warnings and emphasis to identify critical content.
+  You may choose an editorial order for comprehension; do not imply a new clinical
+  priority or change a required procedural sequence.
+- Choose ONE main teaching challenge for the selected job. Describe the gap as an
+  observable moment: what can the viewer notice or do, and what still needs to make
+  sense before the next action? A category label alone is not a useful diagnosis.
+  Treat this as an editorial hypothesis, not evidence of actual viewer behavior.
 
 Supported internal lenses:
 
@@ -32,8 +34,10 @@ Never present an internal diagnosis as a fact about the audience.
 - `job`: one observable behavior.
 - `lockedFacts`: exact locked items with source locations.
 - `mechanism`: the exact source passage stating why; leave empty if absent.
-- `failureAndHook`: the supported understanding need plus the source-specific decision
-  or action the opening will clarify.
+- `failureAndHook`: one concrete understanding gap, the source detail that resolves
+  it, and a moment or question that makes that detail useful. State what changes
+  between the opening and the ending: what the viewer can now understand or decide.
+  If there is no meaningful gap, use a practical demonstration without false drama.
 - `cutList`: source material intentionally excluded to fit the supplied budget.
 - `audienceFit`: use the supplied profile when available; otherwise address the
   source-supported task in a warm, direct voice without invented demographics.
