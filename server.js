@@ -1,9 +1,12 @@
 // Magnetic Script backend: single file, Node >= 20. Now has 3 deps for server-side
 // file -> plain text extraction (mammoth, pdf-parse, jszip) — see "file text extraction" below.
-// Serves index.html and POST /api/generate -> Claude Messages API + repository writing instructions.
+// Serves index.html and POST /api/generate with repository writing instructions.
 // Every generate request is tracked (tokens, estimated cost, duration, status) - see GET /api/usage.
 //
 // Env vars (set in Railway Variables):
+//   WRITING_PROVIDER    optional  anthropic (default) or openai
+//   OPENAI_API_KEY      required when WRITING_PROVIDER=openai
+//   OPENAI_MODEL        optional  default gpt-6-sol (medium effort)
 //   CLAUDE_API          required  (ANTHROPIC_API_KEY also accepted)
 //   CLAUDE_MODEL        optional  default claude-sonnet-5-5
 //   ICP_MODEL           optional  default claude-haiku-4-5-20251001
@@ -37,9 +40,15 @@ import PDFDocument from 'pdfkit';
 import { createPreferenceStore, STYLES } from './preference-store.js';
 import { createIcpSignalStore, ICP_KEYS } from './icp-signal-store.js';
 import { buildWritingSystem } from './writing-instructions.js';
+import { callOpenAI, estimateOpenAICost } from './openai-writer.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const {
+  WRITING_PROVIDER = 'anthropic',
+  OPENAI_MODEL = 'gpt-6-sol',
+  OPENAI_API_KEY,
+  OPENAI_PRICE_IN_PER_M = '2',
+  OPENAI_PRICE_OUT_PER_M = '10',
   CLAUDE_MODEL = 'claude-sonnet-5-5',
   ICP_MODEL = 'claude-haiku-4-5-20251001', // small/cheap model, only for the ICP guess below
   MAX_TOKENS = '32000',
@@ -54,6 +63,9 @@ const {
   ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages', // overridable for testing
   PORT = '3000',
 } = process.env;
+
+if (!['anthropic', 'openai'].includes(WRITING_PROVIDER)) throw new Error('WRITING_PROVIDER must be anthropic or openai.');
+const WRITING_MODEL = WRITING_PROVIDER === 'openai' ? OPENAI_MODEL : CLAUDE_MODEL;
 
 // Secret is named CLAUDE_API; ANTHROPIC_API_KEY also works as a fallback.
 const ANTHROPIC_API_KEY = process.env.CLAUDE_API || process.env.ANTHROPIC_API_KEY;
@@ -372,6 +384,7 @@ try {
 }
 
 function estimateCost(u) {
+  if (WRITING_PROVIDER === 'openai') return estimateOpenAICost(u, Number(OPENAI_PRICE_IN_PER_M), Number(OPENAI_PRICE_OUT_PER_M));
   const promptTokens = (u.input_tokens || 0) + (u.cache_creation_input_tokens || 0) + (u.cache_read_input_tokens || 0);
   const haikuLongPrompt = CLAUDE_MODEL === 'claude-haiku-5-5' && promptTokens > 100_000;
   const pin = Number(PRICE_IN_PER_M) * (haikuLongPrompt ? 5 : 1);
@@ -425,8 +438,9 @@ function usageSummary() {
     (byDay[d] ||= []).push(r);
   }
   return {
-    model: CLAUDE_MODEL,
-    note: 'Costs are estimates using model token prices, cache write duration, and Haiku 5.5 long-prompt pricing. ICP classification and other charges (e.g. code execution) are not included.',
+    model: WRITING_MODEL,
+    provider: WRITING_PROVIDER,
+    note: 'Costs are estimates using model token prices, cache write duration, and model-specific long-prompt pricing. ICP classification and other charges (e.g. code execution) are not included.',
     records_in_memory: records.length,
     unique_visitors: new Set(records.map((r) => r.visitor)).size,
     all_time: totals(records),
@@ -617,13 +631,16 @@ async function callClaude(content, system, usage, onText = () => {}) {
 
 /* ---------- routes ---------- */
 async function handleGenerate(req, res) {
+  if (WRITING_PROVIDER === 'openai' && !OPENAI_API_KEY) {
+    return json(res, 500, { error: 'Server missing OPENAI_API_KEY.' });
+  }
   if (!ANTHROPIC_API_KEY) {
     return json(res, 500, { error: 'Server missing CLAUDE_API (or ANTHROPIC_API_KEY).' });
   }
 
   const ip = clientIp(req);
   const t0 = Date.now();
-  const rec = { ts: new Date().toISOString(), visitor: visitorId(ip), status: 'error', model: CLAUDE_MODEL };
+  const rec = { ts: new Date().toISOString(), visitor: visitorId(ip), status: 'error', model: WRITING_MODEL, provider: WRITING_PROVIDER };
   const usage = {};
   let heartbeat = null;
   const streamResults = String(req.headers.accept || '').includes('application/x-ndjson');
@@ -739,7 +756,10 @@ async function handleGenerate(req, res) {
       }
     };
     const system = buildWritingSystem(icpKey, strategyPair.a, strategyPair.b);
-    const { markdown, stopReason } = await callClaude([...blocks, { type: 'text', text: instruction }], system, usage, onText);
+    const content = [...blocks, { type: 'text', text: instruction }];
+    const { markdown, stopReason } = WRITING_PROVIDER === 'openai'
+      ? await callOpenAI(content, system, usage, onText, { apiKey: OPENAI_API_KEY, model: OPENAI_MODEL, maxTokens: MAX_TOKENS })
+      : await callClaude(content, system, usage, onText);
     rec.stop_reason = stopReason;
 
     // Adaptive-thinking models can spend the whole output budget on adaptive thinking before it
@@ -841,7 +861,7 @@ http
       const { pathname } = url;
       if (req.method === 'GET' && (pathname === '/' || pathname === '/index.html')) return serveIndex(res);
       if (req.method === 'GET' && pathname === '/api/health') {
-        return json(res, 200, { ok: true, hasKey: !!ANTHROPIC_API_KEY, skillSource: 'repository', model: CLAUDE_MODEL });
+        return json(res, 200, { ok: true, hasKey: !!ANTHROPIC_API_KEY && (WRITING_PROVIDER !== 'openai' || !!OPENAI_API_KEY), skillSource: 'repository', model: WRITING_MODEL, provider: WRITING_PROVIDER });
       }
       if (req.method === 'GET' && pathname === '/api/usage') {
         if (!isAdmin(req, url)) { res.writeHead(404); return res.end('Not found'); }

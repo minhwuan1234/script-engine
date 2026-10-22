@@ -2,7 +2,7 @@
 
 ## A/B picks
 
-The UI lets a visitor pick Version A or B after a successful generation. Before calling Claude, the server classifies the document's ICP and selects two contrasting narrative styles. The selected style IDs are stored with a random generation ID; the visitor's pick is saved as one win/loss comparison. Later requests use smoothed global and ICP-specific win rates to select styles. This is preference learning in the application, **not** training the Claude model.
+The UI lets a visitor pick Version A or B after a successful generation. Before calling the writing model, the server classifies the document's ICP and selects two contrasting narrative styles. The selected style IDs are stored with a random generation ID; the visitor's pick is saved as one win/loss comparison. Later requests use smoothed global and ICP-specific win rates to select styles. This is preference learning in the application, **not** training the model.
 
 The browser requests `/api/generate` as NDJSON. The server streams Version A as soon as its complete section is available, then Version B, then final usage and A/B preference metadata. The skill reviews each version before releasing it. Clients that do not request NDJSON keep the original single-JSON response.
 
@@ -15,3 +15,19 @@ For local use: run `npm ci`, set `CLAUDE_API` (or `ANTHROPIC_API_KEY`), then run
 Set `PREFERENCE_LOG=/data/preferences.jsonl` and mount a persistent Railway Volume at `/data` to retain picks across redeploys. Otherwise the default file `./preferences.jsonl` is ephemeral on Railway. Do not commit this file. The log contains only ICP, style IDs, timestamps, opaque generation IDs, hashed bearer tokens and the A/B choice; it stores no uploaded documents or generated scripts.
 
 Deploy the complete repository, including `writing-instructions.js` and `skill-deploy/magnetic-script-engine/`. Only the API key is required; existing `SKILL_ID` environment variables are ignored.
+
+## Try GPT-6 Sol for writing
+
+Set these environment variables, then restart the server:
+
+```dotenv
+WRITING_PROVIDER=openai
+OPENAI_MODEL=gpt-6-sol
+OPENAI_API_KEY=your-key
+```
+
+Keep `CLAUDE_API` for the existing Haiku ICP classifier. Only the writing step switches to OpenAI Responses with medium reasoning effort. The same repository instructions, PDF extraction, incremental A/B display, and PDF downloads are used. Scanned PDFs that cannot be extracted locally are sent as PDF inputs. There is no automatic provider fallback on errors.
+
+The default provider remains `anthropic` for existing deployments. `/api/health` reports the active writing provider/model and whether the required keys are configured. Never commit keys. Run adapter tests with `node --test openai-writer.test.js`.
+
+OpenAI cost estimates use standard GPT-6 Sol rates: $2/M input, $0.20/M cached reads, $2.50/M cache writes (30 minutes), and $10/M output including reasoning. Above 272K prompt tokens, input/cache rates double and output is 1.5x. Override `OPENAI_PRICE_IN_PER_M` and `OPENAI_PRICE_OUT_PER_M` if applicable rates change. ICP classification is excluded from these estimates. Sources: [model documentation](https://developers.openai.com/api/docs/models/gpt-6-sol), [prompt caching](https://developers.openai.com/api/docs/guides/prompt-caching).
