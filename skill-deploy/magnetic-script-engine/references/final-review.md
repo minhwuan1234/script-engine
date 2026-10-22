@@ -26,10 +26,10 @@ choices and framing for implied claims; they do not need verbatim source wording
 5. **Dead or generic hook:** the opening could introduce a different document,
    provides no useful reason to continue, or opens a question
    the script cannot answer from the source.
-6. **Borrowed tension:** a supposed myth, mistake, belief, contradiction or `do not`
-   was invented to make the hook or a style work. Identify the exact source passage
-   supporting each such premise; otherwise replace it with a source-stated decision
-   or contrast.
+6. **Borrowed tension:** a hypothetical interpretation is presented as a common
+   belief, or the source does not actually contradict it. Identify the exact rule
+   behind the correction. Check that an illustrative scene adds no clinical claim,
+   consequence or apparent real testimonial.
 
 ## Storytelling check
 
@@ -81,7 +81,8 @@ against source documents is still needed to assess fidelity and usefulness.
 - Red-flag rules for the chosen job remain present.
 - Voiceover fits the app-supplied word budget.
 - For healthcare, the content follows the selected duration's job, step and recap
-  limits. Any Q&A or Myth-buster question or belief is supported by the source;
+  limits. Q&A answers and Myth-buster corrections are supported by the source;
+  unsourced interpretations and scenes are clearly hypothetical;
   a sparse source is never padded to meet a suggested count.
 - The hook lasts at most 15 seconds at a natural spoken pace, has no separate
   word-count requirement, and passes the checks in

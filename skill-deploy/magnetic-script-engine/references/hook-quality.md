@@ -9,8 +9,8 @@ Relevance may come from a source-stated task or decision; it need not imply urge
 
 Choose a move compatible with the assigned style and supported by the document:
 
-- Decision moment: introduce a stated action and its condition. Do not invent a
-  tempting wrong choice or assume what the viewer would do.
+- Decision moment: introduce a stated action and its condition. An illustrative moment can make it concrete; do not assume what the viewer
+  would do or invent a dangerous wrong action.
 - Mystery or partial view: connect source-provided evidence to its stated
   explanation. Do not hide a trivial label or delay an urgent instruction.
 - Unexpected viewpoint: an object or system can guide a clearly illustrative

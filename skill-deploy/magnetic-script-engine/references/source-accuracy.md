@@ -8,7 +8,8 @@ widely accepted or correct.
 ## Claim rules
 
 - Do not infer causes, mechanisms, outcomes, symptoms, timing, urgency, definitions,
-  recommendations, audience characteristics or settings.
+  recommendations or audience characteristics. Distinguish these claims from
+  illustrative staging as defined below.
 - Do not claim what people usually think, feel, misunderstand or do unless the source
   or an explicitly supplied audience brief says so.
 - Do not combine two source facts into a causal, chronological or logical relationship
@@ -37,7 +38,7 @@ normalize terminology unless the source supplies the equivalent wording.
 - Never choose a supposedly safer interpretation.
 - Omit an instruction that cannot be used without interpretation.
 - Quote the exact unclear or conflicting passages in `Engine notes` for review.
-- If a useful mechanism, definition or example is absent, omit it from the script and
+- If a useful mechanism, definition or factual case is absent, omit it from the script and
   name the gap in `Engine notes`.
 - Factual assumptions are never allowed.
 
@@ -49,12 +50,33 @@ animations that organize source facts. For example, a source-listed checklist ca
 be shown with its items appearing in sequence; the source need not specify that
 animation. Do not imply a required sequence unless the source specifies one.
 
-A generic first-person demonstration of source instructions is a presentation
-choice, not a real testimonial. Do not add personal history, emotions, dialogue,
-medical outcomes or evidence that the demonstration actually happened. Keep
-illustrations abstract when realistic staging would imply an unsupported setting.
+## Illustrative scenes and dialogue
 
-Questions must have source-supported premises. Do not call a newly invented belief
-common, attribute it to viewers, or use a question to introduce an unsupported
-claim. A contrast between two explicit source facts is available even when the
-source does not label it as a contrast; do not turn it into a new causal explanation.
+You may invent a clearly hypothetical person, ordinary staging, a question or brief
+inner dialogue to demonstrate a source-supported action. Signal the hypothetical
+frame naturally when needed: “Imagine...”, “Suppose...” or an on-screen “Illustration”.
+A first-person walkthrough can carry the action without becoming a claimed real
+patient story. These choices do not need to occur word-for-word in the source.
+
+Keep the scene compatible with the source. Do not add an age, treatment stage,
+symptom, reading, event date, clinical setting or outcome that changes who should
+follow an instruction or when. Never present invented dialogue as a real quotation,
+testimonial or evidence. Do not assume viewers share a feeling or belief; an
+illustrative character may ask a question whose answer is in the document.
+
+For example, with a source stating “Ask your manager when an instruction is unclear”,
+you may stage someone pausing over an instruction and asking “What does this mean?”
+Do not add a deadline, disciplinary consequence or claim that managers reply quickly.
+
+## Questions, interpretations and contrasts
+
+You may derive a question from a rule or contrast two source facts, preserving their
+conditions. If using an incorrect interpretation, frame it as a possibility and
+make sure a specific source passage actually rules it out. Correct it promptly;
+never invent a dangerous action for dramatic effect or claim the belief is common.
+A clinical instruction must not acquire a new causal explanation through framing.
+
+Editorial hypotheses about what is hard to understand guide the teaching plan;
+they are not evidence about an audience. Ordinary transitions and a scene's movement
+between sourced steps are allowed. They must not imply an obligatory sequence,
+causal relationship or clinical mechanism absent from the document.

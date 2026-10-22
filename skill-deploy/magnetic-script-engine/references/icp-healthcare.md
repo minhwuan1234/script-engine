@@ -6,14 +6,12 @@
 - Make the main job a decision or action a viewer can perform. Show the exact
   source-stated trigger, action and timing together, so the rule can be used at the
   moment it matters. Do not turn the document into a section-by-section summary.
-- Use one supported understanding need from the materials sheet to guide the
-  explanation. If the source and audience brief do not establish a mistaken belief,
-  setting or behavior, do not invent one for a hook or scene.
-- When the assigned style is a first-person journey, keep it to one decision moment.
-  Include a patient, place, day, symptom or thought only when explicitly supplied.
-  Otherwise use a neutral first-person action sequence. When the assigned style is
-  Q&A, ask only questions the source can answer. When it is Myth-buster, correct only
-  a belief the source or audience brief actually identifies or contradicts.
+- Choose a teaching challenge to shape the explanation, without claiming to know
+  actual patient beliefs or behavior. Help the viewer picture the sourced action.
+- A journey may use a clearly illustrative patient and a moment of decision under
+  the source-accuracy scene rules. Do not add clinical circumstances that change
+  applicability. Q&A answers come from the document; Myth-buster may correct a
+  clearly hypothetical interpretation that a source passage directly rules out.
 - Preserve clinical instructions, thresholds and `call when` wording exactly.
 - Do not blame or shame people about weight, diet, medication use or adherence.
 - Do not invent outcomes, prevalence, mortality, risk or reassurance.

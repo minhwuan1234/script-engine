@@ -11,7 +11,9 @@ Both versions use the same source facts and carry this spine:
 2. `Explanation`: the source-stated reason or mechanism, when one exists.
 3. `Action`: one specific thing to do, including its source-stated trigger or timing.
 
-Do not manufacture tension from an assumed belief, behavior or consequence. If the
+Build tension from a decision, an unanswered source-grounded question or a clearly
+hypothetical interpretation the source corrects. Do not assert an audience belief,
+behavior or consequence without evidence. If the
 source supplies no mechanism, teach the exact rule without adding a reason.
 
 ## Choose a storytelling concept before writing
@@ -39,19 +41,16 @@ use directness rather than padding when they cannot support a reveal.
 Before drafting A, privately outline both assigned versions: speaker/viewer
 position, opening move, beat sequence, where a source-stated explanation appears,
 source-supported memory anchor, closing payoff, and action when provided.
-Preserve the same job, locked facts and legitimate takeaway. Address the same
-misconception only if the source or explicit audience brief establishes one.
+Preserve the same job, locked facts and legitimate takeaway. A misconception can be sourced or a clearly hypothetical interpretation directly
+contradicted by the source; never present an editorial hypothesis as audience data.
 
 Aim for meaningful differences in at least two dimensions: perspective, narrative
 architecture, mechanism delivery (only when sourced), viewer experience, or memory
 anchor. Different titles, synonyms, names or tone alone do not qualify. Work within
-the assigned styles; do not introduce an unassigned style or fictional narrator.
-A question mark does not make an unsupported premise acceptable. Never invent a
-wrong belief and turn it into a rhetorical question (for example, "complete the
-checklist and that is it?") to satisfy Myth-buster. If no misconception is supplied,
-use a direct rule-versus-boundary explanation where the source provides both;
-otherwise use a direct explanation and disclose the style limitation. Do not
-manufacture rhetorical questions just to keep the Myth-buster label.
+the assigned styles; keep the assigned style while using illustrative narration where it helps.
+Check a proposed misconception against the exact rule and its conditions. If the
+source does not rule it out, choose a different opening. Do not manufacture a false
+belief by negating an unrelated fact or by simply adding a question mark.
 If the source is too sparse for two supported differences, use the clearest valid
 routes and record that limitation in Engine notes. Accuracy takes priority.
 
@@ -66,8 +65,8 @@ source-accuracy contract in force for every opening technique.
 ## Voiceover
 
 - Use one idea per sentence and natural spoken English.
-- Favor short lines (roughly 15 words or fewer) when they do not split a locked
-  instruction, condition or exception. Vary rhythm; do not fragment for effect.
+- Mix short emphasis with longer explanatory sentences. Write for a natural breath,
+  not a per-sentence word cap. Keep conditions attached to the instruction.
 - Prefer concrete nouns and observable verbs already supported by the source.
 - Keep locked wording, numbers, units and conditions exact.
 - Define a technical term only when the source supplies the definition.
@@ -78,8 +77,9 @@ source-accuracy contract in force for every opening technique.
 ## Human voice and visual cooperation
 
 - Keep the speaker's viewpoint and knowledge consistent from beat to beat. Use
-  first person only when compatible with the assigned style and supplied source or
-  brief; do not invent a biography, setting, dialogue, belief or emotional reaction.
+  first person when compatible with the assigned style. A clearly illustrative
+  scene, question or inner dialogue may carry the sourced action; follow the
+  illustrative-scene boundaries in source accuracy.
 - Introduce information at the moment it helps answer the opening question or
   understand the selected job. Avoid a background dump before its relevance is clear.
 - Read the voiceover as speech: vary sentence length, use natural contractions and
@@ -102,8 +102,9 @@ source-accuracy contract in force for every opening technique.
 - Where source detail allows it, vary the beat about every 5–8 seconds. A new beat
   must contribute a source-supported decision, explanation or action, not padding.
 - Pay off any question or contrast opened by the hook.
-- Use an analogy only when the source itself supplies it or every element of the
-  analogy is a non-factual organizing label that cannot imply a new mechanism.
+- An analogy may organize information or illustrate a source-stated relationship.
+  Keep the mapping narrow and clear; it must not teach an invented mechanism,
+  prediction or recommendation. Use literal explanation when the analogy distorts it.
 - Make Versions A and B differ in order, framing and source of tension—not merely in
   wording or character names. Give each version a different source-supported
   opening and route to the same answer. If the material cannot support two distinct
@@ -146,7 +147,8 @@ budget; if even that requires padding, write shorter and explain the limitation 
   plus all red-flag rules for the included jobs.
 - Shape: hook → source-stated reason or mechanism, if present → what to do in no
   more than three steps → when to call or act, if stated → one-line action recap.
-  Do not invent an example merely to make the mechanism concrete.
+  A clearly illustrative example may make the sourced mechanism concrete without
+  adding symptoms, measurements, outcomes or clinical advice.
 - If an assigned style is Q&A or Myth-buster, use three or four source-supported
   questions or corrected beliefs only when the source has enough distinct material.
 
@@ -188,3 +190,30 @@ Avoid decorative icons and filler that teach nothing.
 End on one observable, source-supported action with its exact trigger or timing. A
 callback may be used only if it introduces no new premise. Do not add fake urgency,
 reassurance, a brand call to action or a promise of another episode.
+
+## Craft examples: presentation changes, facts stay fixed
+
+These invented teaching examples demonstrate craft only. Do not import their facts
+or phrases into an unrelated script.
+
+Source: “Ask your manager when an instruction is unclear.”
+Flat: “Employees can ask their manager if an instruction is unclear.”
+Scene-led: “Imagine pausing over an instruction: ‘What does this mean?’ That is a
+question you can take to your manager.”
+Why: the question gives the rule a moment of use without adding a consequence.
+
+Source: “New employees receive the handbook on day one. It explains working hours
+and leave requests. During the first week, complete the onboarding checklist and
+review it with your manager.”
+Flat: repeat that list in the hook, then repeat it again as three answers.
+Better route: open on the first-week checklist review; go back to day-one handbook
+access; show its two stated topics; return to completing and reviewing the checklist.
+Why: a destination gives the sequence shape. Do not invent what is in the checklist.
+
+Before releasing, read the lines as one spoken explanation. Would a person say this,
+or does it sound like labels read from a document? Repair stiff transitions and
+repetition while leaving locked facts intact. Once a complete action and its timing
+have been stated, do not immediately restate them as “That is how...” or a second
+summary sentence. Sparse sources may produce a shorter script; never manufacture
+length by replaying the same instruction. Creativity is not measured by how
+many questions, metaphors or invented details appear.
