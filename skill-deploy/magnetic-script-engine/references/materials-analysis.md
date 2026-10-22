@@ -7,8 +7,11 @@ section included.
 ## Select the critical material
 
 - Select the source passages needed for the chosen takeaway; there is no passage quota.
-- Choose one observable job: the behavior the viewer should be able to perform after
-  watching.
+- Choose the central communication outcome: what should the viewer understand,
+  recognize, decide or do after watching? An explanation can end in understanding;
+  do not force an action, misconception or behavioral problem into every document.
+- Keep a clear takeaway and the shared essential facts behind it. Choose material
+  for its value to that outcome, rather than giving every source section airtime.
 - Use the source's urgency, warnings and emphasis to identify critical content.
   You may choose an editorial order for comprehension; do not imply a new clinical
   priority or change a required procedural sequence.
@@ -32,13 +35,15 @@ Never present an internal diagnosis as a fact about the audience.
 
 ## Optional planning lenses
 
-- `job`: one observable behavior.
+- `job`: the central communication outcome; an observable action when applicable,
+  otherwise a specific understanding, recognition or decision.
 - `lockedFacts`: exact locked items with source locations.
 - `mechanism`: the exact source passage stating why; leave empty if absent.
 - `failureAndHook`: one concrete understanding gap, the source detail that resolves
   it, and a moment or question that makes that detail useful. State what changes
   between the opening and the ending: what the viewer can now understand or decide.
-  If there is no meaningful gap, use a practical demonstration without false drama.
+  If there is no meaningful gap, use a clear explanation or demonstration without
+  manufacturing a barrier or a dramatic correction.
 - `cutList`: source material intentionally excluded to fit the supplied budget.
 - `audienceFit`: use the supplied profile when available; otherwise address the
   source-supported task in a warm, direct voice without invented demographics.

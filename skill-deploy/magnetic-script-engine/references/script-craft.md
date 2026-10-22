@@ -1,7 +1,7 @@
 # Script craft
 
 A document is written to be complete; a script is written to be followed. Rebuild the
-source around one observable job instead of narrating every section.
+source around a useful communication outcome instead of narrating every section.
 
 ## Narrative movement
 
@@ -21,8 +21,11 @@ a meaningful question with sourced evidence. These are options, not a required
 menu. Choose the approach the document actually supports.
 
 Build beats from the selected facts to serve the concept; do not follow paragraph
-order by default. Each beat should advance understanding or the action. Keep all
-locked facts intact while freely rewriting the surrounding language for speech.
+order by default. Let an important detail answer a question, reveal a relationship,
+make a situation recognizable or prepare a decision. Choose what the listener needs
+at that moment, rather than linking unrelated facts with “next” or “also”. These are
+possible effects, not a mandatory set of beats. Keep locked facts intact while
+freely rewriting surrounding language for speech.
 
 Do not create suspense by hiding an ordinary label or checklist action. An opening
 such as “What does the handbook explain?” followed by the same question and a list
@@ -33,8 +36,8 @@ use directness rather than padding when they cannot support a reveal.
 
 ## Make the information do something
 
-Use the materials sheet's one understanding gap to give the script a throughline.
-Ask why this viewer would need the next line now. A question, observation or
+Use the chosen takeaway and any useful understanding gap to give the script a
+throughline. Ask why this viewer would need the next line now. A question, observation or
 unfinished action should lead into the relevant fact; that fact should change what
 the viewer understands, notices or does next. This is a writing test, not a formula
 that every beat must announce.
@@ -52,11 +55,18 @@ a real-world success, belief or outcome just to close the loop.
 
 ## Two narrative plans
 
-Consider how the two assigned versions will differ before releasing A. Perspective,
-opening, beat order, explanation, visual motif and ending are available choices,
-not fields you must fill or an outline you must complete before writing.
-Preserve the same job, locked facts and legitimate takeaway. A misconception can be sourced or a clearly hypothetical interpretation directly
-contradicted by the source; never present an editorial hypothesis as audience data.
+Develop an independent creative concept for each assigned style, sharing one
+communication objective and the same selected locked facts. Before releasing A,
+know enough about both concepts to see how the viewing experiences will differ.
+B should grow from its own concept, rather than come from rephrasing A after it is
+written. A and B labels do not determine narrator or perspective; an explicit
+first-person style still calls for its own appropriate point of view.
+
+Perspective, opening, beat order, explanation, visual motif and ending are choices,
+not fields to fill or a required outline. Ask how the viewer will encounter and
+remember the material in each version. Each script should be worth watching on its
+own. Preserve the shared objective and legitimate takeaway. A misconception can be
+sourced or a clearly hypothetical interpretation directly contradicted by the source; never present an editorial hypothesis as audience data.
 
 Aim for meaningful differences in at least two dimensions: perspective, narrative
 architecture, mechanism delivery (only when sourced), viewer experience, or memory

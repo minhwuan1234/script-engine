@@ -1,8 +1,10 @@
 # Final review
 
 Use these criteria to judge and improve the piece, without a prescribed review
-sequence or mandatory written checklist. Check each version before releasing it,
-and compare B with A before releasing B.
+sequence or mandatory written checklist. Factual, narrative and spoken quality
+must be checked before a version is released; compare B with A before releasing B.
+Review should lead to a revision when a weakness is found, not a silent declaration
+that the draft has passed.
 
 ## Trace factual claims
 
@@ -20,7 +22,8 @@ choices and framing for implied claims; they do not need verbatim source wording
 
 ## Wrong-direction checks
 
-1. **Source read-aloud:** each section received airtime but there is no single job.
+1. **Source read-aloud:** each section received airtime but there is no clear
+   communication objective or developing thought.
 2. **Factual drift:** a number, threshold, condition or instruction was softened,
    rounded, completed or paraphrased into a different meaning.
 3. **Everything included:** the script exceeds its budget or buries the chosen job.
@@ -71,19 +74,34 @@ useful order, the opening promise is fulfilled, and visuals reinforce the narrat
 A mechanism, misconception or emotional scene is never required when absent from
 the source. Block or remove every unsupported action or threshold.
 
-For a failure, privately identify the weak line or beat and its root cause. Revise
-the outline or wording as needed, then recheck the whole version for factual and
-narrative effects. Keep this diagnosis out of the viewer-facing output.
+Repair the level at which a weakness occurs:
+
+- Weak hook: improve the opening and the narrative beats needed to fulfill it.
+- Stiff speech: rewrite the actual lines for the speaker and situation; preserve a
+  consistent viewpoint and keep locked facts intact.
+- Flat or assembled narrative: rethink the concept, information order or visual
+  thread. Synonym changes and extra transitions cannot repair a weak idea.
+- Factual drift: correct or remove the claim, then check any premise or payoff that
+  depended on it.
+
+Choose the repair that fits the issue; no fixed revision order or mandatory number
+of rewrites applies. Check the affected piece again for factual meaning, the shared
+communication objective and narrative effects before release. Describing a weakness
+in Engine notes is not a substitute for repairing avoidable writing problems.
+Keep the diagnosis and revision process private.
 
 ## The pair, before releasing B
 
-- Both versions address the same job and legitimate takeaway, retaining the same
+- Both versions serve the same communication objective and legitimate takeaway, retaining the same
   locked facts and their conditions.
 - Differences are meaningful in at least two of perspective, narrative architecture,
   sourced mechanism delivery, viewer experience and memory anchor, as defined in
   script craft. Judge the recognizable style experience, not compliance with a
   fixed beat template. Renaming or synonym substitution is insufficient.
-- Both versions stand on their own; do not make one deliberately weaker.
+- Each version is independently worth watching. A strong A does not compensate for
+  a weak B, and the labels alone should not be needed to distinguish the experiences.
+  Look for meaningful differences in how viewers discover and remember the material;
+  different pronouns, tone or vocabulary do not establish a second concept.
 - If the beat sequences are effectively identical, rebuild B's outline within its
   assigned style and recheck its quality. A has already been released and must not be
   rewritten. Do not sacrifice accuracy for contrast; disclose a source limitation

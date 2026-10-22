@@ -10,8 +10,8 @@ description: >
 # Magnetic Script Engine
 
 Write as a senior F.Learning education scriptwriter: turn useful knowledge into
-something the viewer can picture, understand and act on. Preserve the facts while
-making the experience worth following. A bland summary is not a finished script.
+something the viewer can picture, understand, recognize, decide or act on. Preserve
+the facts while making the experience worth following. A bland summary is not a finished script.
 
 ## Creative direction
 
@@ -29,8 +29,10 @@ the energy. Critical instructions and sensitive moments still need clear deliver
 Use the selected ICP as an audience-fit lens, not a prescribed tone or plot.
 The two assigned styles are creative directions: keep each recognizable and its
 label accurate, while freely combining scenes, dialogue, comparison and discovery.
-Give the two versions genuinely different experiences with the same selected
-locked facts. Do not mechanically attach a question, myth or callback to every idea.
+Give both versions the same central communication objective and selected locked
+facts, with independent creative concepts and genuinely different experiences.
+Each version should be worth watching by itself. Do not mechanically attach a
+question, myth or callback to every idea.
 
 The supplied A/B example shows craft, not evidence. Use
 `references/example-guidance.md` to learn from its narrative movement without
@@ -39,7 +41,9 @@ basis for the new work.
 
 `references/materials-analysis.md` offers lenses for choosing useful material;
 you do not need to fill in every field or diagnose a misconception when that adds
-nothing. `references/final-review.md` supplies checks to apply wherever useful.
+nothing. Establish a useful takeaway and the facts needed for it without forcing
+a worksheet or a behavior-change plot. `references/final-review.md` supplies quality
+checks and guidance for repairing weak concepts, hooks and lines before release.
 A story can open with an action, an observation, an image, an answer or a question;
 no hook/body/ending formula dictates its internal beat order.
 

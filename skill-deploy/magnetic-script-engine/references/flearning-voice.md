@@ -31,7 +31,7 @@ These are fictional craft demonstrations, not facts for another document.
 
 Source: “Return the device to its charging dock after use.”
 Flat: “The device should be returned to its charging dock after use.”
-Playful option: “Done? Back to base—the charging dock.”
+Playful option: “Done? Back to base, the charging dock.”
 Visual: the device rolls into an illustrated parking bay around the dock, with a
 small satisfied wiggle. This is a production idea, not a claim of self-driving hardware.
 

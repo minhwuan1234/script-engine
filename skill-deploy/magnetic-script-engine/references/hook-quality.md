@@ -1,7 +1,8 @@
 # Hook quality
 
-A hook begins the script's narrative promise; it is not a detachable teaser or a
-summary of every instruction. Establish one concrete point of interest, why it is
+Develop the opening as the beginning of this script's own narrative promise.
+Pulling out an arbitrary sentence and labeling it a hook is insufficient; it must
+naturally lead into the piece. It is not a summary of every instruction. Establish one concrete point of interest, why it is
 useful to this viewer, and what the following beats will explain or demonstrate.
 Relevance may come from a source-stated task or decision; it need not imply urgency.
 
