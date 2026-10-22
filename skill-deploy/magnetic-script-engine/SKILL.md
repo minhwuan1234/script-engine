@@ -63,7 +63,11 @@ Apply `references/script-craft.md`, `references/final-review.md` and
 `references/output-format.md` before composing viewer-facing text. Use the exact
 timing and word budget supplied by the app; do not recompute it and do not open a
 separate duration guide. Privately plan the shared locked facts and two distinct
-routes through them. Do not draft Version B before Version A has been released.
+routes through them using the narrative-plan criteria in script craft. Check that
+the plans differ meaningfully in at least two supported dimensions before drafting
+A. Planning B is not drafting its lines: do not draft Version B before Version A
+has been released. If the source cannot support the contrast, preserve accuracy
+and note the limitation rather than inventing a premise.
 For healthcare, apply the duration-specific shape in `references/script-craft.md`
 and checks in `references/icp-healthcare.md`. The assigned style still determines
 each version's form; the understanding need informs its opening and order.
@@ -81,7 +85,9 @@ incomplete Version A.
 
 Draft Version B using the same locked facts and its own assigned style. Review its
 claims against the source, then check that both versions retain the same locked
-facts and differ structurally. Repair Version B before releasing it. Continue the
+facts and pass the pair review in `references/final-review.md`. Version A is
+already released: repair or rebuild Version B within its assigned style, without
+rewriting A or adding facts for contrast. Continue the
 same response with the complete Version B section and `Engine notes` in the exact
 output format. Return nothing else before, between or after these sections.
 

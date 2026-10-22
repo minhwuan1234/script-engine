@@ -30,6 +30,34 @@ Delete any statement without an exact supporting passage. Do not print the ledge
    supporting each such premise; otherwise replace it with a source-stated decision
    or contrast.
 
+## Gate 1 — Each version on its own
+
+Apply the required checks below to A before releasing A, and to B before releasing
+B. Also check that the voice is speakable and consistent, information arrives in a
+useful order, the opening promise is fulfilled, and visuals reinforce the narration.
+A mechanism, misconception or emotional scene is never required when absent from
+the source. Block or remove every unsupported action or threshold.
+
+For a failure, privately identify the weak line or beat and its root cause. Revise
+the outline or wording as needed, then recheck the whole version for factual and
+narrative effects. Keep this diagnosis out of the viewer-facing output.
+
+## Gate 2 — The pair, before releasing B
+
+- Both versions address the same job and legitimate takeaway, retaining the same
+  locked facts and their conditions.
+- Differences are meaningful in at least two of perspective, narrative architecture,
+  sourced mechanism delivery, viewer experience and memory anchor, as defined in
+  script craft. Renaming or synonym substitution is insufficient.
+- Both versions stand on their own; do not make one deliberately weaker.
+- If the beat sequences are effectively identical, rebuild B's outline within its
+  assigned style and reapply Gate 1. A has already been released and must not be
+  rewritten. Do not sacrifice accuracy for contrast; disclose a source limitation
+  in Engine notes when the two-dimension target cannot be met safely.
+
+These are model self-review instructions, not proof of quality. Human evaluation
+against source documents is still needed to assess fidelity and usefulness.
+
 ## Required checks
 
 - Every factual statement traces to an exact source passage.

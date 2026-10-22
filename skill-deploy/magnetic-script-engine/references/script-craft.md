@@ -23,7 +23,31 @@ source supplies no mechanism, teach the exact rule without adding a reason.
 - If the source is sparse, make the instruction clear and direct. Do not add a
   fictional scene, common mistake or implied consequence to make it feel dramatic.
 
+## Two narrative plans
+
+Before drafting A, privately outline both assigned versions: speaker/viewer
+position, opening move, beat sequence, where a source-stated explanation appears,
+source-supported memory anchor, closing payoff, and action when provided.
+Preserve the same job, locked facts and legitimate takeaway. Address the same
+misconception only if the source or explicit audience brief establishes one.
+
+Aim for meaningful differences in at least two dimensions: perspective, narrative
+architecture, mechanism delivery (only when sourced), viewer experience, or memory
+anchor. Different titles, synonyms, names or tone alone do not qualify. Work within
+the assigned styles; do not introduce an unassigned style or fictional narrator.
+A question mark does not make an unsupported premise acceptable. Never invent a
+wrong belief and turn it into a rhetorical question (for example, "complete the
+checklist and that is it?") to satisfy Myth-buster. If no misconception is supplied,
+use a neutral question answered by the source and disclose the style limitation.
+If the source is too sparse for two supported differences, use the clearest valid
+routes and record that limitation in Engine notes. Accuracy takes priority.
+
 ## Hook
+
+The hook establishes the narrative promise of this script. Plan how the later
+beats and ending answer or enrich that opening; it must not be a detachable teaser.
+A callback is useful only when it reinforces a supported takeaway, not as a required
+gimmick.
 
 The first 15 seconds must:
 
@@ -63,6 +87,23 @@ implies unsupported stakes or promises a reveal the script cannot support.
 - Do not use `usually`, `typically`, `most people` or similar prevalence language
   unless the source does.
 - Cut throat-clearing such as `In this video`, `Let us talk about` and `Did you know`.
+
+## Human voice and visual cooperation
+
+- Keep the speaker's viewpoint and knowledge consistent from beat to beat. Use
+  first person only when compatible with the assigned style and supplied source or
+  brief; do not invent a biography, setting, dialogue, belief or emotional reaction.
+- Introduce information at the moment it helps answer the opening question or
+  understand the selected job. Avoid a background dump before its relevance is clear.
+- Read the voiceover as speech: vary sentence length, use natural contractions and
+  transitions, and preserve technical meaning and all locked conditions. Cut forced
+  comedy, synthetic enthusiasm, repetitive questions and generic motivational endings.
+- Let visuals explain a source-supported sequence or relationship while voiceover
+  guides understanding. Avoid merely reading every on-screen word; repeat exact
+  safety instructions or thresholds when that repetition helps comprehension.
+- End with the promised payoff and an actionable trigger only when the source
+  supplies one. Do not invent a reason, mechanism or when-to-call instruction to
+  make the ending stronger.
 
 ## Structure
 
