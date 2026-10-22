@@ -46,8 +46,10 @@ source documents. The current upload remains the factual basis for each script.
 
 `skill-deploy/magnetic-script-engine/references/tone-of-voice.md` is the shared voice
 reference for all writing requests. It replaces `flearning-voice.md` and covers
-personality, spoken rhythm, appropriate wit, emotional register and concrete
-before/after examples. It is editorial guidance for the tool, informed by the user
+personality, connected spoken explanation, appropriate wit, emotional register and
+concrete before/after examples. Its current editorial direction follows the user's
+selected conversational Myth-buster screenshot without forcing that story structure
+on other styles or treating its medical content as source evidence. It is editorial guidance for the tool, informed by the user
 and supplied references, rather than an official brand manual. The loader includes
 it once in the shared system prefix; ICP and narrative styles adapt the context
 without adding separate competing brand voices. Restart after editing it.

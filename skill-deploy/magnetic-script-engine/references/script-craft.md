@@ -117,8 +117,9 @@ when needed; every script need not start “Imagine I am...”. Do not manufactu
 biography, testimonial, symptoms or outcomes. Explain clinical or technical terms
 only as far as the source supports.
 
-Use `references/tone-of-voice.md` for purposeful wit and a visual idea with
-personality. Let the picture do the staging so the voice can speak naturally. Do
+Use `references/tone-of-voice.md` for connected, conversational explanation and
+light wit when it serves the thought. Give sourced reasoning room to develop.
+Let the picture do the staging so the voice can speak naturally. Do
 not read stage directions, evidence limits or editing decisions to the viewer.
 
 Before releasing a version, privately read just its voiceover as continuous speech.

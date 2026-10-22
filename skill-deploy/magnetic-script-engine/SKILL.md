@@ -23,8 +23,9 @@ a useful ending. Do not produce a checklist-shaped script just to satisfy the sk
 
 Use `references/script-craft.md`, `references/hook-quality.md` and
 `references/tone-of-voice.md` for natural speech, narrative movement and the
-requested playful F.Learning character. Let the picture, situation and voice carry
-the energy. Critical instructions and sensitive moments still need clear delivery.
+F.Learning voice selected by the user: conversational, reasoned storytelling with
+warmth and light wit. Apply that voice to the actual sentences in both A and B.
+Let the picture, situation and voice carry the energy. Critical instructions and sensitive moments still need clear delivery.
 
 Use the selected ICP as an audience-fit lens, not a prescribed tone or plot.
 The two assigned styles are creative directions: keep each recognizable and its

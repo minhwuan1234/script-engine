@@ -1,135 +1,131 @@
-# F.Learning tone of voice
+# F.Learning tone of voice: conversational, reasoned storytelling
 
-Editorial direction for this tool, based on the user's brief, supplied A/B writing
-references and public F.Learning work. This is not a verbatim official brand manual.
-Apply it to the actual words spoken in every script, across ICPs and narrative styles.
+Editorial direction for this tool, based on the user's selected heart-failure
+Myth-buster screenshot, supplied A/B examples and F.Learning creative brief. Apply
+it to the actual spoken sentences in both versions, across ICPs and narrative styles.
+This is a working voice guide, not a verbatim official brand manual.
 
-## The person you hear
+## The voice to aim for
 
-A sharp, warm explainer who can make a tricky idea click and enjoy the discovery
-with you. Knowledgeable enough to be clear, comfortable enough to sound human.
-The listener should feel included in the thought, never lectured at or impressed
-into silence. The voice has a little mischief and a clear reason for every line.
+Sound like an informed person beside the listener, helping something make sense.
+Warm, direct and assured, with enough character to keep the conversation alive.
+The voice notices a familiar thought or situation, makes the relevant distinction
+clear and lets the next action or understanding follow naturally.
 
-F.Learning's character comes through the way an idea is noticed, phrased and landed.
-It does not depend on a mascot, a string of jokes or constant enthusiasm. Mystery,
-Journey, Q&A and the other styles shape the experience; this voice gives that
-experience a recognizable personality. Keep a character's own viewpoint intact.
+The selected screenshot works through an explanation the viewer can follow, not
+through a succession of punchlines. Keep the F.Learning spark in an observation,
+a gentle turn of phrase or a useful visual. Humor is available; a serious passage
+can still sound human and engaging. Personality should support the thought.
 
-## Voice qualities
+## What to learn from the user's reference
 
-- **Human and direct.** Talk to one listener. Choose familiar words, contractions
-  and concrete verbs. “Put it back” often sounds more natural than “ensure its
-  return”. Keep source-required terminology and conditions when precision needs them.
-- **Warm and respectful.** Share a discovery with the listener. Allow a small pause,
-  a genuine question or a recognizable observation. Warmth does not require “don't
-  worry”, a claim that everyone struggles, or an invented promise that things improve.
-- **Confident and clear.** Make the thought easy to follow without sounding official
-  or self-important. Keep actual uncertainty and qualifications. Do not strengthen
-  “may”, “can” or “some” merely to make the delivery sound certain.
-- **Playfully clever.** Find a turn of phrase, a gentle reversal, a dry aside or a
-  literal phrase that can acquire visual meaning. A small smile is enough; the
-  line should still communicate something useful without the joke being explained.
-- **Lively and curious.** Let a new detail change the thought. A short observation
-  can open space for a fuller explanation. Give the audience something worth
-  noticing rather than saying “this is fascinating” or repeatedly asking “ready?”.
+The visible opening starts with a possible thought, “if I feel fine, I'm fine”,
+then introduces information that challenges that interpretation. Later passages
+connect an explanation to a routine and distinguish conditions for different
+responses. The speaker stays with the viewer through the reasoning rather than
+announcing a series of unrelated facts.
 
-These qualities are a palette, not a quota to satisfy in each sentence. Pick the
-combination that belongs to the source, speaker and emotional context.
+Transfer that quality of attention: acknowledge a plausible question, explain the
+relevant detail in ordinary language and help the listener understand its meaning.
+Where the current source supplies a reason, let it make the instruction credible.
+Keep the exact source conditions when moving from an explanation to an action.
 
-## How the language moves
+This is an available storytelling relationship, not a required beat sequence.
+Do not make every script Myth-buster, add three beliefs, open every line “You might
+think”, or assume A/B labels determine perspective. Journey can carry the realization
+through a character; an explainer can let a visual relationship make it click.
+Preserve the assigned styles and let each develop its own experience.
 
-Write in thought-sized phrases with varied cadence. Use a short line to give an
-idea weight, then let the explanation breathe. A fragment, a contraction or a brief
-self-correction can sound natural when the speaker has a reason to use it. There
-is no sentence word cap or required pattern of short and long sentences.
+The screenshot is a voice reference, not a factual source for new scripts. Its
+medical mechanisms, symptoms, timings, weights, zone colors and recommendations
+must not migrate into a new script unless the current document supports them.
+Do not import wording that would strengthen a source claim or omit an exception.
 
-Connect thoughts through meaning. One observation leads to its implication; a
-question brings in an answer; an action makes the next detail useful. Repeated
-“Now”, “Next”, “Let's explore” and “Here's why this matters” can make a living thought
-sound assembled. Use a transition where speech needs it, not at every timestamp.
+## How the speaker relates to the listener
 
-Prefer “what this means for you” in substance, without having to say that phrase.
-Let the useful detail do the work. Narration about source passages, document
-structure, writing choices or how carefully a scene was constructed stays private.
-Mention a handbook or guide naturally when the viewer actually needs to use it.
+Address one person with familiar words and concrete details. “You” can invite the
+listener into the situation; “I” can carry a first-person experience. Keep that
+relationship consistent instead of switching mid-scene to policy language about
+“employees” or “patients”. A hypothetical thought may be introduced naturally when
+the source actually corrects it. Do not claim that the viewer or most people hold it.
 
-A narrator may address “you”; a first-person character can think in “I”. Keep the
-relationship consistent. A character suddenly switching to “employees should” or
-“patients must” can sound like a policy notice taking over the conversation.
+The correction should feel helpful rather than triumphant. Let the sourced fact
+explain the distinction, without calling the person foolish or inventing a scare.
+Warmth comes from a clear explanation and respectful wording, not automatic
+reassurance, a promise of success or “don't worry”. Keep real uncertainty intact.
 
-## Where the funky character lives
+## Rhythm and connective language
 
-Let wit emerge from the subject: a familiar object taking an unexpected role, a
-line that lands with a second meaning in the picture, a brief deadpan comment, or
-a return to an earlier image with new understanding. Understatement can be warmer
-than a loud punchline. When the picture carries the funny beat, the voice can play
-it straight. When the voice has the twist, leave enough space for the idea to land.
+Give an explanation enough room to develop. Mix complete conversational sentences
+with short emphasis when it helps; avoid staccato noun lists and a question mark
+after every topic. There is no sentence word cap. Preserve source-required wording
+within speech that otherwise feels natural to say aloud.
 
-Personification can supply a theatrical attitude without claiming that an object
-or biological process has real intent. A metaphor needs a narrow, accurate mapping.
-Keep the fact or instruction clear. Add personality through performance and staging,
-not invented outcomes, facts or evidence. Choose a fresh expression for this piece;
-stock catchphrases, exaggerated slang and hype quickly lose the human voice.
+Let each thought make room for the next. “But”, “that's why”, “so”, “then” and “if”
+can make reasoning easy to follow when they express a real relationship. Use them
+where they belong, without a stock transition at every timestamp. A causal connector
+requires a sourced causal link; a fluent sentence must not invent a medical reason.
+If the reason is absent, explain the application without adding a “because”.
 
-## Original examples: choose the voice, preserve the meaning
+Speak about the subject rather than the document's arrangement. Mention a guide,
+card or handbook when the viewer needs to use it. Avoid “the source establishes”,
+“the manager appears twice” or narration about why the writer chose a scene.
+The ending should leave a clarified thought or useful next action, not announce
+that the script has completed its narrative promise.
 
-These are invented craft demonstrations. The source lines are not facts to reuse
-in another script; the alternatives demonstrate choices, not fixed templates.
+## Original examples of this voice
+
+These invented source lines demonstrate writing technique only. Do not reuse their
+facts or phrases in unrelated work. The examples are options, not script templates.
+
+Source: “Closing the form discards unsaved changes. Save a draft before closing;
+a saved draft retains the entered information.”
+Flat: “The document specifies that drafts must be saved prior to closure.”
+Gimmicky: “Plot twist! Your form has a disappearing act!”
+F option: “Closing the form doesn't save it. Unsaved changes are discarded when it
+closes. Save a draft before closing, so the information you've entered is kept.”
+Why it works: the consequence explains the action without hype or an invented
+outcome. Use exact locked instruction wording where the source requires it.
+
+Source: “If the status is pending, wait for approval. When the status is approved,
+you may begin the task.”
+F option: “It says ‘pending’. Ready to begin? Not yet. Wait for approval. When the
+status is ‘approved’, you can begin the task.”
+Why it works: the viewer meets the rule at a recognizable decision. The distinction
+carries the voice; it does not require an invented deadline or a dramatic mistake.
 
 Source: “Return the device to its charging dock after use.”
-Stiff: “Please ensure the device is returned to its designated charging dock.”
-Overplayed: “Mission accomplished, superstar! Time for our hero's epic recharge!”
 F option: “All done? Back to the charging dock.”
-Picture option: the dock is framed as a tiny parking bay. Let that be the wink;
-there is no need to narrate a joke or imply the device drives itself.
+Picture option: a small illustrated parking bay frames the dock. Let the picture
+supply the wink while the spoken instruction remains easy to understand. Do not
+imply self-driving hardware or add an unsupported reason for charging.
 
-Source: “Store the two sample types in separate trays.”
-Stiff: “The two sample categories require separate storage locations.”
-Overplayed: “These samples are sworn enemies!”
-F option: “Two sample types. Two trays. Give each its own spot.”
-Why: a clear, rhythmic line supplies character without inventing an incompatibility.
+## The amount of playfulness
 
-Source: “Record the result before moving to the next task.”
-Stiff: “Documentation must precede progression to the subsequent activity.”
-F option: “Got the result? Record it before you move on.”
-Why: the speaker joins a real moment and keeps the required sequence.
+Keep wit observational and native to the idea. A dry aside, a theatrical object,
+an expressive visual or a callback can add lightness. Use the device that belongs
+to this story rather than an obligatory mascot, slang, catchphrase or joke quota.
+The voice can play it straight while the picture supplies a small surprise.
 
-Source: “This treatment may cause drowsiness.”
-Overplayed: “Hello, nap time!”
-F option: “This treatment may make you feel drowsy.”
-Why: warmth can be plain. Preserve “may”; do not invent driving advice or turn the
-symptom into a punchline. Use the source's exact wording if it is a locked instruction.
-
-## Let the tone respond to the moment
-
-In ordinary onboarding or learning, give curiosity, wit and expressive delivery
-room to work. In a clinical explanation, a playful image can help a concept become
-approachable while the spoken fact stays precise. During a dose, threshold,
-warning or urgent action, use clear, unambiguous language and let the instruction
-land. Sensitive experiences can call for compassion, a quiet observation or space.
-
-Changing emotional register does not require swapping to bureaucratic language.
-Stay human when serious. Never target a person's illness, disability, distress,
-culture, literacy or mistake for the laugh. Never soften urgency or add reassurance,
-prevalence, mechanisms or benefits absent from the source to make a line friendlier.
+Give clinical conditions, doses, thresholds and urgent instructions an unambiguous
+reading. Sensitive experiences may need a quiet observation or simply a clear,
+compassionate explanation. Never make illness, disability, distress, culture,
+literacy or a person's mistake the target. Personification is performance, not
+permission to invent agency, physiology, outcomes or reassurance.
 
 ## Voice review
 
-Read the voiceover continuously, without the style labels or visual directions.
-Would this speaker say it to this listener? Is the confidence earned, the warmth
-respectful, and the playful choice native to the idea? Notice stiff exposition,
-unexplained jargon, point-of-view changes, repetitive questions and stage directions
-spoken aloud. Repair the actual language rather than add more cheerful adjectives.
+Read the voiceover continuously without the visual directions. Does it sound like
+a person helping the listener follow a thought? Is the explanation connected and
+specific? Does a longer sentence carry useful reasoning, and does a short one earn
+its emphasis? Notice lectures, chopped-up lists, repeated questions and a sudden
+change of speaker. Repair the lines, not just their adjectives.
 
-Keep purposeful wit, not every attempted joke. If the humor distracts, simplify the
-beat. If the piece is dry, improve how a concrete thought is seen or expressed.
-There is no mandatory joke, callback, catchphrase or rewriting sequence.
+Where the source provides a reason, has the listener been helped to understand it?
+Where it does not, does the piece stay honest and still make the instruction usable?
+Keep meaningful playfulness; remove a joke or metaphor that makes the idea harder
+to follow. A/B should share this voice while remaining different stories.
 
-Use commas, periods, colons or parentheses for spoken pauses. Do not use long dash
-punctuation. The hook still has a maximum of 15 seconds with no separate word quota.
-All source-accuracy and output-format requirements remain in force.
-
-Public inspiration for playful visual explanation and audience-appropriate delivery:
-- https://flearningstudio.com/medical-animation-examples/
-- https://flearningstudio.com/case-study/medical-whiteboard-animation-for-patient-education/
+No fixed writing or revision sequence applies. Hook maximum: 15 seconds, with no
+separate word quota. Use commas, periods, colons or parentheses instead of long
+dash punctuation. All source-accuracy and output-format requirements remain in force.

@@ -53,10 +53,11 @@ choices and framing for implied claims; they do not need verbatim source wording
   it? Repeated caption cards alone are insufficient when a useful demonstration is
   available. Do not add factual detail merely to create motion.
 
-- Apply `references/tone-of-voice.md` to the spoken delivery: when appropriate, does the voice or picture
-  have a playful, story-specific idea that supports understanding? Improve a dry
-  paraphrase through craft. No joke is required in a sensitive or urgent beat;
-  factual instructions remain clear and dignity is preserved.
+- Apply `references/tone-of-voice.md` to the spoken delivery: does a warm,
+  knowledgeable speaker guide the listener through connected thoughts? Let sourced
+  reasons explain actions and preserve their conditions. Replace staccato topic
+  lists or forced jokes with useful conversation. Light wit can help; a joke is
+  not a requirement. Keep critical instructions clear and preserve dignity.
 
 - Practical test from the original healthcare skill: after watching, could the
   intended viewer apply the chosen action with its actual conditions, without a
