@@ -93,9 +93,11 @@ export function createPreferenceStore(filename) {
       weight: (value(a) + value(b)) / 2 +
         0.15 / Math.sqrt(1 + Math.min(scores[a].icpN, scores[b].icpN)),
     })).sort((x, y) => y.weight - x.weight);
-    // Keep a small exploration probability so a single early win cannot lock the engine.
-    const selected = crypto.randomInt(10) === 0
-      ? candidates[crypto.randomInt(candidates.length)] : ranked[0].pair;
+    // 60% exploit the highest-ranked pair; 40% explore the remaining pairs.
+    // Exclude the winner from exploration so it cannot exceed 60% through random re-selection.
+    const alternatives = ranked.slice(1);
+    const selected = alternatives.length && crypto.randomInt(10) < 4
+      ? alternatives[crypto.randomInt(alternatives.length)].pair : ranked[0].pair;
     return crypto.randomInt(2) ? { a: selected[0], b: selected[1] }
       : { a: selected[1], b: selected[0] };
   }
