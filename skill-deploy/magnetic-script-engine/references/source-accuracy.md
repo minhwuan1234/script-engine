@@ -56,7 +56,8 @@ You may invent a clearly hypothetical person, ordinary staging, a question or br
 inner dialogue to demonstrate a source-supported action. Signal the hypothetical
 frame naturally when needed: “Imagine...”, “Suppose...” or an on-screen “Illustration”.
 A first-person walkthrough can carry the action without becoming a claimed real
-patient story. These choices do not need to occur word-for-word in the source.
+patient story. Mild performed reactions such as pausing or wondering are permitted
+in an illustrative scene; they are not evidence of symptoms or audience psychology. These choices do not need to occur word-for-word in the source.
 
 Keep the scene compatible with the source. Do not add an age, treatment stage,
 symptom, reading, event date, clinical setting or outcome that changes who should

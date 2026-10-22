@@ -76,6 +76,12 @@ source-accuracy contract in force for every opening technique.
 
 ## Human voice and visual cooperation
 
+- Keep production decisions out of voiceover. Stage the scene in ON SCREEN; let
+  speech address the viewer's task. A natural “Imagine...” can establish a
+  hypothetical moment, but never narrate that a scene avoids inventing a reply,
+  follows a source rule or has reached an evidence boundary. Omit the unsupported
+  detail silently and move to the next useful beat.
+
 - Keep the speaker's viewpoint and knowledge consistent from beat to beat. Use
   first person when compatible with the assigned style. A clearly illustrative
   scene, question or inner dialogue may carry the sourced action; follow the
@@ -109,8 +115,9 @@ source-accuracy contract in force for every opening technique.
   wording or character names. Give each version a different source-supported
   opening and route to the same answer. If the material cannot support two distinct
   routes, vary the order of explanation without manufacturing a new premise.
-- The selected style controls the shape of each version. Never substitute Q&A or
-  Myth-buster for an assigned style because of an internal understanding lens.
+- Let the selected style guide the dominant experience, while freely combining
+  storytelling techniques. Its example beats are options, not a checklist. Keep
+  the assigned identity and make the two versions recognizably different.
 - Follow the app-supplied word and timing budget exactly. Cut background and secondary
   material before cutting locked facts or red-flag rules.
 - After drafting, remove any sentence that repeats the preceding beat without
@@ -137,8 +144,8 @@ budget; if even that requires padding, write shorter and explain the limitation 
   jobs and recap.
 - Shape: brief hook within the supplied limit → one core explanation or decision → exact action in the
   last ten seconds.
-- If an assigned style is Q&A or Myth-buster, use one or two source-supported
-  questions or corrected beliefs.
+- For Q&A or Myth-buster, choose the number of questions or contrasts that serves
+  the one job; there is no required count.
 
 ### 2–3 minutes
 
@@ -149,8 +156,8 @@ budget; if even that requires padding, write shorter and explain the limitation 
   more than three steps → when to call or act, if stated → one-line action recap.
   A clearly illustrative example may make the sourced mechanism concrete without
   adding symptoms, measurements, outcomes or clinical advice.
-- If an assigned style is Q&A or Myth-buster, use three or four source-supported
-  questions or corrected beliefs only when the source has enough distinct material.
+- For Q&A or Myth-buster, allow connected answers or contrasts to develop without
+  enforcing a question count or repeating the same beat pattern.
 
 ### Up to 5 minutes
 
@@ -161,9 +168,8 @@ budget; if even that requires padding, write shorter and explain the limitation 
 - Shape: hook → one beat per job with a one-sentence recap when useful → closing
   checklist of source-stated actions. Include missed-step advice or common
   mistakes only if the source explicitly provides them.
-- If an assigned style is Q&A or Myth-buster, use five or six source-supported
-  questions or corrected beliefs only when the source can sustain them. Never pad
-  a sparse document to reach the count or the time ceiling.
+- For Q&A or Myth-buster, use only as many questions or contrasts as the explanation
+  needs. Never pad a sparse document to reach a count or the time ceiling.
 
 Across all durations, cut illustrative detail first, then background, then
 secondary jobs. Preserve exact wording for numbers, medication or procedural

@@ -1,12 +1,19 @@
 # First-person journey
 
-Use one illustrative person and a concrete decision moment, then let the sourced
-action unfold. The viewer should follow an experience rather than hear a list with
-“I” substituted for “you”. A brief question or inner dialogue can make a rule useful
-at the moment it is needed. Use the source-accuracy boundaries for hypothetical scenes.
+Let the viewer experience the source through one person's point of view. Give the
+narrator something concrete to notice, understand or do; let information arrive
+when it becomes useful. A journey should feel lived through, not like instructions
+with “I” added to every sentence.
 
-Keep the narrator's perspective consistent. Do not invent a medical history,
-symptom, treatment timing, outcome or testimonial. A real case must retain its
-source facts; a fictional demonstration must not look like evidence of results.
-Place the locked instruction at the decision point, explain its sourced reason if
-available, and end with the action rather than an invented success story.
+Choose the route that serves the material: begin in the middle of an action, move
+from a question to a decision, revisit an earlier detail with new understanding,
+or follow a practical sequence. Brief dialogue, inner questions, illustrative
+staging and a recurring object are available. No particular beat order is required.
+
+For example, a source-supported manager question can become a pause over an unclear
+instruction, followed by the question and the stated next action. This illustrates
+application without needing a real employee story in the document.
+
+Keep first-person perspective recognizable. Signal a hypothetical demonstration
+when it could be mistaken for a real account. Preserve the source's instructions;
+do not invent a medical history, outcome or testimonial to complete the arc.

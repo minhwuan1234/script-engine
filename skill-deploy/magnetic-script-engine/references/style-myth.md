@@ -1,18 +1,20 @@
 # Myth-buster
 
-Build belief or possible interpretation → sourced correction → what to do.
-The document need not call it a myth, but its exact wording must contradict the
-interpretation under the same conditions. For an unsourced belief, use a clearly
-hypothetical frame (“Does that mean...?”), never “most people think” or an assertion
-about the viewer. Do not invent a dangerous behavior just to create a correction.
+Give the viewer a useful shift in understanding: an initial interpretation gives
+way to a more accurate rule or distinction. The source need not contain the word
+“myth” or a ready-made debate. Find a plausible reading that its wording actually
+corrects, under the same conditions.
 
-State the mistaken interpretation briefly, then give more emphasis to the true rule.
-Use the source's explanation when present; preserve all locked wording and conditions.
-End on the truth and the action. When no valid contrast is available, explain a
-source-stated distinction directly and note the style limitation. Do not turn the
-whole script into a generic quiz or manufacture a belief by negating a random fact.
+You may open with a hypothetical thought, a question, a split-screen contrast or
+the correction itself, then show why the distinction matters for the sourced task.
+Vary the rhythm; each beat need not repeat “myth / fact”. Let the correction and its
+application receive more attention than the mistaken interpretation.
 
-Independent tasks do not automatically create a meaningful misconception. Avoid
-asking whether one replaces another solely because both occur in the source; choose
-a contrast relevant to applying a rule. If that would be forced, use the stated
-distinction directly instead of fabricating a dispute.
+A document distinguishing access from permission could support a contrast between
+“being able to open it” and “being allowed to use it”, if that distinction is in the
+source. This is a craft example, not a fact to import into another script.
+
+Do not present a hypothetical belief as common or attribute it to actual viewers.
+A separate pair of tasks is not automatically a misconception. If no meaningful
+correction exists, use a clarifying contrast and note that adaptation rather than
+force an opponent, a dangerous action or an unsupported claim.

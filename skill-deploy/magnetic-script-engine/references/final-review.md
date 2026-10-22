@@ -62,7 +62,8 @@ narrative effects. Keep this diagnosis out of the viewer-facing output.
   locked facts and their conditions.
 - Differences are meaningful in at least two of perspective, narrative architecture,
   sourced mechanism delivery, viewer experience and memory anchor, as defined in
-  script craft. Renaming or synonym substitution is insufficient.
+  script craft. Judge the recognizable style experience, not compliance with a
+  fixed beat template. Renaming or synonym substitution is insufficient.
 - Both versions stand on their own; do not make one deliberately weaker.
 - If the beat sequences are effectively identical, rebuild B's outline within its
   assigned style and reapply Gate 1. A has already been released and must not be

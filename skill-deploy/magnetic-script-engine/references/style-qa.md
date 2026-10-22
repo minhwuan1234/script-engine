@@ -1,12 +1,19 @@
 # Q&A / you asked
 
-Use a sequence of sharp, source-covered questions. A question must not introduce a
-new symptom, cause, outcome, belief or assumption. Answer only with source-supported
-information. Include a mechanism only when the source states it. Order questions so
-the chosen action and any red-flag instruction remain prominent.
+Make the script feel like a useful conversation. Ask what someone would need to
+understand or apply the source, and let each answer move the conversation forward.
+Questions can be newly written; they need not be quotations from the document.
+Their answers and factual premises must remain supported.
 
-Organize questions around applying the source, rather than testing recall of labels.
-For a short script, prefer one useful question with a connected answer over a list
-of three questions in the hook. Do not repeat a hook question verbatim in the next
-beat or repeat its answer solely to fill time. The hook may state the question and
-begin answering it immediately; the rest shows the supported steps or distinctions.
+Choose a conversational shape: one central question with follow-ups, a brief
+illustrative exchange, or several questions linked by the same task. Answers may
+include a demonstration, a visual comparison or a sourced explanation. Give the
+viewer room to absorb an answer before moving on; no fixed question count applies.
+
+For example, a rule about asking a manager when instructions are unclear can become
+“Which part should I ask about?” followed by an illustrative moment of identifying
+the unclear instruction, without inventing the manager's response or a new policy.
+
+Keep questions natural and useful rather than turning headings into a quiz. Avoid
+repeating every question in both the hook and body. Invented dialogue is an
+illustration, not a real customer quote or evidence of audience behavior.

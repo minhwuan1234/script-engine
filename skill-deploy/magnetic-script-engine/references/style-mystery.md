@@ -1,13 +1,19 @@
 # Mystery / investigation
 
-Open with a source-supported question or problem, reveal source-provided clues, and
-resolve only the cause or explanation explicitly stated by the source. Do not create
-false uncertainty, speculate, conceal a safety instruction for suspense or delay an
-urgent action.
+Create a progression from a partial view to a useful understanding. The document
+does not need a prewritten mystery. You can choose the question, the order of clues,
+the visual framing and the moment at which the source-supported relationship clicks.
 
-The mystery must resolve a meaningful relationship or decision, not the name of an
-item or the next instruction in a list. If the source provides no genuine mystery,
-use an evidence-led walkthrough: open with a concrete source fact, connect the
-supported details, and arrive at the stated action. State this limitation in Engine
-notes. Do not manufacture a mystery with “What happens next?”, “What does it explain?”
-or “Who can they ask?”. A direct opening is better than false suspense.
+Try a meaningful detail first, a close-up that gains context, or two source facts
+whose connection becomes clear as the explanation unfolds. Invite the viewer to
+notice something rather than repeatedly ask “What happens next?”. The resolution
+should change how they understand or apply the information, not merely reveal a label.
+
+For example, a document comparing a current record with a previous record can be
+shown one record at a time before revealing the comparison. Use only the actual
+comparison and values supplied; the reveal order is the creative choice.
+
+If the material supports no puzzle, use a discovery-led demonstration with an
+honest question about application. Keep the progressive reveal, but do not invent
+a hidden cause, false evidence or uncertainty. State urgent instructions promptly;
+suspense must not delay information needed for safe action.

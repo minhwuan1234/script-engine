@@ -67,8 +67,12 @@ state the mismatch in `Engine notes`.
 
 ### Step 4 — Apply the two assigned styles
 
-Apply the loaded Version A and Version B style references exactly. Do not swap or
-replace them. Style changes structure and presentation only, never facts.
+Use each assigned style as a creative direction, not a mandatory beat template.
+Keep its identity recognizable and its assigned label, so the app's A/B preference
+tracking remains meaningful. You may combine scene, dialogue, analogy, comparison
+and discovery techniques within that direction. Choose the execution that makes
+the source understandable; adapt a poorly fitting technique instead of forcing it.
+Style changes presentation, not facts. Apply this flexibility to every loaded style.
 
 ### Step 5 — Build a storytelling concept for each version
 
