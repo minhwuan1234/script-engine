@@ -1,11 +1,10 @@
 // Magnetic Script backend: single file, Node >= 20. Now has 3 deps for server-side
 // file -> plain text extraction (mammoth, pdf-parse, jszip) — see "file text extraction" below.
-// Serves index.html and POST /api/generate -> Claude Messages API + custom skill.
+// Serves index.html and POST /api/generate -> Claude Messages API + repository writing instructions.
 // Every generate request is tracked (tokens, estimated cost, duration, status) - see GET /api/usage.
 //
 // Env vars (set in Railway Variables):
 //   CLAUDE_API          required  (ANTHROPIC_API_KEY also accepted)
-//   SKILL_ID            required  (skill_01... from the skill upload)
 //   CLAUDE_MODEL        optional  default claude-sonnet-5-5
 //   ICP_MODEL           optional  default claude-haiku-4-5-20251001
 //   MAX_TOKENS          optional  default 32000 (thinking and visible text share this cap)
@@ -37,10 +36,10 @@ import JSZip from 'jszip';
 import PDFDocument from 'pdfkit';
 import { createPreferenceStore, STYLES } from './preference-store.js';
 import { createIcpSignalStore, ICP_KEYS } from './icp-signal-store.js';
+import { buildWritingSystem } from './writing-instructions.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const {
-  SKILL_ID,
   CLAUDE_MODEL = 'claude-sonnet-5-5',
   ICP_MODEL = 'claude-haiku-4-5-20251001', // small/cheap model, only for the ICP guess below
   MAX_TOKENS = '32000',
@@ -536,7 +535,7 @@ async function handleDownloadPdf(req, res) {
 // Call Messages API with streaming (avoids long-request timeouts).
 // Returns the final text, stop reason and token usage. `usage` is filled in as events arrive,
 // so a caller can still read partial usage if the stream fails midway.
-async function callClaude(content, usage, onText = () => {}) {
+async function callClaude(content, system, usage, onText = () => {}) {
   const upstream = await fetch(ANTHROPIC_API_URL, {
     method: 'POST',
     headers: {
@@ -549,22 +548,7 @@ async function callClaude(content, usage, onText = () => {}) {
       ...(CLAUDE_MODEL === 'claude-sonnet-5-5' ? { output_config: { effort: 'medium' } } : {}),
       max_tokens: Number(MAX_TOKENS),
       stream: true,
-      container: { skills: [{ type: 'custom', skill_id: SKILL_ID, version: 'latest' }] },
-      tools: [{ type: 'code_execution_20250825', name: 'code_execution' }],
-      // Prompt caching: this text block never changes between requests, and the
-      // cache_control marker on it tells Anthropic to cache everything up through here
-      // (the skill + tool setup). The next request within the cache window reads that
-      // whole chunk from cache instead of reprocessing it — this is the fix for "every
-      // call pays to reload the skill from scratch". Only the per-request user message
-      // below stays dynamic. If a new skill version is pushed, the very next call pays
-      // to rebuild the cache once, then goes back to the cheap/fast path.
-      system: [
-        {
-          type: 'text',
-          text: 'You are running the magnetic-script-engine skill for the F.Learning Magnetic Script Studio tool. Follow the skill exactly.',
-          cache_control: { type: 'ephemeral', ttl: '1h' },
-        },
-      ],
+      system,
       messages: [{ role: 'user', content }],
     }),
   });
@@ -633,8 +617,8 @@ async function callClaude(content, usage, onText = () => {}) {
 
 /* ---------- routes ---------- */
 async function handleGenerate(req, res) {
-  if (!ANTHROPIC_API_KEY || !SKILL_ID) {
-    return json(res, 500, { error: 'Server missing CLAUDE_API or SKILL_ID.' });
+  if (!ANTHROPIC_API_KEY) {
+    return json(res, 500, { error: 'Server missing CLAUDE_API (or ANTHROPIC_API_KEY).' });
   }
 
   const ip = clientIp(req);
@@ -729,7 +713,7 @@ async function handleGenerate(req, res) {
       `- Version A exact style name: ${STYLES[strategyPair.a]}\n` +
       `- Version B style key: ${strategyPair.b}\n` +
       `- Version B exact style name: ${STYLES[strategyPair.b]}\n` +
-      `Load only the selected skill references once, as instructed by the skill, before Step 1. Do not swap the assigned styles.\n\n` +
+      `The system prompt includes all required writing rules and the selected references. Apply them directly. Do not swap the assigned styles.\n\n` +
       `Return the final result in the skill's exact Step 7 format, as plain text — nothing else before or after it. Do not use Markdown or JSON.` +
       (text ? `\n\n--- Pasted text / instructions ---\n${text}` : '');
 
@@ -754,7 +738,8 @@ async function handleGenerate(req, res) {
         if (b) { rec.version_b_ms = Date.now() - t0; sendEvent('version_b', b); sentB = true; }
       }
     };
-    const { markdown, stopReason } = await callClaude([...blocks, { type: 'text', text: instruction }], usage, onText);
+    const system = buildWritingSystem(icpKey, strategyPair.a, strategyPair.b);
+    const { markdown, stopReason } = await callClaude([...blocks, { type: 'text', text: instruction }], system, usage, onText);
     rec.stop_reason = stopReason;
 
     // Adaptive-thinking models can spend the whole output budget on adaptive thinking before it
@@ -856,7 +841,7 @@ http
       const { pathname } = url;
       if (req.method === 'GET' && (pathname === '/' || pathname === '/index.html')) return serveIndex(res);
       if (req.method === 'GET' && pathname === '/api/health') {
-        return json(res, 200, { ok: true, hasKey: !!ANTHROPIC_API_KEY, hasSkill: !!SKILL_ID, model: CLAUDE_MODEL });
+        return json(res, 200, { ok: true, hasKey: !!ANTHROPIC_API_KEY, skillSource: 'repository', model: CLAUDE_MODEL });
       }
       if (req.method === 'GET' && pathname === '/api/usage') {
         if (!isAdmin(req, url)) { res.writeHead(404); return res.end('Not found'); }

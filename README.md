@@ -8,10 +8,10 @@ The browser requests `/api/generate` as NDJSON. The server streams Version A as 
 
 The skill returns plain text with labeled time, voiceover and on-screen lines. The UI shows this text without Markdown syntax. Each completed Version has its own Download PDF button; `/api/download-pdf` creates the file from that Version's visible text on demand and does not save it on the server. The parser also accepts older Markdown responses while the deployed skill updates.
 
-The skill uses `scripts/load_references.py` to read the shared writing rules, one selected ICP reference and the two assigned style references in one code execution call. It still drafts and reviews Version A before Version B. Usage logs record elapsed milliseconds through extraction, ICP selection and each streamed version, plus the API-reported number of code execution requests when available; compare those fields before attributing a latency change to the loader.
+The backend reads writing instructions directly from `skill-deploy/magnetic-script-engine/` using `writing-instructions.js`. Shared rules form a stable cached system-prompt prefix; only the selected ICP and two styles are appended. No Anthropic custom skill, `SKILL_ID`, code execution tool, or skill upload is required. Restart/redeploy after editing the instruction files. The old Python publishing/loader scripts are legacy utilities and are not used by the app. Automatic skill publishing has been removed.
+
+For local use: run `npm ci`, set `CLAUDE_API` (or `ANTHROPIC_API_KEY`), then run `npm start`. The default writing model is Sonnet 5.5 with medium effort; ICP classification uses Haiku 4.5.
 
 Set `PREFERENCE_LOG=/data/preferences.jsonl` and mount a persistent Railway Volume at `/data` to retain picks across redeploys. Otherwise the default file `./preferences.jsonl` is ephemeral on Railway. Do not commit this file. The log contains only ICP, style IDs, timestamps, opaque generation IDs, hashed bearer tokens and the A/B choice; it stores no uploaded documents or generated scripts.
 
-Deploy both `server.js` and `preference-store.js`, plus `index.html`. Push the changed custom skill in `skill-deploy/magnetic-script-engine/SKILL.md` with the project's existing skill deploy process so the deployed skill respects both app-selected styles. Existing `SKILL_ID` and `CLAUDE_API` configuration remains required. The Crazy level is still fixed at Medium in the browser; this change adds no Crazy control.
-
-Run `node --test tests/preference-store.test.js` for the preference-store checks.
+Deploy the complete repository, including `writing-instructions.js` and `skill-deploy/magnetic-script-engine/`. Only the API key is required; existing `SKILL_ID` environment variables are ignored.

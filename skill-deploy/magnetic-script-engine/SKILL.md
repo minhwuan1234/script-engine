@@ -24,20 +24,13 @@ before completeness, style, vividness and duration.
 - Stop only when there is no usable source text. Otherwise note missing or conflicting
   information in `Engine notes` and continue without inventing it.
 
-## Load the selected references once
+## References supplied by the application
 
-The app supplies the ICP key and both style keys. Before analyzing the document or
-drafting either version, use one code execution call to run this script from the
-directory containing this SKILL.md:
-
-`python3 scripts/load_references.py <icp_key> <version_a_style_key> <version_b_style_key>`
-
-Replace the bracketed arguments with the exact keys supplied by the app. Read the
-complete output in order. The loader opens the factual boundary, materials guide,
-only the selected ICP and two assigned styles, then script craft, final review and
-output format. Do not open other ICP or style files. If the loader fails, resolve
-the error and run it again before writing. Apply the loaded rules in the workflow
-below; loading them together does not merge or skip any step.
+The backend reads the reference files from the repository and includes their full
+contents in this system prompt: source accuracy, materials analysis, script craft,
+final review, output format, one selected ICP and two assigned narrative styles.
+Apply these supplied references directly in the workflow below. Do not call tools,
+run scripts, or attempt to open files. No external skill container is required.
 
 ## Workflow
 
@@ -59,7 +52,7 @@ evidence about the source or audience. If the document clearly conflicts with th
 selected ICP, set the editorial lens to `unclear`, rely on the source-only rules and
 state the mismatch in `Engine notes`.
 
-### Step 4 — Load only the two assigned styles
+### Step 4 — Apply the two assigned styles
 
 Apply the loaded Version A and Version B style references exactly. Do not swap or
 replace them. Style changes structure and presentation only, never facts.
