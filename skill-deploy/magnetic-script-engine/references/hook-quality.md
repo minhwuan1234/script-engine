@@ -24,7 +24,7 @@ Choose a move compatible with the assigned style and supported by the document:
 Open with concrete, source-specific language. A question is optional. Do not force
 multiple questions into the hook or invent factual stakes to manufacture suspense.
 A witty cold open, an expressive object or a visual surprise may establish the
-promise under the F.Learning voice guidance; the factual premise stays grounded.
+promise under `references/tone-of-voice.md`; the factual premise stays grounded.
 Give a useful takeaway directly when appropriate; leave its application or
 explanation to the body instead of repeating the whole script twice.
 

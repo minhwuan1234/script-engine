@@ -22,7 +22,7 @@ You may develop a scene, find an image, explore an opening or work backwards fro
 a useful ending. Do not produce a checklist-shaped script just to satisfy the skill.
 
 Use `references/script-craft.md`, `references/hook-quality.md` and
-`references/flearning-voice.md` for natural speech, narrative movement and the
+`references/tone-of-voice.md` for natural speech, narrative movement and the
 requested playful F.Learning character. Let the picture, situation and voice carry
 the energy. Critical instructions and sensitive moments still need clear delivery.
 

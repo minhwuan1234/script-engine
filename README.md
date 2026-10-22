@@ -41,3 +41,13 @@ All examples are read at startup; restart after edits. `references/example-guida
 explains how to transfer narrative progression and visual motifs while excluding
 sample facts, Markdown formatting and fixed durations. The samples are not medical
 source documents. The current upload remains the factual basis for each script.
+
+## F.Learning tone of voice
+
+`skill-deploy/magnetic-script-engine/references/tone-of-voice.md` is the shared voice
+reference for all writing requests. It replaces `flearning-voice.md` and covers
+personality, spoken rhythm, appropriate wit, emotional register and concrete
+before/after examples. It is editorial guidance for the tool, informed by the user
+and supplied references, rather than an official brand manual. The loader includes
+it once in the shared system prefix; ICP and narrative styles adapt the context
+without adding separate competing brand voices. Restart after editing it.
