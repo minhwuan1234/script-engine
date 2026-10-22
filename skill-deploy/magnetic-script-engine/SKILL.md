@@ -61,8 +61,9 @@ and audience fit. Do not draft either script yet.
 
 ### Step 3 — Apply exactly one ICP lens
 
-Apply the selected ICP reference loaded above as an editorial lens, never as
-evidence about the source or audience. If the document clearly conflicts with the
+Apply the selected ICP reference as an editorial lens for relevance and audience
+fit, not a fixed tone or story structure. The shared illustrative freedoms apply
+to every ICP. Its label is never evidence about the source or actual audience. If the document clearly conflicts with the
 selected ICP, set the editorial lens to `unclear`, rely on the source-only rules and
 state the mismatch in `Engine notes`.
 
