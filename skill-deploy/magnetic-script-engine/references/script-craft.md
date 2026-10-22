@@ -14,14 +14,25 @@ Both versions use the same source facts and carry this spine:
 Do not manufacture tension from an assumed belief, behavior or consequence. If the
 source supplies no mechanism, teach the exact rule without adding a reason.
 
-## Choose the angle before writing
+## Choose a storytelling concept before writing
 
-- Identify the most useful source-specific question the selected job answers. Use
-  the source's exact action, condition, distinction or threshold as its payoff.
-- Choose the strongest supported entry point for each assigned style. An angle is
-  a way into the same job, not a new factual claim or a different audience.
-- If the source is sparse, make the instruction clear and direct. Do not add a
-  fictional scene, common mistake or implied consequence to make it feel dramatic.
+Privately state the viewer's useful takeaway in one sentence, then choose one
+organizing idea for each assigned style. A concept specifies how the viewer moves
+from the opening to that takeaway: following an action through time, seeing a
+source-stated mechanism unfold, comparing stated decision thresholds, or resolving
+a meaningful question with sourced evidence. These are options, not a required
+menu. Choose the approach the document actually supports.
+
+Build beats from the selected facts to serve the concept; do not follow paragraph
+order by default. Each beat should advance understanding or the action. Keep all
+locked facts intact while freely rewriting the surrounding language for speech.
+
+Do not create suspense by hiding an ordinary label or checklist action. An opening
+such as “What does the handbook explain?” followed by the same question and a list
+is a quiz, not a narrative payoff. Q&A can organize genuine decisions, but other
+styles should not collapse into a sequence of questions. Sparse sources can still
+support a compact action-led demonstration and a differently organized explanation;
+use directness rather than padding when they cannot support a reveal.
 
 ## Two narrative plans
 
@@ -38,7 +49,9 @@ the assigned styles; do not introduce an unassigned style or fictional narrator.
 A question mark does not make an unsupported premise acceptable. Never invent a
 wrong belief and turn it into a rhetorical question (for example, "complete the
 checklist and that is it?") to satisfy Myth-buster. If no misconception is supplied,
-use a neutral question answered by the source and disclose the style limitation.
+use a direct rule-versus-boundary explanation where the source provides both;
+otherwise use a direct explanation and disclose the style limitation. Do not
+manufacture rhetorical questions just to keep the Myth-buster label.
 If the source is too sparse for two supported differences, use the clearest valid
 routes and record that limitation in Engine notes. Accuracy takes priority.
 
@@ -59,9 +72,10 @@ The first 15 seconds must:
 
 Choose a source-supported opening move: the stated decision moment, a contrast
 explicitly present in the source, a source-stated number, or a question the source
-answers. Do not invent a common belief, mistake, symptom, setting or character to
-create suspense. Avoid giving away the entire explanation if a source-supported
-question can carry the viewer into the next beat; never withhold an urgent instruction
+answers. Do not invent a common belief, mistake, symptom or biographical character to
+create suspense. Give the viewer a useful reason to continue: seeing how to apply a rule, how a
+source-stated mechanism works, or how to distinguish stated conditions. Directly
+stating the takeaway is allowed; curiosity does not require withholding the answer; never withhold an urgent instruction
 merely to create suspense.
 
 Test the hook before drafting the rest:
@@ -183,15 +197,18 @@ more source material; it does not permit more assumed facts.
 
 ## On-screen direction
 
-Describe only explanatory visuals supported by the source. Show the actual
+Invent the visual treatment, while keeping what it teaches supported by the source. Show the actual
 source-stated sequence, comparison, wording or decision when it helps understanding.
 Pair voiceover and visuals so the picture clarifies the spoken point; do not simply
 repeat every spoken word as text. Use exact on-screen wording for a critical number,
 trigger or prohibition when the source provides it. If the source supports no
 informative image, use restrained text rather than a fabricated demonstration.
 On-screen direction must not introduce an unsupported symptom, reading, anatomy
-claim, procedure, result, timeline, setting or cause. Avoid decorative icons and
-filler that teach nothing.
+claim, procedure, result, timeline, setting or cause. Use motion and progression when useful: highlight a stated trigger, build a
+source-listed checklist, compare source-provided values, or move between labeled
+stages. Layouts, arrows and neutral icons need not appear in the PDF; the relationship
+they depict must be supported. Do not invent clinical color zones or measurements.
+Avoid decorative icons and filler that teach nothing.
 
 ## Ending
 

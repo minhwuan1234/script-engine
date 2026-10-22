@@ -57,13 +57,16 @@ state the mismatch in `Engine notes`.
 Apply the loaded Version A and Version B style references exactly. Do not swap or
 replace them. Style changes structure and presentation only, never facts.
 
-### Step 5 — Prepare the shared plan and output rules
+### Step 5 — Build a storytelling concept for each version
 
 Apply `references/script-craft.md`, `references/final-review.md` and
 `references/output-format.md` before composing viewer-facing text. Use the exact
 timing and word budget supplied by the app; do not recompute it and do not open a
 separate duration guide. Privately plan the shared locked facts and two distinct
-routes through them using the narrative-plan criteria in script craft. Check that
+routes through them using the narrative-plan criteria in script craft. Choose one
+viewer takeaway and a distinct organizing idea for each version before writing
+lines. Rebuild the document into beats that serve those ideas; paraphrasing each
+source paragraph or appending questions does not establish a concept. Check that
 the plans differ meaningfully in at least two supported dimensions before drafting
 A. Planning B is not drafting its lines: do not draft Version B before Version A
 has been released. If the source cannot support the contrast, preserve accuracy
@@ -95,7 +98,9 @@ output format. Return nothing else before, between or after these sections.
 
 - Never use outside knowledge to complete, clarify or improve the source.
 - Never invent facts, beliefs, audience behavior, scenarios, causes, mechanisms,
-  outcomes, symptoms, urgency, definitions, recommendations, settings or visuals.
+  outcomes, symptoms, urgency, definitions, recommendations or settings. Editorial
+  framing and illustrative staging are allowed within the source-accuracy contract;
+  they must not introduce factual claims.
 - Never weaken or detach a number, unit, condition, qualifier, negation, population,
   sequence, timeframe or exception.
 - Never resolve ambiguity or contradiction on behalf of the source owner.

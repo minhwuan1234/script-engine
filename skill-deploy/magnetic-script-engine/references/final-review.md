@@ -13,7 +13,8 @@ For every factual statement in titles, hooks, questions, voiceover and visuals, 
   releasing Version B
 - whether its phrasing implies anything beyond the source
 
-Delete any statement without an exact supporting passage. Do not print the ledger.
+Delete any factual claim without an exact supporting passage. Evaluate production
+choices and framing for implied claims; they do not need verbatim source wording. Do not print the ledger.
 
 ## Wrong-direction checks
 
@@ -23,12 +24,25 @@ Delete any statement without an exact supporting passage. Do not print the ledge
 3. **Everything included:** the script exceeds its budget or buries the chosen job.
 4. **Same script twice:** both versions use the same beats and differ only in wording.
 5. **Dead or generic hook:** the opening could introduce a different document,
-   gives away its entire answer without a reason to continue, or opens a question
+   provides no useful reason to continue, or opens a question
    the script cannot answer from the source.
 6. **Borrowed tension:** a supposed myth, mistake, belief, contradiction or `do not`
    was invented to make the hook or a style work. Identify the exact source passage
    supporting each such premise; otherwise replace it with a source-stated decision
    or contrast.
+
+## Storytelling check
+
+- Can the organizing idea be named without using the document title or style label?
+  If the script is a paragraph-by-paragraph paraphrase, rebuild its beat order.
+- Does each beat advance the opening's useful promise, rather than repeat a question
+  or reveal a trivial label? Replace artificial suspense with a direct action or
+  a source-supported decision, relationship or explanation.
+- Are the lines natural speech rather than source sentences joined by transitions?
+  Preserve locked wording; rewrite surrounding language when needed.
+- Do visuals show progression or explain a relationship where the source permits
+  it? Repeated caption cards alone are insufficient when a useful demonstration is
+  available. Do not add factual detail merely to create motion.
 
 ## Gate 1 — Each version on its own
 
