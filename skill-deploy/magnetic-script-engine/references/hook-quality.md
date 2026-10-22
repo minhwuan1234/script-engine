@@ -27,9 +27,11 @@ explanation to the body instead of repeating the whole script twice.
 
 ## Length and payoff
 
-Use the shortest natural opening that establishes the promise. Follow the app's
-hook limit, not a fixed 15-second slot or a minimum word quota. Choose an actual
-end timestamp that fits the spoken words and meaningful visual beats. Start the
+Give the opening enough room to establish its point of interest and promise. The
+maximum is 15 seconds for every video length. There is no separate hook word limit
+or word quota; do not compress the idea to meet an arbitrary word count. Use natural
+spoken pacing, not rushed delivery to fit the time limit. Choose an actual end
+timestamp that fits the spoken words and meaningful visual beats. Start the
 body immediately at that timestamp; A and B may use different hook lengths.
 
 The next beat must advance the promise rather than restate the hook. Pay it off

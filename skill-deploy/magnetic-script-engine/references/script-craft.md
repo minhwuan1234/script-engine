@@ -59,7 +59,8 @@ routes and record that limitation in Engine notes. Accuracy takes priority.
 
 Apply `references/hook-quality.md` to choose and review the opening. Establish one
 useful narrative promise, then let the body develop it. The app supplies a maximum
-hook duration and word count, not a required slot or a minimum quota. Keep the
+hook duration of 15 seconds for every video length, with no separate hook word
+limit or word quota. Keep the
 source-accuracy contract in force for every opening technique.
 
 ## Voiceover

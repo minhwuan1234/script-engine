@@ -83,7 +83,8 @@ against source documents is still needed to assess fidelity and usefulness.
 - For healthcare, the content follows the selected duration's job, step and recap
   limits. Any Q&A or Myth-buster question or belief is supported by the source;
   a sparse source is never padded to meet a suggested count.
-- The hook fits the supplied duration and word limits and passes the checks in
+- The hook lasts at most 15 seconds at a natural spoken pace, has no separate
+  word-count requirement, and passes the checks in
   `references/hook-quality.md`. The body begins at its actual end timestamp, advances
   its promise and pays it off without withholding a source-stated urgent action.
 - Before releasing Version B, both versions contain the same locked facts but differ

@@ -206,9 +206,8 @@ function durationBudget(duration) {
   return {
     duration_bucket: duration,
     target_seconds: { min: loS, max: hiS, note: loS === 0 ? "no real floor ('up to') — only the max matters" : undefined },
-    hook: { seconds: { max: duration === '30s-60s' ? 8 : 15 },
-      word_limit: duration === '30s-60s' ? 20 : 40,
-      note: 'Maximums, not quotas. Use a shorter natural opening when sufficient; begin SCRIPT at the actual hook end.' },
+    hook: { seconds: { max: 15 },
+      note: 'Up to 15 seconds for every duration bucket. No separate hook word limit or word quota. Use natural spoken pacing; begin SCRIPT at the actual hook end.' },
     vo_word_budget: {
       long_form_pace_150wpm: { min: wordsFor(loS, LONG_FORM_WPM), max: wordsFor(hiS, LONG_FORM_WPM) },
       short_form_pace_160_170wpm: { min: wordsFor(loS, SHORT_FORM_WPM_MIN), max: wordsFor(hiS, SHORT_FORM_WPM_MAX) },
