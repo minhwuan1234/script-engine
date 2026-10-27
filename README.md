@@ -56,6 +56,12 @@ and supplied references, rather than an official brand manual. The loader includ
 it once in the shared system prefix; ICP and narrative styles adapt the context
 without adding separate competing brand voices. Restart after editing it.
 
+`skill-deploy/magnetic-script-engine/references/crazy-dial.md` fixes the creative
+energy at High for every request. It is loaded into the same shared system prefix
+and applies to both versions. High strengthens the opening, rhythm and visual
+concept while preserving source facts and clinical precision. It adds no UI setting
+or extra model call. Restart after editing it.
+
 Retired style history is retained for active opponents' statistics, but retired
 styles cannot be selected or registered for new generations. Current styles:
 mechanism, myth, before_after, countdown, mystery, qa and stakes. The 60/40

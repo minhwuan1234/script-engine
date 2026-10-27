@@ -58,6 +58,10 @@ choices and framing for implied claims; they do not need verbatim source wording
   reasons explain actions and preserve their conditions. Replace staccato topic
   lists or forced jokes with useful conversation. Light wit can help; a joke is
   not a requirement. Keep critical instructions clear and preserve dignity.
+- Apply the fixed High energy in `references/crazy-dial.md`: does the opening make
+  a distinctive, honest promise, and does the script develop it? If the difference
+  from a calm introduction is only a louder adjective, change the creative idea.
+  Check that dramatic framing has not added an unsourced belief, stake or outcome.
 
 - Practical test from the original healthcare skill: after watching, could the
   intended viewer apply the chosen action with its actual conditions, without a

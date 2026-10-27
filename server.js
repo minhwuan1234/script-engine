@@ -737,7 +737,7 @@ async function handleGenerate(req, res) {
       `- Version B style key: ${strategyPair.b}\n` +
       `- Version B exact style name: ${STYLES[strategyPair.b]}\n` +
       `The system prompt includes all required writing rules and the selected references. Apply them directly. Do not swap the assigned styles.\n` +
-      `Apply references/tone-of-voice.md to the actual voiceover of both versions, not only to visual direction.\n\n` +
+      `Apply references/tone-of-voice.md and the fixed High setting in references/crazy-dial.md to both voiceovers and visual directions. Keep all facts source-grounded.\n\n` +
       `Return the final result in the skill's required output-format.md structure, as plain text — nothing else before or after it. Do not use Markdown or JSON.` +
       (text ? `\n\n--- Pasted text / instructions ---\n${text}` : '');
 
