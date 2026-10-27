@@ -12,6 +12,12 @@ section included.
   do not force an action, misconception or behavioral problem into every document.
 - Keep a clear takeaway and the shared essential facts behind it. Choose material
   for its value to that outcome, rather than giving every source section airtime.
+- Look beyond headings and highlighted boxes for a source detail that makes the
+  chosen takeaway easier to picture, understand or apply. A useful fact may be
+  buried in a paragraph or table. If it genuinely changes the viewer's understanding,
+  consider making it a turning point, explanation or visual reveal. Do not hunt for
+  a surprise, impose a passage count, or promote a less prominent detail above the
+  source's actual warnings and required actions.
 - Use the source's urgency, warnings and emphasis to identify critical content.
   You may choose an editorial order for comprehension; do not imply a new clinical
   priority or change a required procedural sequence.
