@@ -100,6 +100,11 @@ per-sentence word quota. Keep exact locked wording within otherwise flexible spe
 
 Begin inside the subject: a task, an object, a question or a moment. Describe the
 source document only when the document itself is the thing the viewer needs to use.
+Cut throat-clearing such as "In this video, we'll...", "Let's talk about...",
+"Did you know...?" and "It's important to understand..." when they delay the
+actual idea. Replace them with a detail, action or question specific to this
+source, in words a person would say aloud. The first line should earn attention
+through its content, not a louder introduction.
 “The guide mentions the manager twice” explains a writer's observation; it does not
 give the viewer a reason to care. Move to the actual situation the rule addresses.
 “Working hours are in the handbook” can be useful; “the source establishes two

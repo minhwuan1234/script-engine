@@ -23,6 +23,10 @@ Choose a move compatible with the assigned style and supported by the document:
 
 Open with concrete, source-specific language. A question is optional. Do not force
 multiple questions into the hook or invent factual stakes to manufacture suspense.
+A person encountering the video without the document should be able to picture
+the first moment and understand why the next line matters. Give that orientation
+through the opening line, its visual, or both; do not rely on a title or on context
+the viewer has not heard. This does not require explaining the whole topic up front.
 A witty cold open, an expressive object or a visual surprise may establish the
 promise under `references/tone-of-voice.md`; the factual premise stays grounded.
 Give a useful takeaway directly when appropriate; leave its application or
@@ -47,6 +51,9 @@ facts to make the payoff more dramatic. A callback is optional.
   it in a detail of this source.
 - Relevance: is there a useful reason to keep watching beyond learning a label?
 - Clarity: can the viewer follow the opening without assumed context?
+- Cold-viewer check: if someone sees only the first line and its visual, can they
+  picture what is happening and why it is relevant? If not, sharpen that moment
+  without adding a generic introduction.
 - Payoff: do later beats fulfill the promise without replaying the opening list?
 - Visual support: does the opening image help explain the same point as the voice?
 - Fidelity: are all factual premises supported, including those implied by a

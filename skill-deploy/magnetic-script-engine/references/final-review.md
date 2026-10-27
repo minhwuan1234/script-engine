@@ -28,7 +28,8 @@ choices and framing for implied claims; they do not need verbatim source wording
    rounded, completed or paraphrased into a different meaning.
 3. **Everything included:** the script exceeds its budget or buries the chosen job.
 4. **Same script twice:** both versions use the same beats and differ only in wording.
-5. **Dead or generic hook:** the opening could introduce a different document,
+5. **Dead or generic hook:** a viewer meeting the video cold cannot picture the
+   opening situation, the line could introduce a different document,
    provides no useful reason to continue, or opens a question
    the script cannot answer from the source.
 6. **Borrowed tension:** a hypothetical interpretation is presented as a common
@@ -46,7 +47,9 @@ choices and framing for implied claims; they do not need verbatim source wording
 - Read only the voiceover as continuous speech. Does it sound like someone helping
   the listener, or like someone explaining how the document was organized? Rework
   commentary about passages, references, “two places” and writing choices into the
-  actual task or situation. Preserve useful references to documents the viewer uses.
+  actual task or situation. Remove "In this video..." and similar generic lead-ins
+  when they delay the first useful thought. Preserve useful references to documents
+  the viewer uses.
 - Check that beats connect as thoughts, without formulaic transitions, arbitrary
   “X does not replace Y” contrasts or a second telling of the same instruction.
 - Do visuals show progression or explain a relationship where the source permits
