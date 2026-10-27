@@ -22,9 +22,11 @@ Check timing by reasoning from the duration and source word budgets; the check_t
 For BOTH versions, the hook must stand alone as a preview. By the end of its first 15 seconds, the spoken voiceover must make the actual subject and the viewer's specific problem clear to someone who has not seen the document or title. The first sentence may begin with a scene, thought, surprise or tension; it does not have to name the subject immediately. Reveal the subject naturally within the hook, before the Script section. If using mystery, leave the viewer curious about the answer, not confused about what the video is about. Check each hook against this test and revise it before returning the final scripts. A title or on-screen label alone does not satisfy the spoken clarity test.
 Follow the original Step 6 Markdown structure and headings exactly so the app can split Version A, Version B and Engine notes. Do not return JSON.
 Keep both versions grounded in the document. Never invent medical numbers, advice or case stories.`;
+const writingOverrides = `===== WRITING OVERRIDES FOR THIS COMPARISON VERSION =====
+The archived script-craft reference says "Most lines <= 15 words." Do not apply that word target in this version. There is no maximum or preferred word count per spoken sentence, table row, or voiceover line. Write in a natural human rhythm: use short lines where they land well and longer connected sentences where an idea needs room. Do not chop a thought into fragments solely to satisfy a word count. Keep the hook within its 15-second time window by judging spoken pacing, not by imposing a 15-word cap. Preserve exact source wording when required.`;
 
 export function buildOriginalSkillSystem() {
-  return [{ type: 'text', text: `${adapter}\n\n${source}`, cache_control: { type: 'ephemeral', ttl: '1h' } }];
+  return [{ type: 'text', text: `${adapter}\n\n${source}\n\n${writingOverrides}`, cache_control: { type: 'ephemeral', ttl: '1h' } }];
 }
 
 export function originalSkillInstruction({ duration, level }) {

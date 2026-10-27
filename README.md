@@ -16,6 +16,9 @@ each run; usage remains available in the API response and server log.
 Its runtime adapter asks both hooks to identify the subject and the viewer's
 specific problem in spoken words within 15 seconds. They may open with a scene
 or tension first. The archived skill files remain unchanged.
+The archived craft guide's "most lines ≤15 words" suggestion is superseded in
+this comparison mode: sentences and voiceover rows have no word quota. Hook
+timing is still capped at 15 seconds and judged by spoken pacing.
 
 Set `SKILL_SOURCE=original` when starting this branch to try it. The default
 `SKILL_SOURCE=repository` keeps this branch's existing repository flow, including
