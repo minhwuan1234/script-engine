@@ -122,6 +122,22 @@ when needed; every script need not start “Imagine I am...”. Do not manufactu
 biography, testimonial, symptoms or outcomes. Explain clinical or technical terms
 only as far as the source supports.
 
+## Inner voice when a scene calls for it
+
+Within an assigned style that stages a moment, a brief inner thought can let the
+viewer hear the question before a decision, a pause or a second look. Let a
+source-supported answer arrive when the character needs it. Use this only when the
+thought helps the viewer recognize or understand the task; it is not a required
+beat or a separate narrative style.
+
+Keep the viewpoint clear and the scene visibly illustrative when it could be
+mistaken for a real account. The thought may be tentative or incorrect only if the
+current source actually answers or corrects it. Do not claim that viewers commonly
+hold it. Do not invent a symptom, measurement, biography, clinical setting or
+outcome to make the thought dramatic. State locked instructions plainly at the
+moment they matter. If inner voice opens the script, its first spoken sentence
+must still make the subject clear without help from a title card.
+
 Use `references/tone-of-voice.md` for connected, conversational explanation and
 light wit when it serves the thought. Give sourced reasoning room to develop.
 Let the picture do the staging so the voice can speak naturally. Do

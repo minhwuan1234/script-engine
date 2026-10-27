@@ -50,6 +50,10 @@ choices and framing for implied claims; they do not need verbatim source wording
   actual task or situation. Remove "In this video..." and similar generic lead-ins
   when they delay the first useful thought. Preserve useful references to documents
   the viewer uses.
+- If a scene uses inner voice, does that thought lead to a source-supported answer
+  at the moment it is needed? Check that the perspective stays clear, the scene is
+  illustrative rather than a claimed testimonial, and its first spoken sentence
+  still identifies the subject when it opens the script.
 - Check that beats connect as thoughts, without formulaic transitions, arbitrary
   “X does not replace Y” contrasts or a second telling of the same instruction.
 - Do visuals show progression or explain a relationship where the source permits
