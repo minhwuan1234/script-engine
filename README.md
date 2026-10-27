@@ -1,5 +1,26 @@
 # script-engine
 
+## Original skill comparison branch
+
+This branch adds an optional `SKILL_SOURCE=original` mode for comparing the original
+`magnetic-script-engine.skill` with the current repository writing flow. The archive's
+eight files are preserved under `skill-deploy/magnetic-script-engine-original/`.
+`original-skill.js` adds only a runtime adapter: it supplies the archived references,
+explains unavailable external tools, and asks for the original Step 6 output structure.
+The original skill infers its own ICP and chooses two styles. The app therefore skips
+Luna classification and A/B preference learning in this mode. The widget shows its
+Low / Medium / High control, defaulting to Medium, and displays each version's
+"Why we wrote it this way" and "Best when" notes in the card and PDF.
+
+Set `SKILL_SOURCE=original` when starting this branch to try it. The default
+`SKILL_SOURCE=repository` keeps this branch's existing repository flow, including
+fixed High, its current style pool and 60/40 preference selection. The original
+skill may choose First-person Journey and produces Markdown internally; the app
+converts its script tables to labeled plain text for the existing result cards.
+The external `brand-lens` and Python timing check cannot run inside the single
+writing API call. The runtime adapter asks the model to make those assumptions
+explicit and check timing against the source's duration guidance.
+
 ## A/B picks
 
 Downloading a version also selects it. The first successful PDF download for a generation records one A/B preference; repeat downloads do not add votes, and both PDFs remain downloadable. If a version is downloaded during streaming, its choice is queued until the final preference token arrives. Failed PDF requests do not record a choice. Preference-saving errors do not block the download. Before calling the writing model, the server classifies the document's ICP and selects two contrasting narrative styles. The selected style IDs are stored with a random generation ID; the visitor's pick is saved as one win/loss comparison. Later requests use smoothed global and ICP-specific win rates to select styles. This is preference learning in the application, **not** training the model. Selection uses a 60/40 policy: 60% choose the highest-ranked eligible pair, and 40% choose uniformly from the remaining eligible pairs. The highest-ranked pair is excluded from exploration. A/B positions are independently randomized.

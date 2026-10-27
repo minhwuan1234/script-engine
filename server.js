@@ -40,11 +40,13 @@ import PDFDocument from 'pdfkit';
 import { createPreferenceStore, STYLES } from './preference-store.js';
 import { createIcpSignalStore, ICP_KEYS } from './icp-signal-store.js';
 import { buildWritingSystem } from './writing-instructions.js';
+import { buildOriginalSkillSystem, originalSkillInstruction } from './original-skill.js';
 import { callOpenAI, estimateOpenAICost } from './openai-writer.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const {
   WRITING_PROVIDER = 'anthropic',
+  SKILL_SOURCE = 'repository',
   OPENAI_MODEL = 'gpt-6-sol',
   OPENAI_API_KEY,
   OPENAI_PRICE_IN_PER_M = '2',
@@ -65,6 +67,8 @@ const {
 } = process.env;
 
 if (!['anthropic', 'openai'].includes(WRITING_PROVIDER)) throw new Error('WRITING_PROVIDER must be anthropic or openai.');
+if (!['repository', 'original'].includes(SKILL_SOURCE)) throw new Error('SKILL_SOURCE must be repository or original.');
+const ORIGINAL_SKILL = SKILL_SOURCE === 'original';
 const WRITING_MODEL = WRITING_PROVIDER === 'openai' ? OPENAI_MODEL : CLAUDE_MODEL;
 
 // Secret is named CLAUDE_API; ANTHROPIC_API_KEY also works as a fallback.
@@ -78,6 +82,7 @@ const icpSignalStore = createIcpSignalStore(ICP_SIGNAL_LOG, {
 });
 const DURATION_OPTIONS = ['30s-60s', '2-3 mins', 'upto 5 mins'];
 const DEFAULT_DURATION = '2-3 mins';
+const CRAZY_LEVELS = ['Low', 'Medium', 'High'];
 // Same three buckets the UI's dropdown offers, as [min_seconds, max_seconds].
 // 'upto 5 mins' has min 0 — "up to" means no floor, only a ceiling.
 const DURATION_TARGETS = {
@@ -542,6 +547,11 @@ async function handleDownloadPdf(req, res) {
     if (/^(HOOK\b|SCRIPT$)/i.test(line)) {
       doc.moveDown(0.35);
       doc.fillColor('#22252a').font('Helvetica-Bold').fontSize(12).text(line, { paragraphGap: 5 });
+    } else if (/^(WHY WE WROTE IT(?: THIS WAY)?|BEST WHEN):/i.test(line)) {
+      const [, label, rest] = /^(WHY WE WROTE IT(?: THIS WAY)?|BEST WHEN):\s*(.*)$/i.exec(line);
+      doc.moveDown(0.4);
+      doc.fillColor('#b45309').font('Helvetica-Bold').fontSize(9).text(label.toUpperCase(), { paragraphGap: 2 });
+      doc.fillColor('#22252a').font('Helvetica-Oblique').fontSize(10).text(rest, { lineGap: 3, paragraphGap: 2 });
     } else if (/^TIME:/i.test(line)) {
       doc.moveDown(0.2);
       doc.fillColor('#b45309').font('Helvetica-Bold').fontSize(9).text(line, { paragraphGap: 2 });
@@ -637,7 +647,7 @@ async function callClaude(content, system, usage, onText = () => {}) {
 
 /* ---------- routes ---------- */
 async function handleGenerate(req, res) {
-  if (!OPENAI_API_KEY) {
+  if (!OPENAI_API_KEY && (!ORIGINAL_SKILL || WRITING_PROVIDER === 'openai')) {
     return json(res, 500, { error: 'Server missing OPENAI_API_KEY.' });
   }
   if (WRITING_PROVIDER === 'anthropic' && !ANTHROPIC_API_KEY) {
@@ -646,7 +656,7 @@ async function handleGenerate(req, res) {
 
   const ip = clientIp(req);
   const t0 = Date.now();
-  const rec = { ts: new Date().toISOString(), visitor: visitorId(ip), status: 'error', model: WRITING_MODEL, provider: WRITING_PROVIDER, icp_model: ICP_MODEL };
+  const rec = { ts: new Date().toISOString(), visitor: visitorId(ip), status: 'error', model: WRITING_MODEL, provider: WRITING_PROVIDER, skill_source: SKILL_SOURCE, icp_model: ORIGINAL_SKILL ? null : ICP_MODEL };
   const usage = {};
   let heartbeat = null;
   const streamResults = String(req.headers.accept || '').includes('application/x-ndjson');
@@ -681,6 +691,8 @@ async function handleGenerate(req, res) {
     const text = String(form.get('text') || '').trim();
     const durationRaw = String(form.get('duration') || DEFAULT_DURATION);
     const duration = DURATION_OPTIONS.includes(durationRaw) ? durationRaw : DEFAULT_DURATION;
+    const levelRaw = String(form.get('level') || 'Medium');
+    const level = CRAZY_LEVELS.includes(levelRaw) ? levelRaw : 'Medium';
     rec.duration = duration;
     rec.text_chars = text.length;
 
@@ -716,15 +728,18 @@ async function handleGenerate(req, res) {
     const classifyExcerpt = [text, ...blocks.filter((b) => b.type === 'text').map((b) => b.text)]
       .join('\n\n')
       .slice(0, ICP_EXCERPT_CHARS);
-    const icpDecision = await classifyIcp(classifyExcerpt);
+    const icpDecision = ORIGINAL_SKILL ? { icp: 'skill_inferred', source: 'original_skill' } : await classifyIcp(classifyExcerpt);
     rec.icp_ready_ms = Date.now() - t0;
     const icpKey = icpDecision.icp;
-    const strategyPair = preferenceStore.choosePair(icpKey);
+    const strategyPair = ORIGINAL_SKILL ? null : preferenceStore.choosePair(icpKey);
     rec.icp_guess = icpKey; // logging/debugging only, never document content
     rec.icp_source = icpDecision.source;
     rec.icp_new_signal_count = icpDecision.signals?.length || 0;
 
-    const instruction =
+    const instruction = ORIGINAL_SKILL
+      ? originalSkillInstruction({ duration, level }) +
+        (text ? `\n\n--- Pasted text / instructions ---\n${text}` : '')
+      :
       `Use the magnetic-script-engine skill on the document provided below (attached file(s) and/or pasted text).\n` +
       `Target duration: ${duration} (user-picked — respect it per the engine's rules; ` +
       `note in one line if it fights the content, but still deliver on it).\n` +
@@ -762,7 +777,7 @@ async function handleGenerate(req, res) {
         if (b) { rec.version_b_ms = Date.now() - t0; sendEvent('version_b', b); sentB = true; }
       }
     };
-    const system = buildWritingSystem(icpKey, strategyPair.a, strategyPair.b);
+    const system = ORIGINAL_SKILL ? buildOriginalSkillSystem() : buildWritingSystem(icpKey, strategyPair.a, strategyPair.b);
     const content = [...blocks, { type: 'text', text: instruction }];
     const { markdown, stopReason } = WRITING_PROVIDER === 'openai'
       ? await callOpenAI(content, system, usage, onText, { apiKey: OPENAI_API_KEY, model: OPENAI_MODEL, maxTokens: MAX_TOKENS })
@@ -800,7 +815,7 @@ async function handleGenerate(req, res) {
     // Only offer feedback for a complete parsed pair; no document or script is stored.
     let abPick = null;
     let abPickStatus = 'ready';
-    const stylesMatch =
+    const stylesMatch = !ORIGINAL_SKILL &&
       parsed.fields.version_a_title.toLowerCase().includes(STYLES[strategyPair.a].toLowerCase()) &&
       parsed.fields.version_b_title.toLowerCase().includes(STYLES[strategyPair.b].toLowerCase());
     if (stylesMatch) {
@@ -810,12 +825,14 @@ async function handleGenerate(req, res) {
         console.error('Could not save A/B generation:', error.message);
         abPickStatus = 'storage_unavailable';
       }
+    } else if (ORIGINAL_SKILL) {
+      abPickStatus = 'skill_selected';
     } else {
       rec.strategy_mismatch = true; // Do not learn from output that ignored the assigned styles.
       abPickStatus = 'strategy_mismatch';
     }
     finish({
-      ...parsed.fields, skipped, stop_reason: stopReason,
+      ...parsed.fields, level, skill_source: SKILL_SOURCE, skipped, stop_reason: stopReason,
       ab_pick: abPick ? { ...abPick, icp: icpKey, strategies: strategyPair } : null,
       ab_pick_status: abPickStatus,
       usage: { ...usage, est_cost_usd: estimateCost(usage), duration_s: Math.round((Date.now() - t0) / 100) / 10 },
@@ -868,7 +885,7 @@ http
       const { pathname } = url;
       if (req.method === 'GET' && (pathname === '/' || pathname === '/index.html')) return serveIndex(res);
       if (req.method === 'GET' && pathname === '/api/health') {
-        return json(res, 200, { ok: true, hasKey: !!OPENAI_API_KEY && (WRITING_PROVIDER !== 'anthropic' || !!ANTHROPIC_API_KEY), skillSource: 'repository', model: WRITING_MODEL, provider: WRITING_PROVIDER, icpModel: ICP_MODEL });
+        return json(res, 200, { ok: true, hasKey: WRITING_PROVIDER === 'openai' ? !!OPENAI_API_KEY : !!ANTHROPIC_API_KEY && (ORIGINAL_SKILL || !!OPENAI_API_KEY), skillSource: SKILL_SOURCE, model: WRITING_MODEL, provider: WRITING_PROVIDER, icpModel: ORIGINAL_SKILL ? null : ICP_MODEL });
       }
       if (req.method === 'GET' && pathname === '/api/usage') {
         if (!isAdmin(req, url)) { res.writeHead(404); return res.end('Not found'); }
