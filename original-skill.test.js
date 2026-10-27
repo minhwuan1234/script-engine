@@ -6,6 +6,8 @@ import { buildOriginalSkillSystem, originalSkillInstruction } from './original-s
 test('runtime prompt includes each original reference without editing its text', () => {
   const [block] = buildOriginalSkillSystem();
   assert.match(block.text, /^===== WEB APP RUNTIME ADAPTER/);
+  assert.match(block.text, /By the end of its first 15 seconds, the spoken voiceover must make the actual subject/);
+  assert.match(block.text, /it does not have to name the subject immediately/);
   for (const name of [
     'SKILL.md', 'references/script-craft.md', 'references/crazy-dial.md',
     'references/narrative-styles.md', 'references/platform-duration.md',

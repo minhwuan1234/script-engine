@@ -13,6 +13,9 @@ Low / Medium / High control, defaulting to Medium, and displays each version's
 "Why we wrote it this way" and "Best when" notes in the card and PDF. The result
 area also displays input, cache, output, estimated cost and elapsed time after
 each run; usage remains available in the API response and server log.
+Its runtime adapter asks both hooks to identify the subject and the viewer's
+specific problem in spoken words within 15 seconds. They may open with a scene
+or tension first. The archived skill files remain unchanged.
 
 Set `SKILL_SOURCE=original` when starting this branch to try it. The default
 `SKILL_SOURCE=repository` keeps this branch's existing repository flow, including
