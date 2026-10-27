@@ -48,6 +48,9 @@ a worksheet or a behavior-change plot. `references/final-review.md` supplies qua
 checks and guidance for repairing weak concepts, hooks and lines before release.
 A story can open with an action, an observation, an image, an answer or a question;
 no hook/body/ending formula dictates its internal beat order.
+The first spoken sentence of each version must make the subject clear to someone
+who has not seen the source document. Keep the opening lively without withholding
+the basic topic for a later reveal.
 
 ## Factual boundary
 

@@ -10,6 +10,10 @@ section included.
 - Choose the central communication outcome: what should the viewer understand,
   recognize, decide or do after watching? An explanation can end in understanding;
   do not force an action, misconception or behavioral problem into every document.
+- Picture the viewer at the moment this information would help: what are they
+  looking at, comparing, wondering or deciding? Use that human point of view to
+  choose details and explain them, without inventing a biography, symptoms,
+  behavior or setting that the source and audience brief do not support.
 - Keep a clear takeaway and the shared essential facts behind it. Choose material
   for its value to that outcome, rather than giving every source section airtime.
 - Look beyond headings and highlighted boxes for a source detail that makes the

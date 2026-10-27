@@ -8,8 +8,8 @@ Make the difference visible in the opening thought, not by adding an adjective t
 an ordinary introduction. Start with a source-grounded observation, a sharp
 contrast, a moment already in motion, an honest challenge, or an unexpected visual
 point of view. Choose what fits the source and the assigned style. The first line
-should give the viewer a reason to follow the next one, and the script must pay off
-that promise.
+should make the subject unmistakable while giving the viewer a reason to follow
+the next one. The script must pay off that promise.
 
 Let the writing have rhythm and character: a pointed line, a longer explanation
 when the idea needs room, a quick turn, or a visual reveal. Use hard cuts, bold

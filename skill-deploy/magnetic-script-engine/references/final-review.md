@@ -28,10 +28,10 @@ choices and framing for implied claims; they do not need verbatim source wording
    rounded, completed or paraphrased into a different meaning.
 3. **Everything included:** the script exceeds its budget or buries the chosen job.
 4. **Same script twice:** both versions use the same beats and differ only in wording.
-5. **Dead or generic hook:** a viewer meeting the video cold cannot picture the
-   opening situation, the line could introduce a different document,
-   provides no useful reason to continue, or opens a question
-   the script cannot answer from the source.
+5. **Dead or generic hook:** the first spoken sentence leaves the subject unclear;
+   a new viewer cannot picture the situation; the line could introduce a different
+   document, gives no useful reason to continue, or opens a question the script
+   cannot answer from the source.
 6. **Borrowed tension:** a hypothetical interpretation is presented as a common
    belief, or the source does not actually contradict it. Identify the exact rule
    behind the correction. Check that an illustrative scene adds no clinical claim,

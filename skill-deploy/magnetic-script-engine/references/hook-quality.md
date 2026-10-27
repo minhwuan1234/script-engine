@@ -23,10 +23,15 @@ Choose a move compatible with the assigned style and supported by the document:
 
 Open with concrete, source-specific language. A question is optional. Do not force
 multiple questions into the hook or invent factual stakes to manufacture suspense.
+A viewer should understand the subject from the first spoken sentence itself.
+Name it or make it unmistakable in natural language; do not make the viewer wait
+for a later line, title card or visual reveal to learn what this video is about.
+The sentence can still surprise, challenge or begin mid-scene. Reveal the idea's
+meaning over the rest of the script, not the basic subject of the video.
 A person encountering the video without the document should be able to picture
 the first moment and understand why the next line matters. Give that orientation
-through the opening line, its visual, or both; do not rely on a title or on context
-the viewer has not heard. This does not require explaining the whole topic up front.
+through the opening line; its visual may strengthen the point. This does not
+require explaining the whole topic up front.
 A witty cold open, an expressive object or a visual surprise may establish the
 promise under `references/tone-of-voice.md`; the factual premise stays grounded.
 Give a useful takeaway directly when appropriate; leave its application or
@@ -51,9 +56,10 @@ facts to make the payoff more dramatic. A callback is optional.
   it in a detail of this source.
 - Relevance: is there a useful reason to keep watching beyond learning a label?
 - Clarity: can the viewer follow the opening without assumed context?
-- Cold-viewer check: if someone sees only the first line and its visual, can they
-  picture what is happening and why it is relevant? If not, sharpen that moment
-  without adding a generic introduction.
+- Cold-viewer check: if someone hears only the first spoken sentence, can they
+  tell what the video is about? If they also see the first visual, can they picture
+  the moment and why it matters? If not, sharpen the opening without adding a
+  generic introduction.
 - Payoff: do later beats fulfill the promise without replaying the opening list?
 - Visual support: does the opening image help explain the same point as the voice?
 - Fidelity: are all factual premises supported, including those implied by a
