@@ -10,7 +10,9 @@ explains unavailable external tools, and asks for the original Step 6 output str
 The original skill infers its own ICP and chooses two styles. The app therefore skips
 Luna classification and A/B preference learning in this mode. The widget shows its
 Low / Medium / High control, defaulting to Medium, and displays each version's
-"Why we wrote it this way" and "Best when" notes in the card and PDF.
+"Why we wrote it this way" and "Best when" notes in the card and PDF. The result
+area also displays input, cache, output, estimated cost and elapsed time after
+each run; usage remains available in the API response and server log.
 
 Set `SKILL_SOURCE=original` when starting this branch to try it. The default
 `SKILL_SOURCE=repository` keeps this branch's existing repository flow, including
@@ -25,7 +27,7 @@ explicit and check timing against the source's duration guidance.
 
 Downloading a version also selects it. The first successful PDF download for a generation records one A/B preference; repeat downloads do not add votes, and both PDFs remain downloadable. If a version is downloaded during streaming, its choice is queued until the final preference token arrives. Failed PDF requests do not record a choice. Preference-saving errors do not block the download. Before calling the writing model, the server classifies the document's ICP and selects two contrasting narrative styles. The selected style IDs are stored with a random generation ID; the visitor's pick is saved as one win/loss comparison. Later requests use smoothed global and ICP-specific win rates to select styles. This is preference learning in the application, **not** training the model. Selection uses a 60/40 policy: 60% choose the highest-ranked eligible pair, and 40% choose uniformly from the remaining eligible pairs. The highest-ranked pair is excluded from exploration. A/B positions are independently randomized.
 
-The browser requests `/api/generate` as NDJSON. The server streams Version A as soon as its complete section is available, then Version B, then final metadata. Token/cost information and the Usage panel are hidden from the public UI; server usage logs and the protected admin endpoint remain available. The skill reviews each version before releasing it. Clients that do not request NDJSON keep the original single-JSON response.
+The browser requests `/api/generate` as NDJSON. The server streams Version A as soon as its complete section is available, then Version B, then final metadata. This comparison branch shows each run's token, estimated cost and time details below the output. Server usage logs and the protected admin endpoint remain available. The skill reviews each version before releasing it. Clients that do not request NDJSON keep the original single-JSON response.
 
 The skill returns plain text with labeled time, voiceover and on-screen lines. The UI shows this text without Markdown syntax. Each completed Version has its own Download PDF button; `/api/download-pdf` creates the file from that Version's visible text on demand and does not save it on the server. The parser also accepts older Markdown responses while the deployed skill updates.
 

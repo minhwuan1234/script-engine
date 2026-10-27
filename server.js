@@ -658,6 +658,8 @@ async function handleGenerate(req, res) {
   const t0 = Date.now();
   const rec = { ts: new Date().toISOString(), visitor: visitorId(ip), status: 'error', model: WRITING_MODEL, provider: WRITING_PROVIDER, skill_source: SKILL_SOURCE, icp_model: ORIGINAL_SKILL ? null : ICP_MODEL };
   const usage = {};
+  const runUsage = () => ({ ...usage, est_cost_usd: estimateCost(usage),
+    duration_s: Math.round((Date.now() - t0) / 100) / 10 });
   let heartbeat = null;
   const streamResults = String(req.headers.accept || '').includes('application/x-ndjson');
   let sentA = false;
@@ -675,7 +677,7 @@ async function handleGenerate(req, res) {
   const finish = (obj) => {
     if (heartbeat) { clearInterval(heartbeat); heartbeat = null; }
     try {
-      if (streamResults) sendEvent(obj.error ? 'error' : 'complete', obj.error ? { error: obj.error } : { data: obj });
+      if (streamResults) sendEvent(obj.error ? 'error' : 'complete', obj.error ? { error: obj.error, usage: obj.usage } : { data: obj });
       else res.write(JSON.stringify(obj));
       res.end();
     } catch {} // client likely disconnected — nothing to do
@@ -808,7 +810,7 @@ async function handleGenerate(req, res) {
       // text so nothing is lost; the frontend has a fallback path for this case.
       return finish({
         text: toPlainText(markdown), skipped, stop_reason: stopReason,
-        usage: { ...usage, est_cost_usd: estimateCost(usage), duration_s: Math.round((Date.now() - t0) / 100) / 10 },
+        usage: runUsage(),
       });
     }
 
@@ -835,14 +837,14 @@ async function handleGenerate(req, res) {
       ...parsed.fields, level, skill_source: SKILL_SOURCE, skipped, stop_reason: stopReason,
       ab_pick: abPick ? { ...abPick, icp: icpKey, strategies: strategyPair } : null,
       ab_pick_status: abPickStatus,
-      usage: { ...usage, est_cost_usd: estimateCost(usage), duration_s: Math.round((Date.now() - t0) / 100) / 10 },
+      usage: runUsage(),
     });
   } catch (err) {
     rec.error = String(err.message || err).slice(0, 300);
     if (heartbeat || res.headersSent) {
       // Headers already went out as 200 — report the failure inside the JSON body
       // instead of a status code, since the status can no longer be changed.
-      finish({ error: err.message || 'Server error' });
+      finish({ error: err.message || 'Server error', usage: runUsage() });
     } else {
       throw err; // headers not sent yet — let the outer handler set a proper status code
     }

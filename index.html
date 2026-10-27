@@ -111,6 +111,7 @@
                         </div>
                     </div>
                     <div class="tpw-pick-status" role="status" aria-live="polite"></div>
+                    <div class="tpw-run-usage" role="status" aria-live="polite" hidden></div>
 
                 </div>
             </div>
@@ -232,6 +233,8 @@
 .tony-pixel-widget button.tpw-download-btn[hidden] { display: none; }
 .tony-pixel-widget .tpw-pick-status { margin-top: 8px; font-size: 12px; font-weight: 700; color: #22252a; }
 .tony-pixel-widget .tpw-pick-status:empty { display: none; }
+.tony-pixel-widget .tpw-run-usage { margin-top: 12px; padding: 9px 12px; border: 1.5px solid #000; border-radius: 10px; background: #fff1df; color: #22252a; font-size: 12px; font-weight: 700; line-height: 1.5; }
+.tony-pixel-widget .tpw-run-usage[hidden] { display: none; }
 
 .tony-pixel-widget .tpw-output-body::-webkit-scrollbar { width: 4px; }
 .tony-pixel-widget .tpw-output-body::-webkit-scrollbar-thumb { background: #000000; border-radius: 4px; }
@@ -451,6 +454,7 @@ const PDF_URL = '/api/download-pdf';
     const metaB = $('#tpw-meta-b');
     const downloadButtons = root.querySelectorAll('.tpw-download-btn');
     const pickStatus = $('.tpw-pick-status');
+    const runUsage = $('.tpw-run-usage');
     let currentPick = null;
     const downloadable = { A: null, B: null };
     let generationEpoch = 0;
@@ -813,7 +817,28 @@ const PDF_URL = '/api/download-pdf';
       outputB.textContent = ''; outputB.classList.remove('is-error');
     }
 
+    function showUsage(usage) {
+      const value = usage && typeof usage === 'object' ? usage : null;
+      if (!value || !Number.isFinite(Number(value.duration_s))) {
+        runUsage.textContent = '';
+        runUsage.hidden = true;
+        return;
+      }
+      const count = (key) => Math.max(0, Number(value[key]) || 0).toLocaleString('en-US');
+      const parts = [`Input: ${count('input_tokens')}`];
+      if (Number(value.cache_read_input_tokens) > 0) parts.push(`Cache read: ${count('cache_read_input_tokens')}`);
+      if (Number(value.cache_creation_input_tokens) > 0) parts.push(`Cache write: ${count('cache_creation_input_tokens')}`);
+      parts.push(`Output: ${count('output_tokens')}`);
+      if (Number.isFinite(Number(value.est_cost_usd))) {
+        parts.push(`Est. cost: $${Math.max(0, Number(value.est_cost_usd)).toFixed(4)}`);
+      }
+      parts.push(`Time: ${Math.max(0, Number(value.duration_s)).toFixed(1)}s`);
+      runUsage.textContent = `Usage · ${parts.join(' · ')}`;
+      runUsage.hidden = false;
+    }
+
     function showResult(data) {
+      showUsage(data.usage);
       if (!hasGatewayFields(data) && !String(data.text || data.markdown || data.title || '').trim()) {
         showError('Generation finished without a script. Please retry.');
         return;
@@ -861,6 +886,7 @@ const PDF_URL = '/api/download-pdf';
       currentPick = null;
       downloadedChoice = null;
       pickStatus.textContent = '';
+      showUsage(null);
       setDownload('A', '', '', '');
       setDownload('B', '', '', '');
 
@@ -891,7 +917,10 @@ const PDF_URL = '/api/download-pdf';
           let completed = false;
           const handleEvent = (event) => {
             if (event.type === 'heartbeat') return;
-            if (event.type === 'error') throw new Error(event.error || 'Generation failed.');
+            if (event.type === 'error') {
+              showUsage(event.usage);
+              throw new Error(event.error || 'Generation failed.');
+            }
             if (event.type === 'version_a') {
               receivedA = true;
               stopLoadingFacts();
@@ -942,7 +971,10 @@ const PDF_URL = '/api/download-pdf';
         // the HTTP status afterwards — so an error from that point on comes back as status
         // 200 with an `error` field in the body instead. Check that first; res.ok alone is
         // no longer enough to tell success from failure.
-        if (data.error) throw new Error(data.error);
+        if (data.error) {
+          showUsage(data.usage);
+          throw new Error(data.error);
+        }
         if (!res.ok) throw new Error(`Request failed (${res.status})`);
         loadingOverlay.classList.remove('is-loading');
         stopLoadingFacts();

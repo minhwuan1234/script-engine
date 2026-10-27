@@ -41,8 +41,11 @@ The viewer checks a daily weight.
     for await (const chunk of req) chunks.push(chunk);
     upstreamRequest = JSON.parse(Buffer.concat(chunks).toString());
     res.writeHead(200, { 'content-type': 'text/event-stream' });
+    res.write(`data: ${JSON.stringify({ type: 'message_start', message: { usage: {
+      input_tokens: 120, cache_read_input_tokens: 50, cache_creation_input_tokens: 10,
+    } } })}\n\n`);
     res.write(`data: ${JSON.stringify({ type: 'content_block_delta', delta: { type: 'text_delta', text: script } })}\n\n`);
-    res.end(`data: ${JSON.stringify({ type: 'message_delta', delta: { stop_reason: 'end_turn' } })}\n\n`);
+    res.end(`data: ${JSON.stringify({ type: 'message_delta', delta: { stop_reason: 'end_turn' }, usage: { output_tokens: 80 } })}\n\n`);
   });
   await listen(upstream);
   t.after(() => close(upstream));
@@ -78,6 +81,10 @@ The viewer checks a daily weight.
   assert.equal(result.level, 'High');
   assert.equal(result.ab_pick_status, 'skill_selected');
   assert.equal(result.ab_pick, null);
+  assert.equal(result.usage.input_tokens, 120);
+  assert.equal(result.usage.cache_read_input_tokens, 50);
+  assert.equal(result.usage.output_tokens, 80);
+  assert.ok(result.usage.duration_s >= 0);
   assert.match(result.version_a_text, /Why we wrote it this way:/i);
   assert.match(result.version_b_text, /Best when:/i);
   assert.match(upstreamRequest.system[0].text, /===== SKILL.md =====/);
@@ -87,6 +94,7 @@ The viewer checks a daily weight.
   });
   const events = (await streamed.text()).trim().split('\n').map((line) => JSON.parse(line));
   assert.deepEqual(events.map((event) => event.type), ['version_a', 'version_b', 'complete']);
+  assert.equal(events.at(-1).data.usage.output_tokens, 80);
   const pdf = await fetch(`${base}/api/download-pdf`, {
     method: 'POST', headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ version: 'A', title: result.title, style: result.version_a_title,
