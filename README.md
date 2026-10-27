@@ -19,6 +19,10 @@ or tension first. The archived skill files remain unchanged.
 The archived craft guide's "most lines ≤15 words" suggestion is superseded in
 this comparison mode: sentences and voiceover rows have no word quota. Hook
 timing is still capped at 15 seconds and judged by spoken pacing.
+The original mode also reads the repository's `references/example-guidance.md`
+for narrative progression and visual-motif ideas. No sample script excerpt is
+sent in this mode, so its named examples are technique descriptions only. The
+original skill still selects its own styles and output format.
 
 Set `SKILL_SOURCE=original` when starting this branch to try it. The default
 `SKILL_SOURCE=repository` keeps this branch's existing repository flow, including

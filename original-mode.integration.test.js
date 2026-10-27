@@ -88,6 +88,7 @@ The viewer checks a daily weight.
   assert.match(result.version_a_text, /Why we wrote it this way:/i);
   assert.match(result.version_b_text, /Best when:/i);
   assert.match(upstreamRequest.system[0].text, /===== SKILL.md =====/);
+  assert.match(upstreamRequest.system[0].text, /===== ADDITIONAL REFERENCE: example-guidance\.md =====/);
   assert.match(upstreamRequest.messages[0].content.at(-1).text, /Crazy level: High/);
   const streamed = await fetch(`${base}/api/generate`, {
     method: 'POST', headers: { Accept: 'application/x-ndjson' }, body: form,

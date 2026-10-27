@@ -11,6 +11,11 @@ test('runtime prompt includes each original reference without editing its text',
   assert.match(block.text, /There is no maximum or preferred word count per spoken sentence/);
   assert.ok(block.text.lastIndexOf('WRITING OVERRIDES FOR THIS COMPARISON VERSION') >
     block.text.lastIndexOf('Most lines ≤ 15 words'), 'override must follow the archived rule');
+  const exampleGuidance = fs.readFileSync(new URL(
+    './skill-deploy/magnetic-script-engine/references/example-guidance.md', import.meta.url), 'utf8');
+  assert.ok(block.text.includes(exampleGuidance), 'additional example guidance must be loaded');
+  assert.ok(block.text.lastIndexOf('This mode does not supply an example script excerpt') >
+    block.text.lastIndexOf(exampleGuidance), 'runtime clarification must follow example guidance');
   for (const name of [
     'SKILL.md', 'references/script-craft.md', 'references/crazy-dial.md',
     'references/narrative-styles.md', 'references/platform-duration.md',
