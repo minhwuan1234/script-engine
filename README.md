@@ -1,68 +1,48 @@
 # script-engine
 
-## A/B picks
+## Production writing flow
 
-Downloading a version also selects it. The first successful PDF download for a generation records one A/B preference; repeat downloads do not add votes, and both PDFs remain downloadable. If a version is downloaded during streaming, its choice is queued until the final preference token arrives. Failed PDF requests do not record a choice. Preference-saving errors do not block the download. Before calling the writing model, the server classifies the document's ICP and selects two contrasting narrative styles. The selected style IDs are stored with a random generation ID; the visitor's pick is saved as one win/loss comparison. Later requests use smoothed global and ICP-specific win rates to select styles. This is preference learning in the application, **not** training the model. Selection uses a 60/40 policy: 60% choose the highest-ranked eligible pair, and 40% choose uniformly from the remaining eligible pairs. The highest-ranked pair is excluded from exploration. A/B positions are independently randomized.
+The default `SKILL_SOURCE=original` runs the original magnetic-script-engine skill
+from `skill-deploy/magnetic-script-engine-original/`. Its eight archived files are
+preserved unchanged. `original-skill.js` adds runtime guidance for the web app and
+also loads `skill-deploy/magnetic-script-engine/references/example-guidance.md` for
+storytelling technique. The uploaded document remains the only factual source.
 
-The browser requests `/api/generate` as NDJSON. The server streams Version A as soon as its complete section is available, then Version B, then final metadata. Token/cost information and the Usage panel are hidden from the public UI; server usage logs and the protected admin endpoint remain available. The skill reviews each version before releasing it. Clients that do not request NDJSON keep the original single-JSON response.
+The original skill infers the ICP and chooses two contrasting styles itself. It
+does not call the Luna ICP classifier or record A/B preference votes. The first
+successful PDF download does not train or select a style in this mode. The
+original skill may choose First-person Journey. Both versions use the same Crazy
+level; with the unchanged production UI, no level is sent and the default is
+Medium. The runtime guidance requires each hook's spoken lines to identify the
+subject and viewer problem within 15 seconds. It removes the archived guide's
+15-word-per-line suggestion, leaving spoken pacing and the 15-second hook limit.
 
-The skill returns plain text with labeled time, voiceover and on-screen lines. The UI shows this text without Markdown syntax. Each completed Version has its own Download PDF button; `/api/download-pdf` creates the file from that Version's visible text on demand and does not save it on the server. The parser also accepts older Markdown responses while the deployed skill updates.
+Set `SKILL_SOURCE=repository` to use the previous repository writing flow. That
+mode classifies ICP with GPT-5.6 Luna, selects styles using the 60/40 preference
+policy, records one A/B vote from the first successful PDF download, keeps Crazy
+level fixed at High and excludes the retired Journey style. Its instructions are
+loaded by `writing-instructions.js` from `skill-deploy/magnetic-script-engine/`.
 
-The backend reads writing instructions directly from `skill-deploy/magnetic-script-engine/` using `writing-instructions.js`. Shared rules form a stable cached system-prompt prefix; only the selected ICP and two styles are appended. No Anthropic custom skill, `SKILL_ID`, code execution tool, or skill upload is required. Restart/redeploy after editing the instruction files. The old Python publishing/loader scripts are legacy utilities and are not used by the app. Automatic skill publishing has been removed.
+The browser UI is the same in both modes. It requests `/api/generate` as NDJSON,
+shows Version A when complete, then Version B, and offers a PDF download for each.
+It displays labeled plain text and does not show token/cost usage. The original
+skill writes Markdown internally; `server.js` converts its tables and headings
+to the existing plain-text result format. The server still records usage in a
+JSONL log and exposes aggregate usage through the protected admin endpoint.
+Clients without NDJSON support receive one JSON result.
 
-For local use: run `npm ci`, set `OPENAI_API_KEY` for ICP and `CLAUDE_API` (or `ANTHROPIC_API_KEY`) for Anthropic writing, then run `npm start`. The default writing model is Sonnet 5.5 with medium effort; ICP classification uses GPT-5.6 Luna with reasoning disabled.
+## Local setup
 
-Set `PREFERENCE_LOG=/data/preferences.jsonl` and mount a persistent Railway Volume at `/data` to retain picks across redeploys. Otherwise the default file `./preferences.jsonl` is ephemeral on Railway. Do not commit this file. The log contains only ICP, style IDs, timestamps, opaque generation IDs, hashed bearer tokens and the A/B choice; it stores no uploaded documents or generated scripts.
+Run `npm ci` and `npm start`. `WRITING_PROVIDER=anthropic` uses
+`CLAUDE_API` (or `ANTHROPIC_API_KEY`) and defaults to Sonnet 5.5. Set
+`WRITING_PROVIDER=openai` and `OPENAI_API_KEY` to write with GPT-6 Sol by default.
+Original mode requires only the chosen writing provider's key. Repository mode
+also requires `OPENAI_API_KEY` for Luna ICP classification. `/api/health` reports
+the active skill source, provider, model and key readiness. `SKILL_ID` is unused.
 
-Deploy the complete repository, including `writing-instructions.js` and `skill-deploy/magnetic-script-engine/`. The API keys for the configured stages are required; existing `SKILL_ID` environment variables are ignored.
+Scanned PDFs that cannot be extracted locally are sent as PDF inputs. No provider
+fallback is attempted on an API error. To retain usage and preference logs on
+Railway, mount a volume and set `USAGE_LOG` and `PREFERENCE_LOG` to paths on it.
+Never commit keys or those logs.
 
-## Try GPT-6 Sol for writing
-
-Set these environment variables, then restart the server:
-
-```dotenv
-WRITING_PROVIDER=openai
-OPENAI_MODEL=gpt-6-sol
-OPENAI_API_KEY=your-key
-```
-
-ICP classification uses `gpt-5.6-luna` through OpenAI Responses with reasoning disabled, a 600-token cap, and a 15-second timeout. Set `ICP_MODEL=gpt-5.6-luna` if overriding an older deployment value. With OpenAI writing selected, both stages use `OPENAI_API_KEY`; no Anthropic key is needed. Writing uses medium reasoning effort. The same repository instructions, PDF extraction, incremental A/B display, and PDF downloads are used. Scanned PDFs that cannot be extracted locally are sent as PDF inputs. There is no automatic provider fallback on errors.
-
-The default provider remains `anthropic` for existing deployments. `/api/health` reports the active writing provider/model and whether the required keys are configured. Never commit keys. Run adapter tests with `node --test openai-writer.test.js`.
-
-OpenAI cost estimates use standard GPT-6 Sol rates: $2/M input, $0.20/M cached reads, $2.50/M cache writes (30 minutes), and $10/M output including reasoning. Above 272K prompt tokens, input/cache rates double and output is 1.5x. Override `OPENAI_PRICE_IN_PER_M` and `OPENAI_PRICE_OUT_PER_M` if applicable rates change. ICP classification is excluded from these estimates. Sources: [model documentation](https://developers.openai.com/api/docs/models/gpt-6-sol), [prompt caching](https://developers.openai.com/api/docs/guides/prompt-caching).
-
-## Writing examples
-
-`skill-deploy/magnetic-script-engine/examples/` preserves the three supplied A/B
-reference pairs (HOPES, colonoscopy, cirrhosis). `writing-instructions.js` loads one
-compatible excerpt per request, selected by narrative-style weights, not by medical
-topic. First-person journey has been removed from new generation; its sections are
-filtered from runtime examples while the original reference files are preserved.
-All examples are read at startup; restart after edits. `references/example-guidance.md`
-explains how to transfer narrative progression and visual motifs while excluding
-sample facts, Markdown formatting and fixed durations. The samples are not medical
-source documents. The current upload remains the factual basis for each script.
-
-## F.Learning tone of voice
-
-`skill-deploy/magnetic-script-engine/references/tone-of-voice.md` is the shared voice
-reference for all writing requests. It replaces `flearning-voice.md` and covers
-personality, connected spoken explanation, appropriate wit, emotional register and
-concrete before/after examples. Its current editorial direction follows the user's
-selected conversational Myth-buster screenshot without forcing that story structure
-on other styles or treating its medical content as source evidence. It is editorial guidance for the tool, informed by the user
-and supplied references, rather than an official brand manual. The loader includes
-it once in the shared system prefix; ICP and narrative styles adapt the context
-without adding separate competing brand voices. Restart after editing it.
-
-`skill-deploy/magnetic-script-engine/references/crazy-dial.md` fixes the creative
-energy at High for every request. It is loaded into the same shared system prefix
-and applies to both versions. High strengthens the opening, rhythm and visual
-concept while preserving source facts and clinical precision. It adds no UI setting
-or extra model call. Restart after editing it.
-
-Retired style history is retained for active opponents' statistics, but retired
-styles cannot be selected or registered for new generations. Current styles:
-mechanism, myth, before_after, countdown, mystery, qa and stakes. The 60/40
-selection policy remains in effect.
+Run tests with `node --test original-skill.test.js original-mode.integration.test.js openai-writer.test.js preference-store.test.js`.
