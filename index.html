@@ -247,9 +247,10 @@
 .tony-pixel-widget .tpw-loading-overlay.is-loading { display: flex; }
 .tony-pixel-widget .tpw-loading-status { display: flex; align-items: center; justify-content: center; gap: 12px; }
 .tony-pixel-widget .tpw-spinner {
-    display: block; flex: none; width: 34px; height: 34px; border: 4px solid #ffedd5;
+    display: block; flex: none; width: 42px; height: 42px; border: 5px solid #ffedd5;
     border-top-color: #111827; border-right-color: #ff9436; border-radius: 50%;
-    transform-origin: center; animation: tpw-loading-rotate .75s linear infinite;
+    transform-origin: center; will-change: transform;
+    animation: tpw-loading-rotate .75s linear infinite;
 }
 @keyframes tpw-loading-rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 .tony-pixel-widget .tpw-loading-text { display: flex; flex-direction: column; color: #000; font-size: 15px; font-weight: 800; line-height: 1.25; }

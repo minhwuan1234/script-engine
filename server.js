@@ -894,7 +894,7 @@ function serveIndex(res) {
   const candidates = [path.join(__dirname, 'index.html'), path.join(__dirname, 'public', 'index.html')];
   const file = candidates.find((p) => fs.existsSync(p));
   if (!file) { res.writeHead(404); return res.end('index.html not found'); }
-  res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+  res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
   fs.createReadStream(file).pipe(res);
 }
 
