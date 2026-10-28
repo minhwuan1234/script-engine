@@ -202,6 +202,18 @@
 .tony-pixel-widget .tpw-script-onscreen .tpw-script-label { color: #64748b; }
 .tony-pixel-widget .tpw-script-onscreen .tpw-script-copy { color: #475569; }
 .tony-pixel-widget .tpw-script-plain { margin: 0 0 9px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.tony-pixel-widget .tpw-script-note {
+    margin: 14px 0 0; padding: 13px 14px; border-left: 4px solid #ff9436;
+    border-radius: 9px; background: #fff4e8;
+}
+.tony-pixel-widget .tpw-script-note-label {
+    display: block; margin-bottom: 5px; color: #9a3412;
+    font-size: 11px; font-weight: 800; letter-spacing: .045em; text-transform: uppercase;
+}
+.tony-pixel-widget .tpw-script-note-copy {
+    margin: 0; color: #22252a; font-size: 13px; line-height: 1.55;
+    white-space: pre-wrap; overflow-wrap: anywhere;
+}
 .tony-pixel-widget .tpw-output-actions { display: flex; align-items: center; gap: 8px; margin-top: 12px; flex: none; }
 .tony-pixel-widget .tpw-output-actions:not(:has(> button:not([hidden]))) { display: none; }
 .tony-pixel-widget button.tpw-download-btn {
@@ -667,6 +679,7 @@ const PDF_URL = '/api/download-pdf';
     function renderScript(container, text) {
       const fragment = document.createDocumentFragment();
       let beat = null;
+      let noteCopy = null;
       const make = (tag, className, value) => {
         const element = document.createElement(tag);
         element.className = className;
@@ -678,8 +691,10 @@ const PDF_URL = '/api/download-pdf';
         if (!line) continue;
         if (/^(?:HOOK\s*(?:\([^)]*\))?|SCRIPT)$/i.test(line)) {
           beat = null;
+          noteCopy = null;
           fragment.appendChild(make('div', 'tpw-script-heading', line));
         } else if (/^TIME:\s*/i.test(line)) {
+          noteCopy = null;
           beat = make('div', 'tpw-script-beat', '');
           beat.appendChild(make('span', 'tpw-script-time', line.replace(/^TIME:\s*/i, '')));
           fragment.appendChild(beat);
@@ -694,9 +709,18 @@ const PDF_URL = '/api/download-pdf';
           row.appendChild(make('span', 'tpw-script-label', match[1].toUpperCase()));
           row.appendChild(make('span', 'tpw-script-copy', match[2]));
           beat.appendChild(row);
+        } else if (/^(WHY WE WROTE IT(?: THIS WAY)?|BEST WHEN):\s*(.*)$/i.test(line)) {
+          beat = null;
+          const [, label, copy] = /^(WHY WE WROTE IT(?: THIS WAY)?|BEST WHEN):\s*(.*)$/i.exec(line);
+          const note = make('section', 'tpw-script-note', '');
+          note.appendChild(make('span', 'tpw-script-note-label', label));
+          noteCopy = make('p', 'tpw-script-note-copy', copy);
+          note.appendChild(noteCopy);
+          fragment.appendChild(note);
         } else {
           beat = null;
-          fragment.appendChild(make('p', 'tpw-script-plain', line));
+          if (noteCopy) noteCopy.textContent += `\n${line}`;
+          else fragment.appendChild(make('p', 'tpw-script-plain', line));
         }
       }
       container.replaceChildren(fragment);
