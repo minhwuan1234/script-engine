@@ -115,10 +115,26 @@ function toPlainText(section) {
     line = line.replace(/^#{1,6}\s+/, '').replace(/^[-*]\s+/, '').replace(/\*\*/g, '').replace(/`/g, '');
     lines.push(line);
   }
-  return lines.join('\n').replace(/(\d)[ \t]*[–—―][ \t]*(?=\d)/g, '$1-')
+  const plain = lines.join('\n').replace(/(\d)[ \t]*[–—―][ \t]*(?=\d)/g, '$1-')
     .replace(/[ \t]*[–—―][ \t]*/g, ', ').replace(/,\s*([,.!?;:])/g, '$1')
     .replace(/^Hook\s*\(([^)]*)\),\s*free preview$/gim, 'HOOK ($1)')
     .replace(/\n{3,}/g, '\n\n').trim();
+  return ORIGINAL_SKILL ? collapseHookRows(plain) : plain;
+}
+
+// The original skill may still emit several short hook beats despite its one-row
+// instruction. Merge them before either the streamed card or final PDF sees them.
+function collapseHookRows(text) {
+  return text.replace(/(^HOOK[^\n]*\n)([\s\S]*?)(?=^SCRIPT\s*$)/gim, (match, heading, body) => {
+    const lines = body.split('\n').map((line) => line.trim()).filter(Boolean);
+    const times = lines.filter((line) => /^TIME:\s*/i.test(line));
+    if (times.length < 2 || !lines.every((line) => /^(TIME|VOICEOVER|ON SCREEN):\s*/i.test(line))) return match;
+    const voiceovers = lines.filter((line) => /^VOICEOVER:\s*/i.test(line));
+    const screens = lines.filter((line) => /^ON SCREEN:\s*/i.test(line));
+    if (voiceovers.length !== times.length || screens.length !== times.length) return match;
+    const content = (line) => line.replace(/^[^:]+:\s*/, '').trim();
+    return `${heading}TIME: 0:00-0:15\nVOICEOVER: ${voiceovers.map(content).join(' ')}\nON SCREEN: ${screens.map(content).join('; ')}\n\n`;
+  });
 }
 
 function workingTitle(output) {

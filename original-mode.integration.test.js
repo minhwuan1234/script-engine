@@ -36,7 +36,9 @@ The viewer checks a daily weight.
 ### Hook (0:00–0:15) — free preview
 | Time | Voiceover | On screen |
 |---|---|---|
-| 0:00–0:15 | My scale tells me when to call. | A scale by the bed. |
+| 0:00–0:05 | My scale tells me something. | A scale by the bed. |
+| 0:05–0:10 | A small change matters. | The numbers change. |
+| 0:10–0:15 | It tells me when to call. | A phone appears. |
 ### Script
 | Time | Voiceover | On screen |
 |---|---|---|
@@ -109,6 +111,8 @@ The viewer checks a daily weight.
   assert.ok(result.usage.duration_s >= 0);
   assert.match(result.version_a_text, /Why we wrote it this way:/i);
   assert.match(result.version_a_text, /^HOOK \(0:00-0:15\)$/m);
+  assert.match(result.version_a_text, /TIME: 0:00-0:15\nVOICEOVER: My scale tells me something\. A small change matters\. It tells me when to call\./);
+  assert.equal((result.version_a_text.match(/^TIME:/gm) || []).length, 2, 'one hook row and one script row');
   assert.match(result.version_b_text, /Best when:/i);
   assert.match(upstreamRequest.system[0].text, /===== SKILL.md =====/);
   assert.match(upstreamRequest.system[0].text, /===== ADDITIONAL REFERENCE: example-guidance\.md =====/);
@@ -118,6 +122,7 @@ The viewer checks a daily weight.
   });
   const events = (await streamed.text()).trim().split('\n').map((line) => JSON.parse(line));
   assert.deepEqual(events.map((event) => event.type), ['version_a', 'version_b', 'complete']);
+  assert.equal((events[0].text.match(/^TIME:/gm) || []).length, 2, 'streamed hook is also one row');
   assert.equal(events.at(-1).data.usage.output_tokens, 80);
   const pdf = await fetch(`${base}/api/download-pdf`, {
     method: 'POST', headers: { 'content-type': 'application/json' },

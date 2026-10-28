@@ -9,6 +9,7 @@ test('runtime prompt includes each original reference without editing its text',
   assert.match(block.text, /By the end of its first 15 seconds, the spoken voiceover must make the actual subject/);
   assert.match(block.text, /it does not have to name the subject immediately/);
   assert.match(block.text, /There is no maximum or preferred word count per spoken sentence/);
+  assert.match(block.text, /entire Hook \(0:00–0:15\) as exactly ONE timestamped table row/);
   assert.ok(block.text.lastIndexOf('WRITING OVERRIDES FOR THIS COMPARISON VERSION') >
     block.text.lastIndexOf('Most lines ≤ 15 words'), 'override must follow the archived rule');
   const exampleGuidance = fs.readFileSync(new URL(
