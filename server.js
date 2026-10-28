@@ -4,8 +4,8 @@
 // Every generate request is tracked (tokens, estimated cost, duration, status) - see GET /api/usage.
 //
 // Env vars (set in Railway Variables):
-//   WRITING_PROVIDER    optional  anthropic (default) or openai
-//   OPENAI_API_KEY      required for Luna ICP and OpenAI writing
+//   WRITING_PROVIDER    optional  openai (default) or anthropic
+//   OPENAI_API_KEY      required for OpenAI writing (OPEN_AI_API legacy alias accepted)
 //   OPENAI_MODEL        optional  default gpt-6-sol (medium effort)
 //   CLAUDE_API          required for Anthropic writing  (ANTHROPIC_API_KEY also accepted)
 //   CLAUDE_MODEL        optional  default claude-sonnet-5-5
@@ -45,10 +45,10 @@ import { callOpenAI, estimateOpenAICost } from './openai-writer.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const {
-  WRITING_PROVIDER = 'anthropic',
+  WRITING_PROVIDER = 'openai',
   SKILL_SOURCE = 'original',
   OPENAI_MODEL = 'gpt-6-sol',
-  OPENAI_API_KEY,
+  OPENAI_API_KEY: CANONICAL_OPENAI_API_KEY,
   OPENAI_PRICE_IN_PER_M = '2',
   OPENAI_PRICE_OUT_PER_M = '10',
   CLAUDE_MODEL = 'claude-sonnet-5-5',
@@ -70,6 +70,7 @@ if (!['anthropic', 'openai'].includes(WRITING_PROVIDER)) throw new Error('WRITIN
 if (!['repository', 'original'].includes(SKILL_SOURCE)) throw new Error('SKILL_SOURCE must be repository or original.');
 const ORIGINAL_SKILL = SKILL_SOURCE === 'original';
 const WRITING_MODEL = WRITING_PROVIDER === 'openai' ? OPENAI_MODEL : CLAUDE_MODEL;
+const OPENAI_API_KEY = CANONICAL_OPENAI_API_KEY || process.env.OPEN_AI_API;
 
 // Secret is named CLAUDE_API; ANTHROPIC_API_KEY also works as a fallback.
 const ANTHROPIC_API_KEY = process.env.CLAUDE_API || process.env.ANTHROPIC_API_KEY;

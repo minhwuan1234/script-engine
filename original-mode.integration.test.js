@@ -6,6 +6,28 @@ import { spawn } from 'node:child_process';
 const listen = (server) => new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
 const close = (server) => new Promise((resolve) => server.close(resolve));
 
+test('default provider accepts Railway OPEN_AI_API alias', async (t) => {
+  const portServer = http.createServer();
+  await listen(portServer);
+  const port = portServer.address().port;
+  await close(portServer);
+  const env = { ...process.env, PORT: String(port), SKILL_SOURCE: 'original',
+    OPENAI_API_KEY: '', OPEN_AI_API: 'test-key', CLAUDE_API: '' };
+  delete env.WRITING_PROVIDER;
+  const app = spawn(process.execPath, ['server.js'], {
+    cwd: new URL('.', import.meta.url).pathname, env,
+  });
+  t.after(() => app.kill());
+  let health;
+  for (let attempt = 0; attempt < 50; attempt++) {
+    try { health = await (await fetch(`http://127.0.0.1:${port}/api/health`)).json(); break; }
+    catch { await new Promise((resolve) => setTimeout(resolve, 50)); }
+  }
+  assert.equal(health?.provider, 'openai');
+  assert.equal(health.model, 'gpt-6-sol');
+  assert.equal(health.hasKey, true);
+});
+
 test('original mode returns two parsed versions and skips the ICP key', async (t) => {
   const script = `# A familiar number — Magnetic Script
 ## Doc diagnosis

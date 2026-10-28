@@ -33,9 +33,11 @@ Clients without NDJSON support receive one JSON result.
 
 ## Local setup
 
-Run `npm ci` and `npm start`. `WRITING_PROVIDER=anthropic` uses
-`CLAUDE_API` (or `ANTHROPIC_API_KEY`) and defaults to Sonnet 5.5. Set
-`WRITING_PROVIDER=openai` and `OPENAI_API_KEY` to write with GPT-6 Sol by default.
+Run `npm ci` and `npm start`. The default `WRITING_PROVIDER=openai` uses
+`OPENAI_API_KEY` and writes with GPT-6 Sol. Railway's existing `OPEN_AI_API`
+variable is accepted as a legacy alias; `OPENAI_API_KEY` takes priority if both
+are set. Set `WRITING_PROVIDER=anthropic` to use `CLAUDE_API` (or
+`ANTHROPIC_API_KEY`) and Sonnet 5.5.
 Original mode requires only the chosen writing provider's key. Repository mode
 also requires `OPENAI_API_KEY` for Luna ICP classification. `/api/health` reports
 the active skill source, provider, model and key readiness. `SKILL_ID` is unused.
