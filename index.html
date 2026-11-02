@@ -28,7 +28,7 @@
             <div class="tpw-input-wrapper">
                 <div class="tpw-dropzone">
 
-                    <input class="tpw-file-input" type="file" multiple hidden accept=".pdf,.txt,.jpg,.jpeg,.png,.md,.doc,.docx,.xlsx">
+                    <input class="tpw-file-input" type="file" multiple hidden accept=".pdf,.docx,.pptx,.txt,.md">
 
                     <textarea class="tpw-input" rows="1" placeholder="Paste text or drag files here..."></textarea>
 
@@ -62,7 +62,7 @@
                                     </span>
                                     <span>
                                         <strong>Upload files</strong>
-                                        <small>PDF, TXT, MD (DOC/XLSX/images coming soon)</small>
+                                        <small>PDF, DOCX, PPTX, TXT, MD · Up to 3 files, 25 MB total</small>
                                     </span>
                                 </button>
                             </div>
@@ -676,7 +676,7 @@ const PDF_URL = '/api/download-pdf';
         showFact();
       }, 8000);
     }
-    const allowedTypes = ['pdf', 'txt', 'jpg', 'jpeg', 'png', 'md', 'doc', 'docx', 'xlsx'];
+    const allowedTypes = ['pdf', 'docx', 'pptx', 'txt', 'md'];
 
     /* ---------- pixel canvas ---------- */
     const PIXEL_SIZE = 44;
@@ -1121,8 +1121,8 @@ const PDF_URL = '/api/download-pdf';
     /* ---------- submit -> /api/generate ---------- */
     async function submit() {
       if (busy) return;
-      const text = input.value.trim();
-      if (!text && attachedFiles.length === 0) return;
+      const text = input.value;
+      if (!text.trim() && attachedFiles.length === 0) return;
       generationEpoch += 1;
       currentPick = null;
       downloadedChoice = null;
@@ -1246,4 +1246,5 @@ const PDF_URL = '/api/download-pdf';
 
 </body>
 </html>
+
 

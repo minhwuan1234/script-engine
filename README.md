@@ -1,5 +1,13 @@
 # script-engine
 
+## Submission archive and reporting
+
+Optional PostgreSQL + private S3 storage + one-way Google Sheets reporting is
+available behind feature switches (off by default). See [SUBMISSION-REPORTS.md](SUBMISSION-REPORTS.md)
+for provisioning, credentials, report behavior and acceptance checks. Original text
+and uploaded files are archived before calling AI when enabled; existing deployments
+remain unchanged until configured.
+
 ## Production writing flow
 
 The default `SKILL_SOURCE=original` runs the original magnetic-script-engine skill
@@ -48,3 +56,4 @@ Railway, mount a volume and set `USAGE_LOG` and `PREFERENCE_LOG` to paths on it.
 Never commit keys or those logs.
 
 Run tests with `node --test original-skill.test.js original-mode.integration.test.js openai-writer.test.js preference-store.test.js`.
+

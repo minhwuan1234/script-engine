@@ -1,0 +1,8 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Submission details · Admin</title><link rel="stylesheet" href="/admin/submission-viewer.css"></head>
+<body><main><h1>Submission details</h1><p>Admin access only. Enter your admin token to view the original input and download documents.</p>
+<form id="access"><label for="token">Admin token</label><input id="token" type="password" required autocomplete="off"><button>Open submission</button></form>
+<p id="message" role="status"></p><section id="details" hidden><h2 id="meta"></h2>
+<label for="original">Original input text</label><textarea id="original" readonly rows="14"></textarea>
+<h2>Uploaded documents</h2><div id="files"></div></section></main><script src="/admin/submission-viewer.js"></script></body></html>

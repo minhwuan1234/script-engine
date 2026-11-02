@@ -42,6 +42,9 @@ import { createIcpSignalStore, ICP_KEYS } from './icp-signal-store.js';
 import { buildWritingSystem } from './writing-instructions.js';
 import { buildOriginalSkillSystem, originalSkillInstruction } from './original-skill.js';
 import { callOpenAI, estimateOpenAICost } from './openai-writer.js';
+import { createArchiveRuntime } from './archive-runtime.js';
+import { handleSubmissionAdmin } from './submission-admin.js';
+import { validateSubmission } from './submission-store.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const {
@@ -76,6 +79,7 @@ const OPENAI_API_KEY = CANONICAL_OPENAI_API_KEY || process.env.OPEN_AI_API;
 const ANTHROPIC_API_KEY = process.env.CLAUDE_API || process.env.ANTHROPIC_API_KEY;
 
 const MAX_BODY = 25 * 1024 * 1024; // total upload cap
+const archiveRuntime = await createArchiveRuntime();
 const hits = new Map();
 const preferenceStore = createPreferenceStore(PREFERENCE_LOG);
 const icpSignalStore = createIcpSignalStore(ICP_SIGNAL_LOG, {
@@ -515,11 +519,18 @@ function rateLimited(ip) {
 async function readForm(req) {
   const len = Number(req.headers['content-length'] || 0);
   if (len > MAX_BODY) throw Object.assign(new Error('Upload too large (max 25 MB).'), { status: 413 });
+  // Enforce actual bytes even for chunked uploads with no Content-Length.
+  const chunks = [];
+  let bytes = 0;
+  for await (const chunk of req) {
+    bytes += chunk.length;
+    if (bytes > MAX_BODY) throw Object.assign(new Error('Upload too large (max 25 MB).'), { status: 413 });
+    chunks.push(chunk);
+  }
   const request = new Request('http://local/', {
     method: 'POST',
     headers: { 'content-type': req.headers['content-type'] || '' },
-    body: req,
-    duplex: 'half',
+    body: Buffer.concat(chunks),
   });
   return request.formData();
 }
@@ -682,6 +693,8 @@ async function handleGenerate(req, res) {
   const streamResults = String(req.headers.accept || '').includes('application/x-ndjson');
   let sentA = false;
   let sentB = false;
+  let submissionId = null;
+  let archivedResult = null;
   const sendEvent = (type, payload = {}) => {
     if (streamResults && !res.destroyed) res.write(JSON.stringify({ type, ...payload }) + '\n');
   };
@@ -693,6 +706,8 @@ async function handleGenerate(req, res) {
   // older clients still receive one JSON object. Heartbeats keep either response alive.
   // Since headers go out early with status 200, later errors live in the response body.
   const finish = (obj) => {
+    archivedResult = obj.error ? null : obj;
+    if (submissionId) obj.submissionId = submissionId;
     if (heartbeat) { clearInterval(heartbeat); heartbeat = null; }
     try {
       if (streamResults) sendEvent(obj.error ? 'error' : 'complete', obj.error ? { error: obj.error, usage: obj.usage } : { data: obj });
@@ -708,19 +723,30 @@ async function handleGenerate(req, res) {
     }
 
     const form = await readForm(req);
-    const text = String(form.get('text') || '').trim();
+    const originalText = String(form.get('text') || '');
+    const text = originalText.trim();
+    const uploadedFiles = form.getAll('files').filter((file) => typeof file !== 'string');
+    validateSubmission(originalText, uploadedFiles);
     const durationRaw = String(form.get('duration') || DEFAULT_DURATION);
     const duration = DURATION_OPTIONS.includes(durationRaw) ? durationRaw : DEFAULT_DURATION;
     const levelRaw = String(form.get('level') || 'Medium');
     const level = CRAZY_LEVELS.includes(levelRaw) ? levelRaw : 'Medium';
     rec.duration = duration;
     rec.text_chars = text.length;
+    if (archiveRuntime) {
+      try {
+        submissionId = await archiveRuntime.store.save({ text: originalText, files: uploadedFiles, duration, level });
+        rec.submission_id = submissionId;
+      } catch {
+        throw Object.assign(new Error('Input storage is unavailable. Your AI request has not started; please retry.'), { status: 503 });
+      }
+    }
 
     const blocks = [];
     const skipped = [];
     const fileTypes = [];
     const extractModes = [];
-    for (const f of form.getAll('files').slice(0, 3)) {
+    for (const f of uploadedFiles) {
       if (typeof f === 'string') continue;
       fileTypes.push(f.name.split('.').pop().toLowerCase());
       const { block, mode } = await fileToBlock(f);
@@ -832,7 +858,7 @@ async function handleGenerate(req, res) {
       });
     }
 
-    // Only offer feedback for a complete parsed pair; no document or script is stored.
+    // Only offer feedback for a complete parsed pair.
     let abPick = null;
     let abPickStatus = 'ready';
     const stylesMatch = !ORIGINAL_SKILL &&
@@ -867,6 +893,11 @@ async function handleGenerate(req, res) {
       throw err; // headers not sent yet — let the outer handler set a proper status code
     }
   } finally {
+    if (submissionId) {
+      try {
+        await archiveRuntime.store.finish(submissionId, rec.status === 'ok' ? 'completed' : rec.status === 'error' ? 'failed' : rec.status, archivedResult);
+      } catch { console.error('Could not finalize archived submission; worker will flag it as interrupted.'); }
+    }
     Object.assign(rec, usage);
     rec.est_cost_usd = estimateCost(usage);
     rec.duration_ms = Date.now() - t0;
@@ -895,7 +926,10 @@ function serveIndex(res) {
   const file = candidates.find((p) => fs.existsSync(p));
   if (!file) { res.writeHead(404); return res.end('index.html not found'); }
   res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
-  fs.createReadStream(file).pipe(res);
+  if (archiveRuntime) {
+    const notice = '<p style="font-size:12px;line-height:1.5;margin:14px auto 0;max-width:640px;color:#595959">When you submit, your text, uploaded documents and generated scripts are stored privately for processing and internal reporting.</p>';
+    res.end(fs.readFileSync(file, 'utf8').replace('</section>', notice + '</section>'));
+  } else fs.createReadStream(file).pipe(res);
 }
 
 http
@@ -903,9 +937,10 @@ http
     try {
       const url = new URL(req.url, 'http://x');
       const { pathname } = url;
+      if (await handleSubmissionAdmin(req, res, pathname, archiveRuntime, ADMIN_TOKEN)) return;
       if (req.method === 'GET' && (pathname === '/' || pathname === '/index.html')) return serveIndex(res);
       if (req.method === 'GET' && pathname === '/api/health') {
-        return json(res, 200, { ok: true, hasKey: WRITING_PROVIDER === 'openai' ? !!OPENAI_API_KEY : !!ANTHROPIC_API_KEY && (ORIGINAL_SKILL || !!OPENAI_API_KEY), skillSource: SKILL_SOURCE, model: WRITING_MODEL, provider: WRITING_PROVIDER, icpModel: ORIGINAL_SKILL ? null : ICP_MODEL });
+        return json(res, 200, { ok: true, archiveEnabled: !!archiveRuntime, sheetsEnabled: !!archiveRuntime?.sheetsEnabled, hasKey: WRITING_PROVIDER === 'openai' ? !!OPENAI_API_KEY : !!ANTHROPIC_API_KEY && (ORIGINAL_SKILL || !!OPENAI_API_KEY), skillSource: SKILL_SOURCE, model: WRITING_MODEL, provider: WRITING_PROVIDER, icpModel: ORIGINAL_SKILL ? null : ICP_MODEL });
       }
       if (req.method === 'GET' && pathname === '/api/usage') {
         if (!isAdmin(req, url)) { res.writeHead(404); return res.end('Not found'); }
@@ -921,3 +956,4 @@ http
     }
   })
   .listen(Number(PORT), () => console.log(`Listening on :${PORT}`));
+
