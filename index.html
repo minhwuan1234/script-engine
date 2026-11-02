@@ -13,6 +13,11 @@
     <canvas class="tpw-canvas"></canvas>
 
     <div class="tpw-content">
+        <section class="tpw-intro" aria-labelledby="tpw-heading">
+            <div class="tpw-eyebrow"><strong>F.Learning</strong> · Script Studio</div>
+            <h1 id="tpw-heading">Turn your text-wall nightmare into a script people <span class="tpw-underline">can’t scroll past.</span></h1>
+            <p>Drop a dense PDF, deck, or ebook. Get a YouTube-ready script back - then drag one slider to decide how far it leans, from calm-and-educational to impossible-to-look-away.</p>
+        </section>
         <div class="tpw-main-container">
 
             <div class="tpw-files"></div>
@@ -24,11 +29,21 @@
 
                     <textarea class="tpw-input" rows="1" placeholder="Paste text or drag files here..."></textarea>
 
+                    <div class="tpw-duration-control">
                     <select class="tpw-duration" aria-label="Video duration">
                         <option value="30s-60s">30s–60s</option>
                         <option value="2-3 mins" selected>2–3 mins</option>
                         <option value="upto 5 mins">Up to 5 mins</option>
                     </select>
+                    <details class="tpw-duration-picker" hidden>
+                        <summary aria-label="Video duration"><span class="tpw-duration-label">2–3 mins</span><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></summary>
+                        <div class="tpw-duration-options" role="group" aria-label="Video duration options">
+                            <button type="button" data-duration="30s-60s" aria-pressed="false">30s–60s</button>
+                            <button type="button" data-duration="2-3 mins" aria-pressed="true">2–3 mins</button>
+                            <button type="button" data-duration="upto 5 mins" aria-pressed="false">Up to 5 mins</button>
+                        </div>
+                    </details>
+                    </div>
 
                     <div class="tpw-actions">
 
@@ -315,7 +330,14 @@
     appearance: none; -webkit-appearance: none; -moz-appearance: none;
     transform: none !important; transition: background-color .15s ease;
 }
-.tony-pixel-widget select.tpw-duration:hover { background: #ffebd2 !important; }
+.tony-pixel-widget select.tpw-duration:hover { background-color: #ffebd2 !important; }
+.tony-pixel-widget select.tpw-duration {
+    padding-right: 32px !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 10px center !important;
+    background-size: 16px 16px !important;
+}
 .tony-pixel-widget select.tpw-duration:focus, .tony-pixel-widget select.tpw-duration:focus-visible { outline: none !important; }
 
 
@@ -408,6 +430,125 @@
 }
 </style>
 
+<style>
+/* Studio welcome layout. Keep the canvas and generation gateway unchanged. */
+.tony-pixel-widget {
+    height: 100vh; height: 100dvh; min-height: 560px;
+}
+.tony-pixel-widget .tpw-content { gap: 36px; }
+.tony-pixel-widget .tpw-intro {
+    width: min(100%, 980px); flex-shrink: 0; text-align: center;
+    color: #000; pointer-events: auto;
+}
+.tony-pixel-widget .tpw-eyebrow {
+    display: inline-block; padding: 10px 18px; border: 2px solid #000;
+    border-radius: 16px; background: #ff9436; box-shadow: 0 4px 0 #000;
+    font-size: 16px; color: #333;
+}
+.tony-pixel-widget .tpw-intro h1 {
+    margin: 26px 0 24px; font-size: clamp(32px, 4.2vw, 60px);
+    line-height: 1.13; letter-spacing: -.035em; font-weight: 800;
+    text-wrap: balance;
+}
+.tony-pixel-widget .tpw-underline {
+    position: relative; display: inline-block; z-index: 0;
+}
+.tony-pixel-widget .tpw-underline::after {
+    content: ''; position: absolute; left: 0; right: 0; bottom: -7px;
+    height: 5px; background: #ff9436; transform: rotate(-1deg);
+    box-shadow: 8px 8px 0 -1px #ff9436; z-index: -1;
+}
+.tony-pixel-widget .tpw-intro p {
+    max-width: 760px; margin: 0 auto; font-size: 17px;
+    line-height: 1.6; color: #595959; text-wrap: pretty;
+}
+.tony-pixel-widget .tpw-main-container { width: min(100%, 900px); flex-shrink: 0; }
+.tony-pixel-widget .tpw-dropzone { padding: 14px 18px; }
+.tony-pixel-widget:has(.has-output) .tpw-intro { display: none; }
+.tony-pixel-widget:has(.has-output) .tpw-content { justify-content: flex-start; }
+.tony-pixel-widget .tpw-main-container.has-output { margin: auto 0; }
+
+/* The mobile composer stays at the bottom of the app viewport, including in an iframe.
+   A grid keeps the textarea above the duration and action controls without moving DOM nodes. */
+@media (max-width: 767px) {
+    .tony-pixel-widget { min-height: 0; }
+    .tony-pixel-widget .tpw-content {
+        padding: 24px 16px max(16px, env(safe-area-inset-bottom));
+        justify-content: flex-start; gap: 24px;
+    }
+    .tony-pixel-widget .tpw-intro {
+        flex: 1; min-height: 0; display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+    }
+    .tony-pixel-widget .tpw-eyebrow { font-size: 13px; padding: 8px 12px; border-radius: 12px; }
+    .tony-pixel-widget .tpw-intro h1 {
+        font-size: clamp(27px, 7.5vw, 42px); margin: 22px 0 24px;
+    }
+    .tony-pixel-widget .tpw-intro p { font-size: 14px; line-height: 1.5; }
+    .tony-pixel-widget .tpw-main-container { width: 100%; max-width: none; margin-top: auto; }
+    .tony-pixel-widget .tpw-dropzone {
+        display: grid; grid-template-columns: minmax(0, 1fr) auto;
+        gap: 12px; padding: 14px;
+    }
+    .tony-pixel-widget .tpw-input { grid-column: 1 / -1; width: 100%; min-height: 54px; }
+    .tony-pixel-widget select.tpw-duration { justify-self: start; height: 40px; padding: 0 12px; font-size: 12px; }
+    .tony-pixel-widget .tpw-actions { justify-self: end; gap: 8px; }
+    .tony-pixel-widget button.tpw-plus, .tony-pixel-widget button.tpw-submit {
+        width: 40px; height: 40px; min-width: 40px; min-height: 40px; flex-basis: 40px;
+    }
+    .tony-pixel-widget .tpw-menu { right: 0; bottom: 50px; }
+    .tony-pixel-widget .tpw-main-container.has-output { margin: 0; padding: 10px; }
+    .tony-pixel-widget:has(.has-output) .tpw-content { padding-bottom: max(16px, env(safe-area-inset-bottom)); }
+    .tony-pixel-widget .has-output .tpw-input-wrapper {
+        position: sticky; top: 0; z-index: 5;
+    }
+}
+@media (max-width: 767px) and (max-height: 650px) {
+    .tony-pixel-widget .tpw-intro { min-height: 310px; flex-shrink: 0; }
+    .tony-pixel-widget .tpw-intro h1 { font-size: 27px; }
+}
+</style>
+
+<style>
+.tony-pixel-widget .tpw-duration-control { position: relative; flex: 0 0 auto; justify-self: start; }
+.tony-pixel-widget .tpw-duration-control [hidden] { display: none !important; }
+.tony-pixel-widget .tpw-duration-picker summary {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    height: 34px; padding: 0 12px; border: 1.5px solid #000;
+    border-radius: 999px; background: #ffedd5; color: #000;
+    font-size: 12px; font-weight: 800; cursor: pointer; list-style: none;
+}
+.tony-pixel-widget .tpw-duration-picker summary::-webkit-details-marker { display: none; }
+.tony-pixel-widget .tpw-duration-picker summary:hover { background-color: #ffe2bc; }
+.tony-pixel-widget .tpw-duration-picker summary svg {
+    width: 16px; height: 16px; fill: none; stroke: currentColor;
+    stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round;
+    transition: transform .15s;
+}
+.tony-pixel-widget .tpw-duration-picker[open] summary svg { transform: rotate(180deg); }
+.tony-pixel-widget .tpw-duration-options {
+    position: absolute; bottom: calc(100% + 12px); left: 0; z-index: 25;
+    width: 180px; max-width: 80vw; padding: 8px;
+    border: 2px solid #000; border-radius: 16px; background: #fffaf3;
+    box-shadow: 3px 4px 0 #000; display: grid; gap: 6px;
+}
+.tony-pixel-widget .tpw-duration-options button {
+    display: flex; justify-content: space-between; align-items: center;
+    width: 100%; min-height: 42px; padding: 9px 12px; margin: 0;
+    border: 1.5px solid transparent; border-radius: 10px; background: transparent;
+    color: #000; text-align: left; font: inherit; font-size: 13px;
+    font-weight: 700; cursor: pointer;
+}
+.tony-pixel-widget .tpw-duration-options button:hover { background: #ffedd5; border-color: #000; }
+.tony-pixel-widget .tpw-duration-options button[aria-pressed="true"] { background: #ff9436; border-color: #000; box-shadow: 1px 2px 0 #000; }
+.tony-pixel-widget .tpw-duration-options button[aria-pressed="true"]::after { content: '✓'; margin-left: 12px; }
+.tony-pixel-widget .tpw-duration-picker summary:focus-visible,
+.tony-pixel-widget .tpw-duration-options button:focus-visible { outline: 3px solid #c75a00; outline-offset: 3px; }
+@media (max-width: 767px) {
+    .tony-pixel-widget .tpw-duration-picker summary { height: 40px; }
+}
+</style>
+
 <script>
 /* ===== API CONFIG =====
  * API_URL     : backend endpoint that holds the Claude API key (NEVER put the key in this file).
@@ -430,6 +571,39 @@ const PDF_URL = '/api/download-pdf';
     const mainContainer = $('.tpw-main-container');
     const input = $('.tpw-input');
     const durationSelect = $('.tpw-duration');
+    const durationPicker = $('.tpw-duration-picker');
+    const durationSummary = durationPicker.querySelector('summary');
+    const durationButtons = [...durationPicker.querySelectorAll('[data-duration]')];
+    const syncDuration = () => {
+      durationPicker.querySelector('.tpw-duration-label').textContent = durationSelect.selectedOptions[0].textContent;
+      durationButtons.forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.duration === durationSelect.value)));
+    };
+    durationSelect.hidden = true;
+    durationPicker.hidden = false;
+    syncDuration();
+    durationSelect.addEventListener('change', syncDuration);
+    durationButtons.forEach((button) => button.addEventListener('click', () => {
+      durationSelect.value = button.dataset.duration;
+      durationSelect.dispatchEvent(new Event('change', { bubbles: true }));
+      durationPicker.open = false;
+      durationSummary.focus();
+    }));
+    document.addEventListener('click', (event) => {
+      if (!durationPicker.contains(event.target)) durationPicker.open = false;
+    });
+    durationPicker.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault(); durationPicker.open = false; durationSummary.focus();
+      } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        durationPicker.open = true;
+        const index = durationButtons.indexOf(document.activeElement);
+        const next = index < 0
+          ? (event.key === 'ArrowDown' ? 0 : durationButtons.length - 1)
+          : (index + (event.key === 'ArrowDown' ? 1 : -1) + durationButtons.length) % durationButtons.length;
+        durationButtons[next].focus();
+      }
+    });
     const fileInput = $('.tpw-file-input');
     const filesContainer = $('.tpw-files');
     const plusBtn = $('.tpw-plus');
@@ -500,6 +674,17 @@ const PDF_URL = '/api/download-pdf';
     const PIXEL_SIZE = 44;
     let width = 0, height = 0, cols = 0, rows = 0, grid = [], frame = 0;
     const mouse = { x: -9999, y: -9999, radius: 220 };
+    const mobileViewport = window.matchMedia('(max-width: 767px)');
+    const composer = root.querySelector('.tpw-input-wrapper');
+    let pickingFile = false;
+    let mobileInputActive = false;
+    const mobileGlow = { x: 0, y: 0, radius: 1 };
+    const intro = root.querySelector('.tpw-intro');
+    const clearPointer = () => { mouse.x = -9999; mouse.y = -9999; };
+    mobileViewport.addEventListener('change', clearPointer);
+    uploadBtn.addEventListener('click', () => { pickingFile = true; });
+    fileInput.addEventListener('change', () => { pickingFile = false; });
+    fileInput.addEventListener('cancel', () => { pickingFile = false; });
 
     const ambientPalette = [
       { r: 255, g: 255, b: 255 }, { r: 254, g: 250, b: 246 }, { r: 254, g: 243, b: 232 },
@@ -536,9 +721,14 @@ const PDF_URL = '/api/download-pdf';
         const normalized = (((wave1 + wave2 + wave3) / 3) + 1) / 2;
         this.ambient = Math.min(1, vertical * .65 + normalized * .35);
 
-        const distance = Math.hypot(mouse.x - this.cx, mouse.y - this.cy);
-        if (distance < mouse.radius) {
-          const target = Math.pow(1 - distance / mouse.radius, 1.4);
+        // Touch movement never positions the mobile glow. Its fixed lower-center
+        // anchor lights the composer area while typing or attaching material.
+        const radius = mobileViewport.matches ? mobileGlow.radius : mouse.radius;
+        const x = mobileViewport.matches ? mobileGlow.x : mouse.x;
+        const y = mobileViewport.matches ? mobileGlow.y : mouse.y;
+        const distance = Math.hypot(x - this.cx, y - this.cy);
+        if ((!mobileViewport.matches || mobileInputActive) && distance < radius) {
+          const target = Math.pow(1 - distance / radius, 1.4);
           this.highlight += (target - this.highlight) * .2;
         } else {
           this.highlight += (0 - this.highlight) * .08;
@@ -578,6 +768,23 @@ const PDF_URL = '/api/download-pdf';
 
     function animate() {
       frame++;
+      mobileInputActive = composer.contains(document.activeElement) || pickingFile
+        || input.value.trim().length > 0 || attachedFiles.length > 0;
+      if (mobileViewport.matches) {
+        const bounds = root.getBoundingClientRect();
+        const box = composer.getBoundingClientRect();
+        const introBottom = intro && intro.getClientRects().length
+          ? intro.getBoundingClientRect().bottom - bounds.top : 0;
+        mobileGlow.x = box.left - bounds.left + box.width / 2;
+        mobileGlow.y = box.top - bounds.top + box.height / 2;
+        // Keep a visible circular halo outside the opaque white composer.
+        // A minimum radius prevents tight layouts from hiding the whole glow.
+        const preferredRadius = Math.max(box.width * .8, 220);
+        const introClearance = Math.max(0, mobileGlow.y - introBottom);
+        mobileGlow.radius = introBottom > 0
+          ? Math.min(preferredRadius, Math.max(box.width * .6, 180, introClearance * 1.35))
+          : preferredRadius;
+      }
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, width, height);
       for (let i = 0; i < grid.length; i++) { grid[i].update(frame); grid[i].draw(); }
@@ -586,10 +793,11 @@ const PDF_URL = '/api/download-pdf';
 
     /* ---------- pointer ---------- */
     root.addEventListener('pointermove', (e) => {
+      if (mobileViewport.matches || e.pointerType === 'touch') return;
       const rect = root.getBoundingClientRect();
       mouse.x = e.clientX - rect.left; mouse.y = e.clientY - rect.top;
     });
-    root.addEventListener('pointerleave', () => { mouse.x = -9999; mouse.y = -9999; });
+    root.addEventListener('pointerleave', clearPointer);
 
     /* ---------- plus menu ---------- */
     plusBtn.addEventListener('click', (e) => { e.stopPropagation(); menu.classList.toggle('is-open'); });
@@ -985,3 +1193,4 @@ const PDF_URL = '/api/download-pdf';
 
 </body>
 </html>
+
