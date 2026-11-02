@@ -492,7 +492,9 @@
         display: grid; grid-template-columns: minmax(0, 1fr) auto;
         gap: 12px; padding: 14px;
     }
-    .tony-pixel-widget .tpw-input { grid-column: 1 / -1; width: 100%; min-height: 54px; }
+    .tony-pixel-widget .tpw-input { grid-column: 1 / -1; width: 100%; min-height: 54px; font-size: 16px; }
+    .tony-pixel-widget .tpw-main-container,
+    .tony-pixel-widget .tpw-input-wrapper { transition: none; }
     .tony-pixel-widget select.tpw-duration { justify-self: start; height: 40px; padding: 0 12px; font-size: 12px; }
     .tony-pixel-widget .tpw-actions { justify-self: end; gap: 8px; }
     .tony-pixel-widget button.tpw-plus, .tony-pixel-widget button.tpw-submit {
@@ -683,6 +685,17 @@ const PDF_URL = '/api/download-pdf';
     const mobileGlow = { x: 0, y: 0, radius: 1 };
     const intro = root.querySelector('.tpw-intro');
     let desktopIntroBounds = null;
+    let geometryDirty = true;
+    let canvasSizeDirty = true;
+    let lastPaint = 0;
+    const invalidateGeometry = () => { geometryDirty = true; };
+    const invalidateViewport = () => { canvasSizeDirty = true; geometryDirty = true; };
+    window.addEventListener('resize', invalidateViewport, { passive: true });
+    window.visualViewport?.addEventListener('resize', invalidateGeometry, { passive: true });
+    root.querySelector('.tpw-content').addEventListener('scroll', invalidateGeometry, { passive: true });
+    root.addEventListener('focusin', invalidateGeometry);
+    root.addEventListener('focusout', invalidateGeometry);
+    mobileViewport.addEventListener('change', invalidateViewport);
     const clearPointer = () => { mouse.x = -9999; mouse.y = -9999; };
     mobileViewport.addEventListener('change', clearPointer);
     uploadBtn.addEventListener('click', () => { pickingFile = true; });
@@ -766,21 +779,37 @@ const PDF_URL = '/api/download-pdf';
       const nh = Math.max(1, Math.round(rect.height));
       if (width === nw && height === nh) return;
       width = nw; height = nh;
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const dpr = mobileViewport.matches ? 1 : Math.min(window.devicePixelRatio || 1, 2);
       canvas.width = Math.round(width * dpr);
       canvas.height = Math.round(height * dpr);
       canvas.style.width = width + 'px';
       canvas.style.height = height + 'px';
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const oldGrid = grid;
+      const oldCols = cols;
       cols = Math.ceil(width / PIXEL_SIZE);
       rows = Math.ceil(height / PIXEL_SIZE);
       grid = [];
-      for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) grid.push(new Pixel(c, r));
+      for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+        grid.push(c < oldCols && oldGrid[r * oldCols + c] || new Pixel(c, r));
+      }
     }
-    new ResizeObserver(resizeCanvas).observe(root);
+    const layoutObserver = new ResizeObserver((entries) => {
+      geometryDirty = true;
+      if (entries.some((entry) => entry.target === root)) canvasSizeDirty = true;
+    });
+    layoutObserver.observe(root);
+    layoutObserver.observe(composer);
+    if (intro) layoutObserver.observe(intro);
 
-    function animate() {
+    function animate(timestamp = 0) {
+      requestAnimationFrame(animate);
+      if (document.hidden || (mobileViewport.matches && timestamp - lastPaint < 1000 / 30)) return;
+      lastPaint = timestamp;
+      if (canvasSizeDirty) { resizeCanvas(); canvasSizeDirty = false; }
       frame++;
+      if (geometryDirty) {
+      geometryDirty = false;
       desktopIntroBounds = null;
       if (!mobileViewport.matches && intro && intro.getClientRects().length) {
         const bounds = root.getBoundingClientRect();
@@ -788,8 +817,6 @@ const PDF_URL = '/api/download-pdf';
         desktopIntroBounds = { left: rect.left - bounds.left, right: rect.right - bounds.left,
           top: rect.top - bounds.top, bottom: rect.bottom - bounds.top };
       }
-      mobileInputActive = composer.contains(document.activeElement) || pickingFile
-        || input.value.trim().length > 0 || attachedFiles.length > 0;
       if (mobileViewport.matches) {
         const bounds = root.getBoundingClientRect();
         const box = composer.getBoundingClientRect();
@@ -805,10 +832,12 @@ const PDF_URL = '/api/download-pdf';
           ? Math.min(preferredRadius, Math.max(box.width * .6, 180, introClearance * 1.35))
           : preferredRadius;
       }
+      }
+      mobileInputActive = composer.contains(document.activeElement) || pickingFile
+        || input.value.trim().length > 0 || attachedFiles.length > 0;
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, width, height);
       for (let i = 0; i < grid.length; i++) { grid[i].update(frame); grid[i].draw(); }
-      requestAnimationFrame(animate);
     }
 
     /* ---------- pointer ---------- */
