@@ -926,10 +926,7 @@ function serveIndex(res) {
   const file = candidates.find((p) => fs.existsSync(p));
   if (!file) { res.writeHead(404); return res.end('index.html not found'); }
   res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
-  if (archiveRuntime) {
-    const notice = '<p style="font-size:12px;line-height:1.5;margin:14px auto 0;max-width:640px;color:#595959">When you submit, your text, uploaded documents and generated scripts are stored privately for processing and internal reporting.</p>';
-    res.end(fs.readFileSync(file, 'utf8').replace('</section>', notice + '</section>'));
-  } else fs.createReadStream(file).pipe(res);
+  fs.createReadStream(file).pipe(res);
 }
 
 http
