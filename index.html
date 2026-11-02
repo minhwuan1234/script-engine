@@ -15,7 +15,7 @@
     <div class="tpw-content">
         <section class="tpw-intro" aria-labelledby="tpw-heading">
             <div class="tpw-eyebrow"><strong>F.Learning</strong> · Script Studio</div>
-            <h1 id="tpw-heading">Turn your text-wall nightmare into a script people <span class="tpw-underline">can’t scroll past.</span></h1>
+            <h1 id="tpw-heading"><span class="tpw-heading-line">Turn your text-wall nightmare</span> <span class="tpw-heading-line">into a script people <span class="tpw-underline">can’t scroll past.</span></span></h1>
             <p>Drop a dense PDF, deck, or ebook. Get a YouTube-ready script back - then drag one slider to decide how far it leans, from calm-and-educational to impossible-to-look-away.</p>
         </section>
         <div class="tpw-main-container">
@@ -446,10 +446,11 @@
     font-size: 16px; color: #333;
 }
 .tony-pixel-widget .tpw-intro h1 {
-    margin: 26px 0 24px; font-size: clamp(32px, 4.2vw, 60px);
-    line-height: 1.13; letter-spacing: -.035em; font-weight: 800;
+    max-width: 860px; margin: 24px auto; font-size: clamp(30px, 3.2vw, 42px);
+    line-height: 1.2; letter-spacing: -.03em; font-weight: 800;
     text-wrap: balance;
 }
+.tony-pixel-widget .tpw-heading-line { display: block; }
 .tony-pixel-widget .tpw-underline {
     position: relative; display: inline-block; z-index: 0;
 }
@@ -484,6 +485,7 @@
     .tony-pixel-widget .tpw-intro h1 {
         font-size: clamp(27px, 7.5vw, 42px); margin: 22px 0 24px;
     }
+    .tony-pixel-widget .tpw-heading-line { display: inline; }
     .tony-pixel-widget .tpw-intro p { font-size: 14px; line-height: 1.5; }
     .tony-pixel-widget .tpw-main-container { width: 100%; max-width: none; margin-top: auto; }
     .tony-pixel-widget .tpw-dropzone {
@@ -680,6 +682,7 @@ const PDF_URL = '/api/download-pdf';
     let mobileInputActive = false;
     const mobileGlow = { x: 0, y: 0, radius: 1 };
     const intro = root.querySelector('.tpw-intro');
+    let desktopIntroBounds = null;
     const clearPointer = () => { mouse.x = -9999; mouse.y = -9999; };
     mobileViewport.addEventListener('change', clearPointer);
     uploadBtn.addEventListener('click', () => { pickingFile = true; });
@@ -728,7 +731,17 @@ const PDF_URL = '/api/download-pdf';
         const y = mobileViewport.matches ? mobileGlow.y : mouse.y;
         const distance = Math.hypot(x - this.cx, y - this.cy);
         if ((!mobileViewport.matches || mobileInputActive) && distance < radius) {
-          const target = Math.pow(1 - distance / radius, 1.4);
+          let target = Math.pow(1 - distance / radius, 1.4);
+          if (!mobileViewport.matches && desktopIntroBounds) {
+            const rect = desktopIntroBounds;
+            const outside = Math.hypot(
+              Math.max(rect.left - this.cx, 0, this.cx - rect.right),
+              Math.max(rect.top - this.cy, 0, this.cy - rect.bottom));
+            const fade = Math.min(1, outside / 64);
+            // Keep the text area pale; restore the full orange glow smoothly
+            // outside it, without interrupting pointer tracking elsewhere.
+            target *= .12 + .88 * fade * fade * (3 - 2 * fade);
+          }
           this.highlight += (target - this.highlight) * .2;
         } else {
           this.highlight += (0 - this.highlight) * .08;
@@ -768,6 +781,13 @@ const PDF_URL = '/api/download-pdf';
 
     function animate() {
       frame++;
+      desktopIntroBounds = null;
+      if (!mobileViewport.matches && intro && intro.getClientRects().length) {
+        const bounds = root.getBoundingClientRect();
+        const rect = intro.getBoundingClientRect();
+        desktopIntroBounds = { left: rect.left - bounds.left, right: rect.right - bounds.left,
+          top: rect.top - bounds.top, bottom: rect.bottom - bounds.top };
+      }
       mobileInputActive = composer.contains(document.activeElement) || pickingFile
         || input.value.trim().length > 0 || attachedFiles.length > 0;
       if (mobileViewport.matches) {
