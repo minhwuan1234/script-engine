@@ -36,9 +36,11 @@ export function createSubmissionStore({ pool, objects }) {
     pool,
     async migrate() {
       const sql = await readFile(new URL('./migrations/001-submissions.sql', import.meta.url), 'utf8');
+      const downloadSql = await readFile(new URL('./migrations/002-download-email.sql', import.meta.url), 'utf8');
       await transaction(pool, async (client) => {
         await client.query('SELECT pg_advisory_xact_lock(76432001)');
         await client.query(sql);
+        await client.query(downloadSql);
       });
     },
     async save({ text, files, duration, level }) {
@@ -82,12 +84,22 @@ export function createSubmissionStore({ pool, objects }) {
       [id, status, result ? JSON.stringify(result) : null]);
     },
     async get(id) {
-      const row = (await pool.query(`SELECT id,created_at,updated_at,input_text,duration,level,status,result
+      const row = (await pool.query(`SELECT id,created_at,updated_at,input_text,duration,level,status,result,download_email,download_email_at
         FROM submissions WHERE id=$1`, [id])).rows[0];
       if (!row) return null;
       row.files = (await pool.query(`SELECT id,original_name,mime_type,size_bytes,stored
         FROM submission_files WHERE submission_id=$1 ORDER BY id`, [id])).rows;
       return row;
+    },
+    async captureDownloadEmail(id, email) {
+      const row = (await pool.query(`UPDATE submissions SET
+        download_email=COALESCE(download_email,$2),download_email_at=COALESCE(download_email_at,now()),
+        updated_at=CASE WHEN download_email IS NULL THEN now() ELSE updated_at END,
+        revision=revision+CASE WHEN download_email IS NULL THEN 1 ELSE 0 END,
+        next_sync_at=CASE WHEN download_email IS NULL THEN now() ELSE next_sync_at END
+        WHERE id=$1 AND status='completed' AND result IS NOT NULL
+        RETURNING download_email`, [id, email])).rows[0];
+      return row?.download_email || null;
     },
     async file(submissionId, fileId) {
       const row = (await pool.query(`SELECT * FROM submission_files

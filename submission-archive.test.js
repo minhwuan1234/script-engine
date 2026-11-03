@@ -7,6 +7,7 @@ import { createSubmissionStore, validateSubmission, MAX_UPLOAD_BYTES } from './s
 import { syncReports, reportRow } from './sheets-sync.js';
 import { archiveConfig, createSheetsClient } from './archive-runtime.js';
 import { authorized, handleSubmissionAdmin } from './submission-admin.js';
+import { createDownloadGate, normalizeEmail, authorizedPdfInput } from './download-gate.js';
 
 async function fixture(t, putOverride) {
   const db = new PGlite();
@@ -17,7 +18,7 @@ async function fixture(t, putOverride) {
     if (sql.includes('pg_advisory_xact_lock')) return { rows: [] };
     if (sql.includes('pg_try_advisory_lock')) return { rows: [{ locked: true }] };
     if (sql.includes('pg_advisory_unlock')) return { rows: [] };
-    if (!args && sql.includes('CREATE TABLE')) { await db.exec(sql); return { rows: [] }; }
+    if (!args && (sql.includes('CREATE TABLE') || sql.includes('ALTER TABLE'))) { await db.exec(sql); return { rows: [] }; }
     return db.query(sql, args);
   };
   const pool = { query, connect: async () => ({ query, release() {} }) };
@@ -128,7 +129,7 @@ test('Sheets writes RAW into deterministic ranges and escapes tab names', async 
     } });
   await sheets.write(9, ['=1+1']);
   assert.match(requests[0].url, /valueInputOption=RAW/);
-  assert.ok(decodeURIComponent(requests[0].url).includes("'User''s Submissions'!A9:J9"));
+  assert.ok(decodeURIComponent(requests[0].url).includes("'User''s Submissions'!A9:K9"));
   assert.deepEqual(JSON.parse(requests[0].body).values, [['=1+1']]);
 });
 
@@ -159,4 +160,78 @@ test('admin routes deny anonymous requests and stream exact bytes with auth', as
   const allowed = response();
   await handleSubmissionAdmin({ method: 'GET', headers: { authorization: 'Bearer secret' } }, allowed, route, { store }, 'secret');
   assert.equal(allowed.statusCode, 200); assert.equal(allowed.content(), 'private bytes');
+});
+
+test('email gate rejects missing/invalid email and capabilities from other submissions', async (t) => {
+  const { store } = await fixture(t);
+  const id = await store.save({ text: 'source', files: [], duration: '2-3 mins', level: 'Medium' });
+  await store.finish(id, 'completed', { title: 'Stored title', version_a_title: 'A', version_b_title: 'B',
+    version_a_text: 'Stored script A', version_b_text: 'Stored script B' });
+  const gate = createDownloadGate({ store, secret: 'test-only-signing-secret' });
+  const ownerToken = gate.owner(id);
+  await assert.rejects(gate.authorize({ submissionId: id, version: 'A', token: ownerToken }), { status: 403 });
+  for (const email of ['', 'bad-email', 'a@localhost', 'a\n@example.com', '.a@example.com']) {
+    await assert.rejects(gate.unlock({ submissionId: id, ownerToken, email }), { status: 400 });
+  }
+  await assert.rejects(gate.unlock({ submissionId: crypto.randomUUID(), ownerToken, email: 'a@example.com' }), { status: 403 });
+  await assert.rejects(gate.unlock({ submissionId: id, ownerToken: ownerToken + 'x', email: 'a@example.com' }), { status: 403 });
+  assert.equal((await store.get(id)).download_email, null);
+});
+
+test('one committed email unlocks both authoritative versions and syncs to column K', async (t) => {
+  const { store, pool } = await fixture(t);
+  const id = await store.save({ text: 'source', files: [], duration: '2-3 mins', level: 'Medium' });
+  await store.finish(id, 'completed', { title: 'Stored title', version_a_title: 'Style A', version_b_title: 'Style B',
+    version_a_text: 'Stored script A', version_b_text: 'Stored script B' });
+  const gate = createDownloadGate({ store, secret: 'test-only-signing-secret' });
+  const ownerToken = gate.owner(id);
+  const unlocked = await gate.unlock({ submissionId: id, ownerToken, email: 'person@EXAMPLE.COM' });
+  assert.ok(unlocked.downloadToken);
+  assert.equal((await store.get(id)).download_email, 'person@example.com');
+  for (const version of ['A', 'B']) {
+    const result = await gate.authorize({ submissionId: id, version, token: unlocked.downloadToken });
+    assert.equal(result.text, `Stored script ${version}`);
+  }
+  const before = (await pool.query('SELECT revision FROM submissions WHERE id=$1', [id])).rows[0].revision;
+  await gate.unlock({ submissionId: id, ownerToken, email: 'another@example.com' });
+  assert.equal((await store.get(id)).download_email, 'person@example.com', 'first captured email remains unchanged');
+  assert.equal((await pool.query('SELECT revision FROM submissions WHERE id=$1', [id])).rows[0].revision, before);
+  let report;
+  await syncReports({ pool, baseUrl: 'https://example.com', sheets: {
+    ensure: async () => {}, write: async (_, values) => { report = values; },
+  } });
+  assert.equal(report[10], 'person@example.com');
+});
+
+test('direct PDF calls cannot bypass email with DOM edits or arbitrary client text', async (t) => {
+  const { store } = await fixture(t);
+  const id = await store.save({ text: 'source', files: [], duration: '30s-60s', level: 'Low' });
+  await store.finish(id, 'completed', { title: 'Server title', version_a_title: 'A', version_a_text: 'Server text', version_b_text: 'B' });
+  const gate = createDownloadGate({ store, secret: 'test-only-signing-secret' });
+  const req = (data, token = '') => {
+    const stream = Readable.from([Buffer.from(JSON.stringify(data))]);
+    stream.headers = { authorization: `Bearer ${token}` }; return stream;
+  };
+  const data = { submissionId: id, version: 'A', text: 'ATTACKER TEXT', title: 'ATTACKER TITLE', email: 'fake@example.com' };
+  await assert.rejects(authorizedPdfInput(req(data), gate), { status: 403 });
+  const grant = await gate.unlock({ submissionId: id, ownerToken: gate.owner(id), email: 'person@example.com' });
+  const result = await authorizedPdfInput(req(data, grant.downloadToken), gate);
+  assert.equal(result.text, 'Server text'); assert.equal(result.title, 'Server title');
+  await assert.rejects(authorizedPdfInput(req({ ...data, submissionId: crypto.randomUUID() }, grant.downloadToken), gate), { status: 403 });
+  await assert.rejects(authorizedPdfInput(req(data), null), { status: 503 });
+});
+
+test('expired grants and failed email persistence never grant a PDF', async (t) => {
+  const { store } = await fixture(t);
+  const id = await store.save({ text: 'source', files: [], duration: '2-3 mins', level: 'Low' });
+  await store.finish(id, 'completed', { version_a_text: 'A', version_b_text: 'B' });
+  let time = 1000;
+  const gate = createDownloadGate({ store, secret: 'test-only-signing-secret', now: () => time });
+  const ownerToken = gate.owner(id);
+  const grant = await gate.unlock({ submissionId: id, ownerToken, email: 'person@example.com' });
+  time += 3600_000;
+  await assert.rejects(gate.authorize({ submissionId: id, version: 'A', token: grant.downloadToken }), { status: 403 });
+  const broken = createDownloadGate({ store: { captureDownloadEmail: async () => { throw new Error('Database unavailable'); } }, secret: 'test-only-signing-secret', now: () => 1000 });
+  await assert.rejects(broken.unlock({ submissionId: id, ownerToken: broken.owner(id), email: 'person@example.com' }), /Database unavailable/);
+  assert.equal(normalizeEmail('  person@EXAMPLE.COM  '), 'person@example.com');
 });

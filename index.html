@@ -123,6 +123,15 @@
                             </div>
                         </div>
                     </div>
+                    <form class="tpw-email-gate" hidden>
+                        <label class="tpw-email-label" for="tpw-download-email">Unlock both PDFs</label>
+                            <p class="tpw-email-description">Enter your email to download Version A and Version B.</p>
+                            <div class="tpw-email-controls">
+                                <input id="tpw-download-email" class="tpw-email-input" type="email" required maxlength="254" autocomplete="email" inputmode="email" placeholder="Your email address" aria-label="Email address">
+                                <button class="tpw-email-submit" type="submit">Unlock downloads</button>
+                            </div>
+                        <p class="tpw-email-status" role="status" aria-live="polite"></p>
+                    </form>
                     <div class="tpw-pick-status" role="status" aria-live="polite"></div>
 
                 </div>
@@ -251,6 +260,34 @@
 .tony-pixel-widget button.tpw-download-btn:focus-visible { outline: 3px solid #7c2d12; outline-offset: 4px; }
 .tony-pixel-widget button.tpw-download-btn:disabled { opacity: .65; cursor: wait; transform: none; }
 .tony-pixel-widget button.tpw-download-btn[hidden] { display: none; }
+.tony-pixel-widget .tpw-email-gate {
+    margin: 16px 0 0; padding: 18px; border: 2px solid #000; border-radius: 18px;
+    background: #fffaf3; box-shadow: 2px 3px 0 #000;
+}
+.tony-pixel-widget .tpw-email-gate[hidden] { display: none; }
+.tony-pixel-widget .tpw-email-label { display: block; color: #111; font-size: 17px; font-weight: 800; }
+.tony-pixel-widget .tpw-email-description { margin: 5px 0 12px; font-size: 13px; font-weight: 500; color: #475569; }
+.tony-pixel-widget .tpw-email-controls { display: flex; align-items: stretch; gap: 10px; }
+.tony-pixel-widget input.tpw-email-input {
+    flex: 1; min-width: 0; min-height: 46px; margin: 0; padding: 10px 14px;
+    border: 2px solid #000; border-radius: 12px; background: #fff; color: #111;
+    font: inherit; font-size: 16px; font-weight: 500;
+}
+.tony-pixel-widget button.tpw-email-submit {
+    min-height: 46px; padding: 10px 18px; border: 2px solid #000; border-radius: 12px;
+    background: #ff9436; color: #000; box-shadow: 2px 3px 0 #000; cursor: pointer;
+    font: inherit; font-size: 14px; font-weight: 800;
+}
+.tony-pixel-widget button.tpw-email-submit:hover { background: #ff8318; }
+.tony-pixel-widget button.tpw-email-submit:disabled { opacity: .65; cursor: wait; }
+.tony-pixel-widget .tpw-email-input:focus-visible,
+.tony-pixel-widget .tpw-email-submit:focus-visible { outline: 3px solid #7c2d12; outline-offset: 3px; }
+.tony-pixel-widget .tpw-email-status { margin: 8px 0 0; font-size: 13px; color: #9a3412; }
+.tony-pixel-widget .tpw-email-status:empty { display: none; }
+@media (max-width: 767px) {
+    .tony-pixel-widget .tpw-email-gate { padding: 14px; }
+    .tony-pixel-widget .tpw-email-controls { flex-direction: column; }
+}
 .tony-pixel-widget .tpw-pick-status { margin-top: 8px; font-size: 12px; font-weight: 700; color: #22252a; }
 .tony-pixel-widget .tpw-pick-status:empty { display: none; }
 
@@ -564,6 +601,7 @@
 const API_URL = '/api/generate';
 const PICK_URL = '/api/pick';
 const PDF_URL = '/api/download-pdf';
+const UNLOCK_URL = '/api/unlock-download';
 
 (() => {
   document.querySelectorAll('.tony-pixel-widget').forEach(initPixelWidget);
@@ -633,11 +671,57 @@ const PDF_URL = '/api/download-pdf';
     const metaB = $('#tpw-meta-b');
     const downloadButtons = root.querySelectorAll('.tpw-download-btn');
     const pickStatus = $('.tpw-pick-status');
+    const emailGate = $('.tpw-email-gate');
+    const emailInput = $('.tpw-email-input');
+    const emailSubmit = $('.tpw-email-submit');
+    const emailStatus = $('.tpw-email-status');
+    let downloadAccess = null;
+    let downloadGrant = null;
     let currentPick = null;
     const downloadable = { A: null, B: null };
     let generationEpoch = 0;
     let downloadedChoice = null;
     let pickInFlight = null;
+
+    function updateDownloadGate() {
+      const unlocked = downloadGrant && downloadGrant.expiresAt > Date.now();
+      emailGate.hidden = !downloadAccess || !!unlocked;
+      downloadButtons.forEach((button) => {
+        button.hidden = !unlocked || !downloadable[button.dataset.download];
+        button.disabled = !unlocked || button.dataset.pending === 'true';
+      });
+    }
+    emailGate.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (!downloadAccess || emailSubmit.disabled || !emailGate.reportValidity()) return;
+      const epoch = generationEpoch;
+      const access = downloadAccess;
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000);
+      emailSubmit.disabled = true;
+      emailSubmit.textContent = 'Unlocking…';
+      emailStatus.textContent = '';
+      try {
+        const response = await fetch(UNLOCK_URL, { method: 'POST',
+          headers: { 'Content-Type': 'application/json' }, signal: controller.signal,
+          body: JSON.stringify({ submissionId: access.submissionId, ownerToken: access.ownerToken, email: emailInput.value.trim() }) });
+        const data = await response.json();
+        if (!response.ok || !data.ok || !data.downloadToken || !Number.isFinite(data.expiresAt)) {
+          throw new Error(data.error || 'Could not unlock downloads. Please retry.');
+        }
+        if (epoch !== generationEpoch || access !== downloadAccess) return;
+        downloadGrant = data;
+        updateDownloadGate();
+        pickStatus.textContent = 'Downloads unlocked for both versions.';
+      } catch (error) {
+        if (epoch === generationEpoch) emailStatus.textContent = error.name === 'AbortError'
+          ? 'The request timed out. Please retry.' : error.message;
+      } finally {
+        clearTimeout(timeout);
+        emailSubmit.disabled = false;
+        emailSubmit.textContent = 'Unlock downloads';
+      }
+    });
 
     let attachedFiles = [];
     let busy = false;
@@ -995,8 +1079,7 @@ const PDF_URL = '/api/download-pdf';
       downloadable[letter] = text ? { version: letter, title: plainText(title),
         style: plainText(style), text: plainText(text), duration: plainText(duration) } : null;
       const button = root.querySelector(`[data-download="${letter}"]`);
-      button.hidden = !downloadable[letter];
-      button.disabled = button.dataset.pending === 'true';
+      updateDownloadGate();
       button.setAttribute('aria-label', `Download Version ${letter} as PDF`);
       if (!button.disabled) button.textContent = 'Download PDF';
       button.title = '';
@@ -1030,15 +1113,26 @@ const PDF_URL = '/api/download-pdf';
     downloadButtons.forEach((button) => button.addEventListener('click', async () => {
       const data = downloadable[button.dataset.download];
       if (!data || button.disabled) return;
+      if (!downloadAccess || !downloadGrant || downloadGrant.expiresAt <= Date.now()) {
+        downloadGrant = null;
+        updateDownloadGate();
+        emailStatus.textContent = 'Please confirm your email again to unlock downloads.';
+        return;
+      }
       const epoch = generationEpoch;
       button.dataset.pending = 'true';
       button.disabled = true;
       button.textContent = 'Preparing PDF...';
       try {
         const response = await fetch(PDF_URL, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
+          method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${downloadGrant.downloadToken}` },
+          body: JSON.stringify({ submissionId: downloadAccess.submissionId, version: data.version }),
         });
         if (!response.ok) {
+          if (response.status === 403 && epoch === generationEpoch) {
+            downloadGrant = null; updateDownloadGate();
+            emailStatus.textContent = 'Please confirm your email again to unlock downloads.';
+          }
           const error = await response.json().catch(() => ({}));
           throw new Error(error.error || `PDF request failed (${response.status}).`);
         }
@@ -1068,6 +1162,8 @@ const PDF_URL = '/api/download-pdf';
     }));
 
     function showError(message) {
+      downloadAccess = null;
+      downloadGrant = null;
       currentPick = null;
       setDownload('A', '', '', '');
       setDownload('B', '', '', '');
@@ -1080,6 +1176,9 @@ const PDF_URL = '/api/download-pdf';
     }
 
     function showResult(data) {
+      downloadAccess = data.submissionId && data.downloadOwnerToken
+        ? { submissionId: data.submissionId, ownerToken: data.downloadOwnerToken } : null;
+      downloadGrant = null;
       if (!hasGatewayFields(data) && !String(data.text || data.markdown || data.title || '').trim()) {
         showError('Generation finished without a script. Please retry.');
         return;
@@ -1124,6 +1223,9 @@ const PDF_URL = '/api/download-pdf';
       const text = input.value;
       if (!text.trim() && attachedFiles.length === 0) return;
       generationEpoch += 1;
+      downloadAccess = null;
+      downloadGrant = null;
+      emailStatus.textContent = '';
       currentPick = null;
       downloadedChoice = null;
       pickStatus.textContent = '';

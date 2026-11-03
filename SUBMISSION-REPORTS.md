@@ -59,8 +59,8 @@ In Google Cloud:
 The worker creates the `Submissions` tab automatically on the first pending sync,
 adds a frozen orange header, wraps cells and writes these columns:
 
-| Submit ID | Created at (UTC) | Input text | Document upload | Status | Duration | Level | File count | Submission details | Updated at (UTC) |
-|---|---|---|---|---|---|---|---|---|---|
+| Submit ID | Created at (UTC) | Input text | Document upload | Status | Duration | Level | File count | Submission details | Updated at (UTC) | Email |
+|---|---|---|---|---|---|---|---|---|---|---|
 
 All user-controlled cells use `RAW` mode, never formulas. Original text is complete
 in PostgreSQL; text above 40,000 characters is shortened in the report and linked
@@ -75,9 +75,7 @@ Finally set both feature switches to `true` and redeploy the app. Do not enable
 the archive without storage credentials: accepted input must be archived before
 the AI call starts. A storage error returns 503 without calling the writing model.
 
-When enabled, the app displays a notice that submitted text, files and generated
-scripts are stored privately for processing and internal reporting. Choose and
-document your retention period before accepting production data. This version
+Choose and document your retention period before accepting production data. This version
 does not automatically delete submissions, storage objects or report rows.
 
 ## 5. Verify using synthetic input
@@ -95,6 +93,30 @@ Submit a harmless sample text and a small TXT file. Check:
 submission count, pending sync count, sync error count and incomplete submissions.
 Never put the token in a URL. This API is deliberately not exposed to anonymous
 users or the public Elementor page.
+
+## Email-gated PDF downloads
+
+After both scripts have completed and are committed, the response provides a signed
+owner capability scoped to that submission. The browser shows one shared email form
+and keeps both PDF buttons hidden. `POST /api/unlock-download` requires the owner
+capability and a syntactically valid email address. The server saves the first email
+and collection timestamp, increments the report revision and issues a one-hour PDF
+grant. The report's new `Email` column is K; existing A:J columns keep their positions.
+
+The same grant unlocks A and B. `POST /api/download-pdf` requires that grant in the
+Authorization header and the matching submission ID. It reads the script from
+PostgreSQL and ignores any client-provided title/text/email. Grants from another
+submission, expired tokens, owner tokens used as PDF grants, missing stored emails
+and disabled archive storage all fail closed. No ungated legacy PDF endpoint exists.
+The HMAC signing secret is the existing `ADMIN_TOKEN`; neither owner nor PDF
+capabilities expose the admin credential. Rotating it invalidates old capabilities.
+
+The form checks email syntax, not ownership or mailbox existence. It does not send
+marketing messages or an email verification code. People can still copy or print
+script text already shown on screen; this feature gates the app's PDF endpoint.
+Owner capabilities last 24 hours, remain in page memory only, and are not stored in
+the archived result, report or logs. A new generation requires a new email confirmation.
+Without archiving enabled, scripts can still generate but PDF downloads are unavailable.
 
 ## Admin links and report behavior
 

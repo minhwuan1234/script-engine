@@ -40,7 +40,7 @@ export function createSheetsClient({ auth, spreadsheetId, tab = 'Submissions', f
       let sheet = data.sheets?.find((item) => item.properties.title === tab)?.properties;
       if (!sheet) {
         const result = await request(':batchUpdate', 'POST', { requests: [{ addSheet: {
-          properties: { title: tab, gridProperties: { rowCount: Math.max(1000, row + 100), columnCount: 10, frozenRowCount: 1 } },
+          properties: { title: tab, gridProperties: { rowCount: Math.max(1000, row + 100), columnCount: 11, frozenRowCount: 1 } },
         } }] });
         sheet = result.replies[0].addSheet.properties;
         await request(':batchUpdate', 'POST', { requests: [
@@ -53,17 +53,17 @@ export function createSheetsClient({ auth, spreadsheetId, tab = 'Submissions', f
           { updateDimensionProperties: { range: { sheetId: sheet.sheetId, dimension: 'COLUMNS', startIndex: 2, endIndex: 4 },
             properties: { pixelSize: 350 }, fields: 'pixelSize' } },
         ] });
-      } else if (sheet.gridProperties.rowCount < row || sheet.gridProperties.columnCount < 10) {
+      } else if (sheet.gridProperties.rowCount < row || sheet.gridProperties.columnCount < 11) {
         await request(':batchUpdate', 'POST', { requests: [{ updateSheetProperties: {
           properties: { sheetId: sheet.sheetId, gridProperties: {
             rowCount: Math.max(sheet.gridProperties.rowCount, row + 100),
-            columnCount: Math.max(sheet.gridProperties.columnCount, 10),
+            columnCount: Math.max(sheet.gridProperties.columnCount, 11),
           } }, fields: 'gridProperties.rowCount,gridProperties.columnCount',
         } }] });
       }
-      await write(`${a1}!A1:J1`, [REPORT_HEADERS]);
+      await write(`${a1}!A1:K1`, [REPORT_HEADERS]);
     },
-    write(row, values) { return write(`${a1}!A${row}:J${row}`, [values]); },
+    write(row, values) { return write(`${a1}!A${row}:K${row}`, [values]); },
   };
 }
 

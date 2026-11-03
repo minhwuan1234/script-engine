@@ -1,5 +1,5 @@
 export const REPORT_HEADERS = ['Submit ID', 'Created at (UTC)', 'Input text', 'Document upload',
-  'Status', 'Duration', 'Level', 'File count', 'Submission details', 'Updated at (UTC)'];
+  'Status', 'Duration', 'Level', 'File count', 'Submission details', 'Updated at (UTC)', 'Email'];
 
 export function reportRow(submission, files, baseUrl) {
   const details = `${baseUrl}/admin/submissions/${submission.id}`;
@@ -9,7 +9,7 @@ export function reportRow(submission, files, baseUrl) {
   return [submission.id, new Date(submission.created_at).toISOString(), text,
     files.map((file) => `${file.original_name}${file.stored ? ` — ${details}#file=${file.id}` : ' [upload incomplete]'}`).join('\n').slice(0, 40000),
     submission.status, submission.duration, submission.level, files.length,
-    details, new Date(submission.updated_at).toISOString()];
+    details, new Date(submission.updated_at).toISOString(), submission.download_email || ''];
 }
 
 // One durable row number per submission, allocated by PostgreSQL. A network retry

@@ -129,7 +129,6 @@ The viewer checks a daily weight.
     body: JSON.stringify({ version: 'A', title: result.title, style: result.version_a_title,
       duration: result.duration, text: result.version_a_text }),
   });
-  assert.equal(pdf.status, 200);
-  assert.equal(pdf.headers.get('content-type'), 'application/pdf');
-  assert.equal(Buffer.from(await pdf.arrayBuffer()).subarray(0, 4).toString(), '%PDF');
+  assert.equal(pdf.status, 503, 'without the archive, PDF access must fail closed');
+  assert.notEqual(pdf.headers.get('content-type'), 'application/pdf');
 });

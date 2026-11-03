@@ -45,6 +45,7 @@ import { callOpenAI, estimateOpenAICost } from './openai-writer.js';
 import { createArchiveRuntime } from './archive-runtime.js';
 import { handleSubmissionAdmin } from './submission-admin.js';
 import { validateSubmission } from './submission-store.js';
+import { createDownloadGate, authorizedPdfInput, readDownloadJSON } from './download-gate.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const {
@@ -80,6 +81,7 @@ const ANTHROPIC_API_KEY = process.env.CLAUDE_API || process.env.ANTHROPIC_API_KE
 
 const MAX_BODY = 25 * 1024 * 1024; // total upload cap
 const archiveRuntime = await createArchiveRuntime();
+const downloadGate = archiveRuntime ? createDownloadGate({ store: archiveRuntime.store, secret: ADMIN_TOKEN }) : null;
 const hits = new Map();
 const preferenceStore = createPreferenceStore(PREFERENCE_LOG);
 const icpSignalStore = createIcpSignalStore(ICP_SIGNAL_LOG, {
@@ -536,16 +538,7 @@ async function readForm(req) {
 }
 
 async function handleDownloadPdf(req, res) {
-  const chunks = [];
-  let size = 0;
-  for await (const chunk of req) {
-    size += chunk.length;
-    if (size > 80_000) return json(res, 413, { error: 'Script is too large for PDF download.' });
-    chunks.push(chunk);
-  }
-  let input;
-  try { input = JSON.parse(Buffer.concat(chunks).toString('utf8')); }
-  catch { return json(res, 400, { error: 'Invalid PDF request.' }); }
+  const input = await authorizedPdfInput(req, downloadGate);
   const version = input?.version;
   const title = toPlainText(input?.title).replace(/[\r\n\x00-\x1f]/g, ' ').trim().slice(0, 200);
   const style = toPlainText(input?.style).replace(/[\r\n\x00-\x1f]/g, ' ').trim().slice(0, 120);
@@ -589,6 +582,13 @@ async function handleDownloadPdf(req, res) {
     }
   }
   doc.end();
+}
+
+async function handleUnlockDownload(req, res) {
+  res.setHeader('Cache-Control', 'no-store');
+  if (!downloadGate) return json(res, 503, { error: 'Downloads are temporarily unavailable.' });
+  const result = await downloadGate.unlock(await readDownloadJSON(req));
+  return json(res, 200, result);
 }
 
 // Call Messages API with streaming (avoids long-request timeouts).
@@ -695,6 +695,7 @@ async function handleGenerate(req, res) {
   let sentB = false;
   let submissionId = null;
   let archivedResult = null;
+  let archiveFinalized = false;
   const sendEvent = (type, payload = {}) => {
     if (streamResults && !res.destroyed) res.write(JSON.stringify({ type, ...payload }) + '\n');
   };
@@ -877,13 +878,22 @@ async function handleGenerate(req, res) {
       rec.strategy_mismatch = true; // Do not learn from output that ignored the assigned styles.
       abPickStatus = 'strategy_mismatch';
     }
-    finish({
+    const result = {
       ...parsed.fields, level, skill_source: SKILL_SOURCE, skipped, stop_reason: stopReason,
       ab_pick: abPick ? { ...abPick, icp: icpKey, strategies: strategyPair } : null,
       ab_pick_status: abPickStatus,
       usage: runUsage(),
-    });
+    };
+    if (submissionId) {
+      // Persist the authoritative scripts before releasing an owner capability.
+      // The capability itself must never be included in the stored result/log.
+      await archiveRuntime.store.finish(submissionId, 'completed', result);
+      archiveFinalized = true;
+      result.downloadOwnerToken = downloadGate.owner(submissionId);
+    }
+    finish(result);
   } catch (err) {
+    if (rec.status === 'ok') rec.status = 'error';
     rec.error = String(err.message || err).slice(0, 300);
     if (heartbeat || res.headersSent) {
       // Headers already went out as 200 — report the failure inside the JSON body
@@ -893,7 +903,7 @@ async function handleGenerate(req, res) {
       throw err; // headers not sent yet — let the outer handler set a proper status code
     }
   } finally {
-    if (submissionId) {
+    if (submissionId && !archiveFinalized) {
       try {
         await archiveRuntime.store.finish(submissionId, rec.status === 'ok' ? 'completed' : rec.status === 'error' ? 'failed' : rec.status, archivedResult);
       } catch { console.error('Could not finalize archived submission; worker will flag it as interrupted.'); }
@@ -945,6 +955,7 @@ http
       }
       if (req.method === 'POST' && pathname === '/api/generate') return await handleGenerate(req, res);
       if (req.method === 'POST' && pathname === '/api/download-pdf') return await handleDownloadPdf(req, res);
+      if (req.method === 'POST' && pathname === '/api/unlock-download') return await handleUnlockDownload(req, res);
       if (req.method === 'POST' && pathname === '/api/pick') return await handlePick(req, res);
       res.writeHead(404); res.end('Not found');
     } catch (err) {
