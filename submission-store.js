@@ -79,9 +79,19 @@ export function createSubmissionStore({ pool, objects }) {
       }
     },
     async finish(id, status, result = null) {
-      await pool.query(`UPDATE submissions SET status=$2,result=$3,updated_at=now(),
+      await pool.query(`UPDATE submissions SET status=$2,
+        result=CASE WHEN $3::jsonb IS NULL THEN result ELSE COALESCE(result,'{}'::jsonb)||$3::jsonb END,updated_at=now(),
         revision=revision+1,next_sync_at=now(),sync_attempts=0,sync_error=NULL WHERE id=$1`,
       [id, status, result ? JSON.stringify(result) : null]);
+    },
+    async saveVersion(id, letter, version) {
+      if (!['A', 'B'].includes(letter) || !version?.text?.trim()) throw new Error('Invalid completed version.');
+      const key = letter.toLowerCase();
+      const patch = { [`version_${key}_text`]: version.text, [`version_${key}_title`]: version.title || `Version ${letter}` };
+      if (version.workingTitle) patch.title = version.workingTitle;
+      await pool.query(`UPDATE submissions SET result=COALESCE(result,'{}'::jsonb)||$2::jsonb,
+        updated_at=now(),revision=revision+1,next_sync_at=now(),sync_attempts=0,sync_error=NULL WHERE id=$1`,
+      [id, JSON.stringify(patch)]);
     },
     async get(id) {
       const row = (await pool.query(`SELECT id,created_at,updated_at,input_text,duration,level,status,result,download_email,download_email_at
@@ -97,7 +107,9 @@ export function createSubmissionStore({ pool, objects }) {
         updated_at=CASE WHEN download_email IS NULL THEN now() ELSE updated_at END,
         revision=revision+CASE WHEN download_email IS NULL THEN 1 ELSE 0 END,
         next_sync_at=CASE WHEN download_email IS NULL THEN now() ELSE next_sync_at END
-        WHERE id=$1 AND status='completed' AND result IS NOT NULL
+        WHERE id=$1 AND (
+          COALESCE(result->>'version_a_text',result->>'version_a_md','') <> '' OR
+          COALESCE(result->>'version_b_text',result->>'version_b_md','') <> '')
         RETURNING download_email`, [id, email])).rows[0];
       return row?.download_email || null;
     },

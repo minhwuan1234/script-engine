@@ -8,6 +8,7 @@ import { syncReports, reportRow } from './sheets-sync.js';
 import { archiveConfig, createSheetsClient } from './archive-runtime.js';
 import { authorized, handleSubmissionAdmin } from './submission-admin.js';
 import { createDownloadGate, normalizeEmail, authorizedPdfInput } from './download-gate.js';
+import { createVersionPublisher } from './version-publisher.js';
 
 async function fixture(t, putOverride) {
   const db = new PGlite();
@@ -234,4 +235,57 @@ test('expired grants and failed email persistence never grant a PDF', async (t) 
   const broken = createDownloadGate({ store: { captureDownloadEmail: async () => { throw new Error('Database unavailable'); } }, secret: 'test-only-signing-secret', now: () => 1000 });
   await assert.rejects(broken.unlock({ submissionId: id, ownerToken: broken.owner(id), email: 'person@example.com' }), /Database unavailable/);
   assert.equal(normalizeEmail('  person@EXAMPLE.COM  '), 'person@example.com');
+});
+
+test('a streamed A unlocks before completion; the same grant unlocks B when it arrives', async (t) => {
+  const { store } = await fixture(t);
+  const id = await store.save({ text: 'source', files: [], duration: '2-3 mins', level: 'Medium' });
+  const gate = createDownloadGate({ store, secret: 'test-only' });
+  const events = [];
+  const publisher = createVersionPublisher({ store, submissionId: id, ownerToken: gate.owner(id),
+    sendEvent: (type, data) => events.push({ type, ...data }) });
+  publisher.publish('A', { title: 'Style A', text: 'Completed A', workingTitle: 'Working title' });
+  await publisher.drain();
+  assert.equal((await store.get(id)).status, 'processing');
+  assert.equal(events[0].type, 'version_a');
+  const grant = await gate.unlock({ submissionId: id, ownerToken: events[0].downloadOwnerToken, email: 'early@example.com' });
+  assert.equal((await gate.authorize({ submissionId: id, version: 'A', token: grant.downloadToken })).text, 'Completed A');
+  await assert.rejects(gate.authorize({ submissionId: id, version: 'B', token: grant.downloadToken }), { status: 403 });
+  publisher.publish('B', { title: 'Style B', text: 'Completed B' });
+  await publisher.drain();
+  assert.equal((await gate.authorize({ submissionId: id, version: 'B', token: grant.downloadToken })).text, 'Completed B');
+  await store.finish(id, 'completed', { title: 'Final title' });
+  assert.equal((await store.get(id)).download_email, 'early@example.com');
+  assert.equal((await gate.authorize({ submissionId: id, version: 'A', token: grant.downloadToken })).title, 'Final title');
+  assert.equal((await store.get(id)).result.downloadOwnerToken, undefined);
+});
+
+test('B-only and failed generations retain the available version and its email gate', async (t) => {
+  const { store } = await fixture(t);
+  const id = await store.save({ text: 'source', files: [], duration: '30s-60s', level: 'Low' });
+  const gate = createDownloadGate({ store, secret: 'test-only' });
+  await store.saveVersion(id, 'B', { title: 'B only', text: 'Durable B' });
+  const grant = await gate.unlock({ submissionId: id, ownerToken: gate.owner(id), email: 'early@example.com' });
+  await store.finish(id, 'failed');
+  assert.equal((await gate.authorize({ submissionId: id, version: 'B', token: grant.downloadToken })).text, 'Durable B');
+  await assert.rejects(gate.authorize({ submissionId: id, version: 'A', token: grant.downloadToken }), { status: 403 });
+});
+
+test('publisher never exposes a version capability before its database write commits', async () => {
+  const order = [];
+  let release;
+  const barrier = new Promise((resolve) => { release = resolve; });
+  const publisher = createVersionPublisher({ store: { saveVersion: async (_, letter) => {
+    if (letter === 'A') await barrier;
+    order.push('stored ' + letter);
+  } }, submissionId: crypto.randomUUID(), ownerToken: 'capability',
+  sendEvent: (type) => order.push(type) });
+  publisher.publish('A', { text: 'A' }); publisher.publish('B', { text: 'B' });
+  await Promise.resolve(); assert.deepEqual(order, []);
+  release(); await publisher.drain();
+  assert.deepEqual(order, ['stored A', 'version_a', 'stored B', 'version_b']);
+  const failing = createVersionPublisher({ store: { saveVersion: async () => { throw new Error('write failed'); } },
+    submissionId: crypto.randomUUID(), ownerToken: 'capability', sendEvent: () => assert.fail('must not publish') });
+  failing.publish('A', { text: 'A' });
+  await assert.rejects(failing.drain(), /Could not save/);
 });

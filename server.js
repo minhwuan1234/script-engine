@@ -46,6 +46,7 @@ import { createArchiveRuntime } from './archive-runtime.js';
 import { handleSubmissionAdmin } from './submission-admin.js';
 import { validateSubmission } from './submission-store.js';
 import { createDownloadGate, authorizedPdfInput, readDownloadJSON } from './download-gate.js';
+import { createVersionPublisher } from './version-publisher.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const {
@@ -696,6 +697,8 @@ async function handleGenerate(req, res) {
   let submissionId = null;
   let archivedResult = null;
   let archiveFinalized = false;
+  let downloadOwnerToken = null;
+  let versionPublisher = null;
   const sendEvent = (type, payload = {}) => {
     if (streamResults && !res.destroyed) res.write(JSON.stringify({ type, ...payload }) + '\n');
   };
@@ -738,6 +741,7 @@ async function handleGenerate(req, res) {
       try {
         submissionId = await archiveRuntime.store.save({ text: originalText, files: uploadedFiles, duration, level });
         rec.submission_id = submissionId;
+        downloadOwnerToken = downloadGate.owner(submissionId);
       } catch {
         throw Object.assign(new Error('Input storage is unavailable. Your AI request has not started; please retry.'), { status: 503 });
       }
@@ -813,15 +817,18 @@ async function handleGenerate(req, res) {
       try { if (streamResults) sendEvent('heartbeat'); else res.write(' '); } catch {}
     }, 15000);
 
+    versionPublisher = createVersionPublisher({ store: archiveRuntime?.store, submissionId,
+      ownerToken: downloadOwnerToken, sendEvent,
+      onSent: (letter) => { rec[`version_${letter.toLowerCase()}_ms`] = Date.now() - t0; } });
     const onText = (partial) => {
       if (!streamResults) return;
       if (!sentA) {
         const a = completedVersion(partial, 'A');
-        if (a) { rec.version_a_ms = Date.now() - t0; sendEvent('version_a', a); sentA = true; }
+        if (a) { sentA = true; versionPublisher.publish('A', a); }
       }
-      if (sentA && !sentB) {
+      if (!sentB) {
         const b = completedVersion(partial, 'B');
-        if (b) { rec.version_b_ms = Date.now() - t0; sendEvent('version_b', b); sentB = true; }
+        if (b) { sentB = true; versionPublisher.publish('B', b); }
       }
     };
     const system = ORIGINAL_SKILL ? buildOriginalSkillSystem() : buildWritingSystem(icpKey, strategyPair.a, strategyPair.b);
@@ -829,6 +836,7 @@ async function handleGenerate(req, res) {
     const { markdown, stopReason } = WRITING_PROVIDER === 'openai'
       ? await callOpenAI(content, system, usage, onText, { apiKey: OPENAI_API_KEY, model: OPENAI_MODEL, maxTokens: MAX_TOKENS })
       : await callClaude(content, system, usage, onText);
+    await versionPublisher.drain();
     rec.stop_reason = stopReason;
 
     // Adaptive-thinking models can spend the whole output budget on adaptive thinking before it
@@ -889,10 +897,11 @@ async function handleGenerate(req, res) {
       // The capability itself must never be included in the stored result/log.
       await archiveRuntime.store.finish(submissionId, 'completed', result);
       archiveFinalized = true;
-      result.downloadOwnerToken = downloadGate.owner(submissionId);
+      result.downloadOwnerToken = downloadOwnerToken;
     }
     finish(result);
   } catch (err) {
+    if (versionPublisher) await versionPublisher.drain().catch(() => {});
     if (rec.status === 'ok') rec.status = 'error';
     rec.error = String(err.message || err).slice(0, 300);
     if (heartbeat || res.headersSent) {

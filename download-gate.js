@@ -62,7 +62,7 @@ export function createDownloadGate({ store, secret, now = Date.now }) {
       if (!['A', 'B'].includes(version)) throw invalid('Choose Version A or B.');
       const grant = verify(token, submissionId, 'pdf-download');
       const row = await store.get(submissionId);
-      if (!row?.download_email || row.status !== 'completed' || grant.emailHash !== digest(row.download_email)) throw deny();
+      if (!row?.download_email || grant.emailHash !== digest(row.download_email)) throw deny();
       const letter = version.toLowerCase();
       const result = row.result;
       const text = result?.[`version_${letter}_text`] ?? result?.[`version_${letter}_md`];

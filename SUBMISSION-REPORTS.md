@@ -96,14 +96,16 @@ users or the public Elementor page.
 
 ## Email-gated PDF downloads
 
-After both scripts have completed and are committed, the response provides a signed
+As soon as either completed version is committed, its stream event provides a signed
 owner capability scoped to that submission. The browser shows one shared email form
 and keeps both PDF buttons hidden. `POST /api/unlock-download` requires the owner
 capability and a syntactically valid email address. The server saves the first email
 and collection timestamp, increments the report revision and issues a one-hour PDF
 grant. The report's new `Email` column is K; existing A:J columns keep their positions.
 
-The same grant unlocks A and B. `POST /api/download-pdf` requires that grant in the
+The same grant unlocks every available version and also unlocks the other version when
+it arrives. The final event does not reset the email confirmation. If generation fails
+after one version is ready, that stored version remains downloadable. `POST /api/download-pdf` requires that grant in the
 Authorization header and the matching submission ID. It reads the script from
 PostgreSQL and ignores any client-provided title/text/email. Grants from another
 submission, expired tokens, owner tokens used as PDF grants, missing stored emails

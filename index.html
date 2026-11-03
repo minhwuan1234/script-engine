@@ -288,7 +288,7 @@
     .tony-pixel-widget .tpw-email-gate { padding: 14px; }
     .tony-pixel-widget .tpw-email-controls { flex-direction: column; }
 }
-.tony-pixel-widget .tpw-pick-status { margin-top: 8px; font-size: 12px; font-weight: 700; color: #22252a; }
+.tony-pixel-widget .tpw-pick-status { width: 100%; margin-top: 8px; text-align: center; font-size: 12px; font-weight: 700; color: #22252a; }
 .tony-pixel-widget .tpw-pick-status:empty { display: none; }
 
 .tony-pixel-widget .tpw-output-body::-webkit-scrollbar { width: 4px; }
@@ -685,11 +685,23 @@ const UNLOCK_URL = '/api/unlock-download';
 
     function updateDownloadGate() {
       const unlocked = downloadGrant && downloadGrant.expiresAt > Date.now();
-      emailGate.hidden = !downloadAccess || !!unlocked;
+      const hasVersion = !!(downloadable.A || downloadable.B);
+      emailGate.hidden = !downloadAccess || !hasVersion || !!unlocked;
       downloadButtons.forEach((button) => {
         button.hidden = !unlocked || !downloadable[button.dataset.download];
         button.disabled = !unlocked || button.dataset.pending === 'true';
       });
+    }
+    function acceptDownloadAccess(data) {
+      if (!data.submissionId || !data.downloadOwnerToken) return;
+      if (downloadAccess?.submissionId === data.submissionId) {
+        // Preserve both an active grant and the identity used by an in-flight
+        // email confirmation when another version or the final result arrives.
+        downloadAccess.ownerToken = data.downloadOwnerToken;
+      } else {
+        downloadAccess = { submissionId: data.submissionId, ownerToken: data.downloadOwnerToken };
+        downloadGrant = null;
+      }
     }
     emailGate.addEventListener('submit', async (event) => {
       event.preventDefault();
@@ -1176,9 +1188,7 @@ const UNLOCK_URL = '/api/unlock-download';
     }
 
     function showResult(data) {
-      downloadAccess = data.submissionId && data.downloadOwnerToken
-        ? { submissionId: data.submissionId, ownerToken: data.downloadOwnerToken } : null;
-      downloadGrant = null;
+      acceptDownloadAccess(data);
       if (!hasGatewayFields(data) && !String(data.text || data.markdown || data.title || '').trim()) {
         showError('Generation finished without a script. Please retry.');
         return;
@@ -1188,6 +1198,10 @@ const UNLOCK_URL = '/api/unlock-download';
 
       if (!hasGatewayFields(data)) {
         currentPick = null;
+        if (downloadAccess && (downloadable.A || downloadable.B)) {
+          updateDownloadGate();
+          return;
+        }
         pickStatus.textContent = '';
         // fallback: engine didn't return the expected gateway fields -> show raw text so nothing is lost
         titleA.textContent = 'Result'; titleB.textContent = '-';
@@ -1213,7 +1227,8 @@ const UNLOCK_URL = '/api/unlock-download';
       setDownload('A', data.title || data.version_a_title, scriptA, data.duration, data.version_a_title);
       setDownload('B', data.title || data.version_b_title, scriptB, data.duration, data.version_b_title);
       currentPick = data.ab_pick || null;
-      pickStatus.textContent = '';
+      pickStatus.textContent = downloadGrant && downloadGrant.expiresAt > Date.now()
+        ? 'Downloads unlocked for both versions.' : '';
       void saveDownloadedChoice();
     }
 
@@ -1260,6 +1275,7 @@ const UNLOCK_URL = '/api/unlock-download';
             if (event.type === 'heartbeat') return;
             if (event.type === 'error') throw new Error(event.error || 'Generation failed.');
             if (event.type === 'version_a') {
+              acceptDownloadAccess(event);
               receivedA = true;
               stopLoadingFacts();
               loadingOverlay.classList.remove('is-loading');
@@ -1271,16 +1287,28 @@ const UNLOCK_URL = '/api/unlock-download';
               const scriptA = plainText(event.text ?? event.markdown);
               renderScript(outputA, scriptA);
               setDownload('A', event.workingTitle || titleA.textContent, scriptA, selectedDuration, titleA.textContent);
-              titleB.textContent = 'Writing Version B...';
-              metaB.textContent = '';
-              outputB.textContent = 'The second script is being prepared.';
+              if (!receivedB) {
+                titleB.textContent = 'Writing Version B...';
+                metaB.textContent = '';
+                outputB.textContent = 'The second script is being prepared.';
+              }
             } else if (event.type === 'version_b') {
+              acceptDownloadAccess(event);
               receivedB = true;
+              stopLoadingFacts();
+              loadingOverlay.classList.remove('is-loading');
+              resultBox.classList.add('is-ready');
+              outputB.classList.remove('is-error');
               titleB.textContent = event.title || 'Version B';
               metaB.textContent = `Duration: ${selectedDuration}`;
               const scriptB = plainText(event.text ?? event.markdown);
               renderScript(outputB, scriptB);
               setDownload('B', event.workingTitle || titleB.textContent, scriptB, selectedDuration, titleB.textContent);
+              if (!receivedA) {
+                titleA.textContent = 'Writing Version A...';
+                metaA.textContent = '';
+                outputA.textContent = 'The other script is being prepared.';
+              }
             } else if (event.type === 'complete') {
               completed = true;
               stopLoadingFacts();
@@ -1320,16 +1348,22 @@ const UNLOCK_URL = '/api/unlock-download';
       } catch (err) {
         stopLoadingFacts();
         loadingOverlay.classList.remove('is-loading');
-        if (receivedA) {
+        if (receivedA || receivedB) {
           if (!receivedB) {
             titleB.textContent = 'Version B unavailable';
             metaB.textContent = '';
             outputB.textContent = err.message || 'Something went wrong.';
             outputB.classList.add('is-error');
           }
-          pickStatus.textContent = receivedB
+          if (!receivedA) {
+            titleA.textContent = 'Version A unavailable';
+            metaA.textContent = '';
+            outputA.textContent = err.message || 'Something went wrong.';
+            outputA.classList.add('is-error');
+          }
+          pickStatus.textContent = receivedA && receivedB
             ? `Both scripts are available, but final request details could not be saved: ${err.message || 'Unknown error.'}`
-            : 'Version A is available above. Version B could not be completed.';
+            : `Version ${receivedA ? 'A' : 'B'} is available above. The other version could not be completed.`;
         } else showError(err.message || 'Something went wrong.');
       } finally {
         stopLoadingFacts();
