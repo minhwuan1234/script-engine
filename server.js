@@ -734,8 +734,9 @@ async function handleGenerate(req, res) {
     const durationRaw = String(form.get('duration') || DEFAULT_DURATION);
     const duration = DURATION_OPTIONS.includes(durationRaw) ? durationRaw : DEFAULT_DURATION;
     const levelRaw = String(form.get('level') || 'Medium');
-    const level = CRAZY_LEVELS.includes(levelRaw) ? levelRaw : 'Medium';
+    const level = ORIGINAL_SKILL ? (CRAZY_LEVELS.includes(levelRaw) ? levelRaw : 'Medium') : 'High';
     rec.duration = duration;
+    rec.level = level;
     rec.text_chars = text.length;
     if (archiveRuntime) {
       try {
@@ -956,7 +957,7 @@ http
       if (await handleSubmissionAdmin(req, res, pathname, archiveRuntime, ADMIN_TOKEN)) return;
       if (req.method === 'GET' && (pathname === '/' || pathname === '/index.html')) return serveIndex(res);
       if (req.method === 'GET' && pathname === '/api/health') {
-        return json(res, 200, { ok: true, archiveEnabled: !!archiveRuntime, sheetsEnabled: !!archiveRuntime?.sheetsEnabled, hasKey: WRITING_PROVIDER === 'openai' ? !!OPENAI_API_KEY : !!ANTHROPIC_API_KEY && (ORIGINAL_SKILL || !!OPENAI_API_KEY), skillSource: SKILL_SOURCE, model: WRITING_MODEL, provider: WRITING_PROVIDER, icpModel: ORIGINAL_SKILL ? null : ICP_MODEL });
+        return json(res, 200, { ok: true, archiveEnabled: !!archiveRuntime, sheetsEnabled: !!archiveRuntime?.sheetsEnabled, hasKey: WRITING_PROVIDER === 'openai' ? !!OPENAI_API_KEY : !!ANTHROPIC_API_KEY && (ORIGINAL_SKILL || !!OPENAI_API_KEY), skillSource: SKILL_SOURCE, model: WRITING_MODEL, provider: WRITING_PROVIDER, icpModel: ORIGINAL_SKILL ? null : ICP_MODEL, crazyLevels: ORIGINAL_SKILL ? CRAZY_LEVELS : ['High'] });
       }
       if (req.method === 'GET' && pathname === '/api/usage') {
         if (!isAdmin(req, url)) { res.writeHead(404); return res.end('Not found'); }

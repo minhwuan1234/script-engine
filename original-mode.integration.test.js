@@ -95,10 +95,11 @@ The viewer checks a daily weight.
   }
   assert.equal(health?.skillSource, 'original');
   assert.equal(health.hasKey, true);
+  assert.deepEqual(health.crazyLevels, ['Low', 'Medium', 'High']);
   const form = new FormData();
   form.append('text', 'Track your weight every morning.');
   form.append('duration', '30s-60s');
-  // The unchanged main UI has no Crazy-level control; the backend uses Medium.
+  // Older clients that omit Crazy Dial still use Medium.
   const response = await fetch(`${base}/api/generate`, { method: 'POST', body: form });
   const result = await response.json();
   assert.equal(result.skill_source, 'original');
@@ -117,11 +118,17 @@ The viewer checks a daily weight.
   assert.match(upstreamRequest.system[0].text, /===== SKILL.md =====/);
   assert.match(upstreamRequest.system[0].text, /===== ADDITIONAL REFERENCE: example-guidance\.md =====/);
   assert.match(upstreamRequest.messages[0].content.at(-1).text, /Crazy level: Medium/);
+  const highForm = new FormData();
+  highForm.append('text', 'Track your weight every morning.');
+  highForm.append('duration', '30s-60s');
+  highForm.append('level', 'High');
   const streamed = await fetch(`${base}/api/generate`, {
-    method: 'POST', headers: { Accept: 'application/x-ndjson' }, body: form,
+    method: 'POST', headers: { Accept: 'application/x-ndjson' }, body: highForm,
   });
   const events = (await streamed.text()).trim().split('\n').map((line) => JSON.parse(line));
   assert.deepEqual(events.map((event) => event.type), ['version_a', 'version_b', 'complete']);
+  assert.match(upstreamRequest.messages[0].content.at(-1).text, /Crazy level: High/);
+  assert.equal(events.at(-1).data.level, 'High');
   assert.equal((events[0].text.match(/^TIME:/gm) || []).length, 2, 'streamed hook is also one row');
   assert.equal(events.at(-1).data.usage.output_tokens, 80);
   const pdf = await fetch(`${base}/api/download-pdf`, {
