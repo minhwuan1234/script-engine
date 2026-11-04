@@ -35,9 +35,11 @@ export function buildOriginalSkillSystem() {
 
 export function originalSkillInstruction({ duration, level }) {
   if (!['Low', 'Medium', 'High'].includes(level)) throw new Error('Invalid Crazy level.');
+  const levelName = { Low: 'Classic Explainer', Medium: 'Playful Edutainment', High: 'Cinematic Storytelling' }[level];
   return [
     'Run the magnetic-script-engine skill on the attached document and/or pasted text.',
     `Crazy level: ${level}.`,
+    `This level is named ${levelName} in the app. Apply the ${level} column of references/crazy-dial.md; the name is a label, not a different set of rules.`,
     `Duration: ${duration} (chosen by the user; write to this duration even if you flag a mismatch).`,
     'Narrative style, platform, series and ICP are not specified; infer them using the skill.',
   ].join('\n');

@@ -30,6 +30,7 @@ test('runtime prompt includes each original reference without editing its text',
 test('original mode passes chosen level and duration without assigning styles', () => {
   const instruction = originalSkillInstruction({ duration: '30s-60s', level: 'High' });
   assert.match(instruction, /Crazy level: High\./);
+  assert.match(instruction, /named Cinematic Storytelling in the app/);
   assert.match(instruction, /Duration: 30s-60s/);
   assert.match(instruction, /style, platform, series and ICP are not specified/);
   assert.throws(() => originalSkillInstruction({ duration: '30s-60s', level: 'Ultra' }));

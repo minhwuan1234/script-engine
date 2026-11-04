@@ -50,16 +50,16 @@
 
                     <div class="tpw-level-control">
                         <select class="tpw-level" aria-label="Crazy Dial">
-                            <option value="Low">Low</option>
-                            <option value="Medium" selected>Medium</option>
-                            <option value="High">High</option>
+                            <option value="Low">Classic Explainer</option>
+                            <option value="Medium" selected>Playful Edutainment</option>
+                            <option value="High">Cinematic Storytelling</option>
                         </select>
                         <details class="tpw-level-picker" hidden>
-                            <summary aria-label="Crazy Dial"><span class="tpw-level-label">Crazy: Medium</span><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></summary>
+                            <summary aria-label="Crazy Dial"><span class="tpw-level-label">Playful Edutainment</span><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></summary>
                             <div class="tpw-level-options" role="group" aria-label="Crazy Dial options">
-                                <button type="button" data-level="Low" aria-pressed="false">Low</button>
-                                <button type="button" data-level="Medium" aria-pressed="true">Medium</button>
-                                <button type="button" data-level="High" aria-pressed="false">High</button>
+                                <button type="button" data-level="Low" aria-pressed="false">Classic Explainer</button>
+                                <button type="button" data-level="Medium" aria-pressed="true">Playful Edutainment</button>
+                                <button type="button" data-level="High" aria-pressed="false">Cinematic Storytelling</button>
                             </div>
                         </details>
                     </div>
@@ -98,8 +98,7 @@
             <div class="tpw-output-section">
                 <div class="tpw-loading-overlay">
                     <div class="tpw-loading-status">
-                        <div class="tpw-spinner" aria-hidden="true"></div>
-                        <span class="tpw-loading-text">Creating your scripts <small>This may take 1–3 minutes</small></span>
+                        <span class="tpw-loading-text">Creating your scripts <small class="tpw-loading-stage">Reading your source · This may take 1–3 minutes</small></span>
                     </div>
                     <div class="tpw-loading-fact">
                         <div class="tpw-loading-fact-head">
@@ -111,7 +110,8 @@
                             <span class="tpw-loading-fact-text"></span>
                         </div>
                         <div class="tpw-loading-fact-foot">
-                            <span class="tpw-loading-fact-progress" aria-hidden="true"><span></span></span>
+                            <div class="tpw-script-progress" role="progressbar" aria-label="Estimated script progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="1"><span></span></div>
+                            <span class="tpw-script-progress-value">1%</span>
                             <a href="https://flearningstudio.com/" target="_blank" rel="noopener noreferrer">Explore services ↗</a>
                         </div>
                     </div>
@@ -317,13 +317,6 @@
 }
 .tony-pixel-widget .tpw-loading-overlay.is-loading { display: flex; }
 .tony-pixel-widget .tpw-loading-status { display: flex; align-items: center; justify-content: center; gap: 12px; }
-.tony-pixel-widget .tpw-spinner {
-    display: block; flex: none; width: 42px; height: 42px; border: 5px solid #ffedd5;
-    border-top-color: #111827; border-right-color: #ff9436; border-radius: 50%;
-    transform-origin: center; will-change: transform;
-    animation: tpw-loading-rotate .75s linear infinite;
-}
-@keyframes tpw-loading-rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 .tony-pixel-widget .tpw-loading-text { display: flex; flex-direction: column; color: #000; font-size: 15px; font-weight: 800; line-height: 1.25; }
 .tony-pixel-widget .tpw-loading-text small { margin-top: 3px; color: #64748b; font-size: 11px; font-weight: 600; }
 .tony-pixel-widget .tpw-loading-fact {
@@ -338,11 +331,15 @@
 @keyframes tpw-fact-enter { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 .tony-pixel-widget .tpw-loading-fact-title { color: #111827; font-size: 16px; font-weight: 800; }
 .tony-pixel-widget .tpw-loading-fact-text { color: #475569; font-size: 12px; line-height: 1.5; }
-.tony-pixel-widget .tpw-loading-fact-progress { display: block; flex: 1; max-width: 220px; height: 4px; overflow: hidden; border-radius: 4px; background: #f3dfc8; }
-.tony-pixel-widget .tpw-loading-fact-progress span { display: block; width: 100%; height: 100%; background: #ff9436; transform-origin: left; }
-.tony-pixel-widget .tpw-loading-fact-progress span.is-running { animation: tpw-fact-fill 8s linear forwards; }
-@keyframes tpw-fact-fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.tony-pixel-widget .tpw-script-progress { display: block; flex: 1; min-width: 70px; height: 6px; overflow: hidden; border-radius: 6px; background: #f3dfc8; }
+.tony-pixel-widget .tpw-script-progress span { display: block; width: 1%; height: 100%; border-radius: inherit; background: #ff9436; transition: width .5s linear; }
+.tony-pixel-widget .tpw-script-progress-value { min-width: 32px; color: #9a3412; font-size: 11px; font-weight: 800; text-align: right; }
 .tony-pixel-widget .tpw-loading-fact a { color: #111827; font-size: 11px; font-weight: 800; text-decoration: underline; white-space: nowrap; }
+@media (max-width: 480px) {
+    .tony-pixel-widget .tpw-loading-fact-foot { flex-wrap: wrap; gap: 8px; }
+    .tony-pixel-widget .tpw-script-progress { flex-basis: calc(100% - 48px); }
+    .tony-pixel-widget .tpw-loading-fact a { margin-left: auto; }
+}
 
 /* FILE CHIPS */
 .tony-pixel-widget .tpw-files { width: 100%; display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; pointer-events: auto; }
@@ -607,6 +604,7 @@
 .tony-pixel-widget :is(.tpw-duration-options, .tpw-level-options) button:hover { background: #ffedd5; border-color: #000; }
 .tony-pixel-widget :is(.tpw-duration-options, .tpw-level-options) button[aria-pressed="true"] { background: #ff9436; border-color: #000; box-shadow: 1px 2px 0 #000; }
 .tony-pixel-widget :is(.tpw-duration-options, .tpw-level-options) button[aria-pressed="true"]::after { content: '✓'; margin-left: 12px; }
+.tony-pixel-widget .tpw-level-options { width: 240px; }
 .tony-pixel-widget :is(.tpw-duration-picker, .tpw-level-picker) summary:focus-visible,
 .tony-pixel-widget :is(.tpw-duration-options, .tpw-level-options) button:focus-visible { outline: 3px solid #c75a00; outline-offset: 3px; }
 @media (max-width: 767px) {
@@ -675,8 +673,9 @@ const UNLOCK_URL = '/api/unlock-download';
     const levelPicker = $('.tpw-level-picker');
     const levelSummary = levelPicker.querySelector('summary');
     const levelButtons = [...levelPicker.querySelectorAll('[data-level]')];
+    const levelNames = { Low: 'Classic Explainer', Medium: 'Playful Edutainment', High: 'Cinematic Storytelling' };
     const syncLevel = () => {
-      levelPicker.querySelector('.tpw-level-label').textContent = `Crazy: ${levelSelect.value}`;
+      levelPicker.querySelector('.tpw-level-label').textContent = levelNames[levelSelect.value] || levelSelect.value;
       levelButtons.forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.level === levelSelect.value)));
     };
     levelSelect.hidden = true;
@@ -719,7 +718,10 @@ const UNLOCK_URL = '/api/unlock-download';
     const loadingFactTitle = $('.tpw-loading-fact-title');
     const loadingFactText = $('.tpw-loading-fact-text');
     const loadingFactCount = $('.tpw-loading-fact-count');
-    const loadingFactProgress = $('.tpw-loading-fact-progress span');
+    const loadingStage = $('.tpw-loading-stage');
+    const scriptProgress = $('.tpw-script-progress');
+    const scriptProgressFill = $('.tpw-script-progress span');
+    const scriptProgressValue = $('.tpw-script-progress-value');
     const resultBox = $('.tpw-output-result');
     const outputA = $('#tpw-output-a');
     const outputB = $('#tpw-output-b');
@@ -796,6 +798,41 @@ const UNLOCK_URL = '/api/unlock-download';
     let attachedFiles = [];
     let busy = false;
     let loadingFactTimer = null;
+    let scriptProgressTimer = null;
+    let scriptProgressAmount = 1;
+    let scriptProgressCap = 19;
+    function paintScriptProgress(value = Math.min(99, Math.floor(scriptProgressAmount))) {
+      scriptProgressFill.style.width = `${value}%`;
+      scriptProgressValue.textContent = `${value}%`;
+      scriptProgress.setAttribute('aria-valuenow', String(value));
+    }
+    function stopScriptProgress() {
+      if (scriptProgressTimer !== null) clearInterval(scriptProgressTimer);
+      scriptProgressTimer = null;
+    }
+    function startScriptProgress() {
+      stopScriptProgress();
+      scriptProgressAmount = 1;
+      scriptProgressCap = 19;
+      loadingStage.textContent = 'Reading your source · This may take 1–3 minutes';
+      paintScriptProgress(1);
+      scriptProgressTimer = setInterval(() => {
+        scriptProgressAmount = Math.min(scriptProgressCap,
+          scriptProgressAmount + Math.max(0.12, (scriptProgressCap - scriptProgressAmount) * .018));
+        paintScriptProgress();
+      }, 500);
+    }
+    function markSourceReady() {
+      scriptProgressAmount = Math.max(scriptProgressAmount, 20);
+      scriptProgressCap = 99;
+      loadingStage.textContent = 'Writing your first script · This may take 1–3 minutes';
+      paintScriptProgress();
+    }
+    function finishScriptProgress() {
+      stopScriptProgress();
+      scriptProgressAmount = 100;
+      paintScriptProgress(100);
+    }
     const loadingFacts = [
       { title: 'Complex ideas, made clear', text: 'F.Learning uses animation to turn difficult topics into visual explanations.' },
       { title: 'Patient education', text: 'Medical animation can explain treatments, procedures, and care journeys.' },
@@ -819,10 +856,8 @@ const UNLOCK_URL = '/api/unlock-download';
         loadingFactText.textContent = fact.text;
         loadingFactCount.textContent = `${String(index + 1).padStart(2, '0')} / ${String(loadingFacts.length).padStart(2, '0')}`;
         loadingFactContent.classList.remove('is-entering');
-        loadingFactProgress.classList.remove('is-running');
         void loadingFactContent.offsetWidth;
         loadingFactContent.classList.add('is-entering');
-        loadingFactProgress.classList.add('is-running');
       };
       showFact();
       loadingFactTimer = setInterval(() => {
@@ -1271,7 +1306,7 @@ const UNLOCK_URL = '/api/unlock-download';
         return;
       }
 
-      const meta = `Duration: ${data.duration}${data.skill_source === 'original' && data.level ? ` · Crazy Dial: ${data.level}` : ''}`;
+      const meta = `Duration: ${data.duration}${data.skill_source === 'original' && data.level ? ` · Crazy Dial: ${levelNames[data.level] || data.level}` : ''}`;
       // data.preface_md (doc diagnosis / setup / version-comparison notes) is still returned by
       // the API and available here if ever needed again — just not shown in this UI anymore.
 
@@ -1308,6 +1343,7 @@ const UNLOCK_URL = '/api/unlock-download';
       busy = true;
       mainContainer.classList.add('has-output');
       loadingOverlay.classList.add('is-loading');
+      startScriptProgress();
       startLoadingFacts();
       resultBox.classList.remove('is-ready');
 
@@ -1315,7 +1351,7 @@ const UNLOCK_URL = '/api/unlock-download';
       fd.append('text', text);
       const selectedDuration = durationSelect.value;
       const selectedLevel = levelControl.hidden ? null : levelSelect.value;
-      const runMeta = `Duration: ${selectedDuration}${selectedLevel ? ` · Crazy Dial: ${selectedLevel}` : ''}`;
+      const runMeta = `Duration: ${selectedDuration}${selectedLevel ? ` · Crazy Dial: ${levelNames[selectedLevel]}` : ''}`;
       fd.append('duration', selectedDuration);
       if (selectedLevel) fd.append('level', selectedLevel);
       attachedFiles.forEach((f) => fd.append('files', f, f.name));
@@ -1326,6 +1362,7 @@ const UNLOCK_URL = '/api/unlock-download';
         const res = await fetch(API_URL, {
           method: 'POST', headers: { Accept: 'application/x-ndjson' }, body: fd,
         });
+        if (res.ok) markSourceReady();
         if (res.headers.get('content-type')?.includes('application/x-ndjson')) {
           if (!res.body) throw new Error('Streaming response is unavailable.');
           const reader = res.body.getReader();
@@ -1338,6 +1375,7 @@ const UNLOCK_URL = '/api/unlock-download';
             if (event.type === 'version_a') {
               acceptDownloadAccess(event);
               receivedA = true;
+              finishScriptProgress();
               stopLoadingFacts();
               loadingOverlay.classList.remove('is-loading');
               resultBox.classList.add('is-ready');
@@ -1356,6 +1394,7 @@ const UNLOCK_URL = '/api/unlock-download';
             } else if (event.type === 'version_b') {
               acceptDownloadAccess(event);
               receivedB = true;
+              finishScriptProgress();
               stopLoadingFacts();
               loadingOverlay.classList.remove('is-loading');
               resultBox.classList.add('is-ready');
@@ -1372,6 +1411,7 @@ const UNLOCK_URL = '/api/unlock-download';
               }
             } else if (event.type === 'complete') {
               completed = true;
+              finishScriptProgress();
               stopLoadingFacts();
               loadingOverlay.classList.remove('is-loading');
               showResult(event.data || {});
@@ -1400,6 +1440,7 @@ const UNLOCK_URL = '/api/unlock-download';
         // no longer enough to tell success from failure.
         if (data.error) throw new Error(data.error);
         if (!res.ok) throw new Error(`Request failed (${res.status})`);
+        finishScriptProgress();
         loadingOverlay.classList.remove('is-loading');
         stopLoadingFacts();
         showResult(data);
@@ -1407,6 +1448,7 @@ const UNLOCK_URL = '/api/unlock-download';
           metaB.textContent = `Skipped (unsupported): ${data.skipped.join(', ')}`;
         }
       } catch (err) {
+        stopScriptProgress();
         stopLoadingFacts();
         loadingOverlay.classList.remove('is-loading');
         if (receivedA || receivedB) {
@@ -1427,6 +1469,7 @@ const UNLOCK_URL = '/api/unlock-download';
             : `Version ${receivedA ? 'A' : 'B'} is available above. The other version could not be completed.`;
         } else showError(err.message || 'Something went wrong.');
       } finally {
+        stopScriptProgress();
         stopLoadingFacts();
         busy = false;
       }

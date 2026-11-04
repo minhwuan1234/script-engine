@@ -19,8 +19,9 @@ storytelling technique. The uploaded document remains the only factual source.
 The original skill infers the ICP and chooses two contrasting styles itself. It
 does not call the Luna ICP classifier or record A/B preference votes. The first
 successful PDF download does not train or select a style in this mode. The
-original skill may choose First-person Journey. The UI's Crazy Dial lets visitors
-choose Low, Medium or High; both versions use the same chosen level. Requests
+original skill may choose First-person Journey. The UI's Crazy Dial offers
+Classic Explainer (Low), Playful Edutainment (Medium), and Cinematic Storytelling
+(High); both versions use the same chosen level. Requests
 without a level default to Medium. The runtime guidance requires each hook's
 spoken lines to identify the subject and viewer problem within 15 seconds. It
 removes the archived guide's 15-word-per-line suggestion, leaving spoken pacing
@@ -36,6 +37,9 @@ The browser requests `/api/generate` as NDJSON,
 shows Version A when complete, then Version B, and offers a PDF download for each.
 The Crazy Dial control is shown only in original mode, where the selected level
 is passed to the writing skill and shown in each result card.
+During generation, the F.Learning facts rotate every eight seconds. A separate
+estimated script progress bar advances with the request, stays below 100% until
+the first version arrives, and replaces the old circular spinner.
 It displays labeled plain text and does not show token/cost usage. The original
 skill writes Markdown internally; `server.js` converts its tables and headings
 to the existing plain-text result format. The server still records usage in a
