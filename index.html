@@ -19,7 +19,7 @@
         <section class="tpw-intro" aria-labelledby="tpw-heading">
             <div class="tpw-eyebrow"><strong>F.Learning</strong> · Script Studio</div>
             <h1 id="tpw-heading"><span class="tpw-heading-line">Turn your text-wall nightmare</span> <span class="tpw-heading-line">into a script people <span class="tpw-underline">can’t scroll past.</span></span></h1>
-            <p>Drop a dense PDF, deck, or ebook. Get a YouTube-ready script back - then drag one slider to decide how far it leans, from calm-and-educational to impossible-to-look-away.</p>
+            <p>Drop a dense PDF, deck, or ebook. Get a YouTube-ready script back - then choose a Crazy Dial level, from calm-and-educational to impossible-to-look-away.</p>
         </section>
         <div class="tpw-main-container">
 
@@ -49,8 +49,19 @@
                     </div>
 
                     <div class="tpw-level-control">
-                        <label for="tpw-level">Crazy Dial <output class="tpw-level-value" for="tpw-level">Medium</output></label>
-                        <input id="tpw-level" class="tpw-level" type="range" min="0" max="2" step="1" value="1" aria-label="Crazy Dial" aria-valuetext="Medium">
+                        <select class="tpw-level" aria-label="Crazy Dial">
+                            <option value="Low">Low</option>
+                            <option value="Medium" selected>Medium</option>
+                            <option value="High">High</option>
+                        </select>
+                        <details class="tpw-level-picker" hidden>
+                            <summary aria-label="Crazy Dial"><span class="tpw-level-label">Crazy: Medium</span><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></summary>
+                            <div class="tpw-level-options" role="group" aria-label="Crazy Dial options">
+                                <button type="button" data-level="Low" aria-pressed="false">Low</button>
+                                <button type="button" data-level="Medium" aria-pressed="true">Medium</button>
+                                <button type="button" data-level="High" aria-pressed="false">High</button>
+                            </div>
+                        </details>
                     </div>
 
                     <div class="tpw-actions">
@@ -368,38 +379,23 @@
 .tony-pixel-widget button { font-family: inherit; }
 
 /* DURATION */
-.tony-pixel-widget select.tpw-duration {
+.tony-pixel-widget :is(select.tpw-duration, select.tpw-level) {
     flex: 0 0 auto; height: 34px; padding: 0 10px; margin: 0;
     border: 1.5px solid #000000 !important; border-radius: 999px !important;
     background: #ffedd5 !important; color: #000000 !important; font-size: 12px; font-weight: 800; cursor: pointer;
     appearance: none; -webkit-appearance: none; -moz-appearance: none;
     transform: none !important; transition: background-color .15s ease;
 }
-.tony-pixel-widget select.tpw-duration:hover { background-color: #ffebd2 !important; }
-.tony-pixel-widget select.tpw-duration {
+.tony-pixel-widget :is(select.tpw-duration, select.tpw-level):hover { background-color: #ffebd2 !important; }
+.tony-pixel-widget :is(select.tpw-duration, select.tpw-level) {
     padding-right: 32px !important;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
     background-repeat: no-repeat !important;
     background-position: right 10px center !important;
     background-size: 16px 16px !important;
 }
-.tony-pixel-widget select.tpw-duration:focus-visible { outline: 2px solid #7c2d12 !important; outline-offset: 2px; }
-.tony-pixel-widget .tpw-level-control {
-    flex: 0 0 136px; display: flex; flex-direction: column; justify-content: center;
-    gap: 3px; min-width: 0; padding: 5px 10px; border: 1.5px solid #000;
-    border-radius: 12px; background: #ffedd5;
-}
+.tony-pixel-widget :is(select.tpw-duration, select.tpw-level):focus-visible { outline: 2px solid #7c2d12 !important; outline-offset: 2px; }
 .tony-pixel-widget .tpw-level-control[hidden] { display: none; }
-.tony-pixel-widget .tpw-level-control label {
-    display: flex; justify-content: space-between; gap: 8px; color: #000;
-    font-size: 10px; font-weight: 800; white-space: nowrap;
-}
-.tony-pixel-widget .tpw-level-value { color: #9a3412; }
-.tony-pixel-widget input.tpw-level {
-    display: block; width: 100%; height: 12px; margin: 0; padding: 0;
-    border: 0; background: transparent; accent-color: #e86c0a; cursor: pointer;
-}
-.tony-pixel-widget input.tpw-level:focus-visible { outline: 2px solid #7c2d12; outline-offset: 2px; }
 
 
 /* PLUS */
@@ -471,7 +467,7 @@
     .tony-pixel-widget .tpw-dropzone { padding: 6px 10px; gap: 6px; flex-wrap: wrap; }
     .tony-pixel-widget .tpw-input { font-size: 14px; }
     .tony-pixel-widget .tpw-input { flex-basis: 100%; }
-    .tony-pixel-widget select.tpw-duration { height: 30px; font-size: 11px; padding: 0 8px; }
+    .tony-pixel-widget :is(select.tpw-duration, select.tpw-level) { height: 30px; font-size: 11px; padding: 0 8px; }
     .tony-pixel-widget button.tpw-plus, .tony-pixel-widget button.tpw-submit { width: 30px; height: 30px; min-width: 30px; min-height: 30px; flex: 0 0 30px; }
     .tony-pixel-widget button.tpw-plus svg { width: 16px; height: 16px; }
     .tony-pixel-widget button.tpw-submit svg { width: 14px; height: 14px; }
@@ -556,7 +552,7 @@
         gap: 12px; padding: 14px;
     }
     .tony-pixel-widget .tpw-input { grid-column: 1 / -1; width: 100%; min-height: 54px; font-size: 16px; }
-    .tony-pixel-widget .tpw-level-control { grid-column: 1 / -1; grid-row: 3; justify-self: stretch; width: 100%; }
+    .tony-pixel-widget .tpw-level-control { grid-column: 1 / -1; grid-row: 3; justify-self: start; }
     .tony-pixel-widget .tpw-actions { grid-column: 2; grid-row: 2; }
     .tony-pixel-widget .tpw-main-container,
     .tony-pixel-widget .tpw-input-wrapper { transition: none; }
@@ -579,42 +575,42 @@
 </style>
 
 <style>
-.tony-pixel-widget .tpw-duration-control { position: relative; flex: 0 0 auto; justify-self: start; }
-.tony-pixel-widget .tpw-duration-control [hidden] { display: none !important; }
-.tony-pixel-widget .tpw-duration-picker summary {
+.tony-pixel-widget :is(.tpw-duration-control, .tpw-level-control) { position: relative; flex: 0 0 auto; justify-self: start; }
+.tony-pixel-widget :is(.tpw-duration-control, .tpw-level-control) [hidden] { display: none !important; }
+.tony-pixel-widget :is(.tpw-duration-picker, .tpw-level-picker) summary {
     display: flex; align-items: center; justify-content: space-between; gap: 12px;
     height: 34px; padding: 0 12px; border: 1.5px solid #000;
     border-radius: 999px; background: #ffedd5; color: #000;
     font-size: 12px; font-weight: 800; cursor: pointer; list-style: none;
 }
-.tony-pixel-widget .tpw-duration-picker summary::-webkit-details-marker { display: none; }
-.tony-pixel-widget .tpw-duration-picker summary:hover { background-color: #ffe2bc; }
-.tony-pixel-widget .tpw-duration-picker summary svg {
+.tony-pixel-widget :is(.tpw-duration-picker, .tpw-level-picker) summary::-webkit-details-marker { display: none; }
+.tony-pixel-widget :is(.tpw-duration-picker, .tpw-level-picker) summary:hover { background-color: #ffe2bc; }
+.tony-pixel-widget :is(.tpw-duration-picker, .tpw-level-picker) summary svg {
     width: 16px; height: 16px; fill: none; stroke: currentColor;
     stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round;
     transition: transform .15s;
 }
-.tony-pixel-widget .tpw-duration-picker[open] summary svg { transform: rotate(180deg); }
-.tony-pixel-widget .tpw-duration-options {
+.tony-pixel-widget :is(.tpw-duration-picker, .tpw-level-picker)[open] summary svg { transform: rotate(180deg); }
+.tony-pixel-widget :is(.tpw-duration-options, .tpw-level-options) {
     position: absolute; bottom: calc(100% + 12px); left: 0; z-index: 25;
     width: 180px; max-width: 80vw; padding: 8px;
     border: 2px solid #000; border-radius: 16px; background: #fffaf3;
     box-shadow: 3px 4px 0 #000; display: grid; gap: 6px;
 }
-.tony-pixel-widget .tpw-duration-options button {
+.tony-pixel-widget :is(.tpw-duration-options, .tpw-level-options) button {
     display: flex; justify-content: space-between; align-items: center;
     width: 100%; min-height: 42px; padding: 9px 12px; margin: 0;
     border: 1.5px solid transparent; border-radius: 10px; background: transparent;
     color: #000; text-align: left; font: inherit; font-size: 13px;
     font-weight: 700; cursor: pointer;
 }
-.tony-pixel-widget .tpw-duration-options button:hover { background: #ffedd5; border-color: #000; }
-.tony-pixel-widget .tpw-duration-options button[aria-pressed="true"] { background: #ff9436; border-color: #000; box-shadow: 1px 2px 0 #000; }
-.tony-pixel-widget .tpw-duration-options button[aria-pressed="true"]::after { content: '✓'; margin-left: 12px; }
-.tony-pixel-widget .tpw-duration-picker summary:focus-visible,
-.tony-pixel-widget .tpw-duration-options button:focus-visible { outline: 3px solid #c75a00; outline-offset: 3px; }
+.tony-pixel-widget :is(.tpw-duration-options, .tpw-level-options) button:hover { background: #ffedd5; border-color: #000; }
+.tony-pixel-widget :is(.tpw-duration-options, .tpw-level-options) button[aria-pressed="true"] { background: #ff9436; border-color: #000; box-shadow: 1px 2px 0 #000; }
+.tony-pixel-widget :is(.tpw-duration-options, .tpw-level-options) button[aria-pressed="true"]::after { content: '✓'; margin-left: 12px; }
+.tony-pixel-widget :is(.tpw-duration-picker, .tpw-level-picker) summary:focus-visible,
+.tony-pixel-widget :is(.tpw-duration-options, .tpw-level-options) button:focus-visible { outline: 3px solid #c75a00; outline-offset: 3px; }
 @media (max-width: 767px) {
-    .tony-pixel-widget .tpw-duration-picker summary { height: 40px; }
+    .tony-pixel-widget :is(.tpw-duration-picker, .tpw-level-picker) summary { height: 40px; }
 }
 </style>
 
@@ -675,15 +671,39 @@ const UNLOCK_URL = '/api/unlock-download';
       }
     });
     const levelControl = $('.tpw-level-control');
-    const levelInput = $('.tpw-level');
-    const levelValue = $('.tpw-level-value');
-    const crazyLevels = ['Low', 'Medium', 'High'];
+    const levelSelect = $('.tpw-level');
+    const levelPicker = $('.tpw-level-picker');
+    const levelSummary = levelPicker.querySelector('summary');
+    const levelButtons = [...levelPicker.querySelectorAll('[data-level]')];
     const syncLevel = () => {
-      const level = crazyLevels[Number(levelInput.value)] || 'Medium';
-      levelValue.value = level;
-      levelInput.setAttribute('aria-valuetext', level);
+      levelPicker.querySelector('.tpw-level-label').textContent = `Crazy: ${levelSelect.value}`;
+      levelButtons.forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.level === levelSelect.value)));
     };
-    levelInput.addEventListener('input', syncLevel);
+    levelSelect.hidden = true;
+    levelPicker.hidden = false;
+    levelSelect.addEventListener('change', syncLevel);
+    levelButtons.forEach((button) => button.addEventListener('click', () => {
+      levelSelect.value = button.dataset.level;
+      levelSelect.dispatchEvent(new Event('change', { bubbles: true }));
+      levelPicker.open = false;
+      levelSummary.focus();
+    }));
+    document.addEventListener('click', (event) => {
+      if (!levelPicker.contains(event.target)) levelPicker.open = false;
+    });
+    levelPicker.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault(); levelPicker.open = false; levelSummary.focus();
+      } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        levelPicker.open = true;
+        const index = levelButtons.indexOf(document.activeElement);
+        const next = index < 0
+          ? (event.key === 'ArrowDown' ? 0 : levelButtons.length - 1)
+          : (index + (event.key === 'ArrowDown' ? 1 : -1) + levelButtons.length) % levelButtons.length;
+        levelButtons[next].focus();
+      }
+    });
     syncLevel();
     fetch('/api/health').then((response) => response.json()).then((health) => {
       levelControl.hidden = health.skillSource !== 'original';
@@ -1294,7 +1314,7 @@ const UNLOCK_URL = '/api/unlock-download';
       const fd = new FormData();
       fd.append('text', text);
       const selectedDuration = durationSelect.value;
-      const selectedLevel = levelControl.hidden ? null : crazyLevels[Number(levelInput.value)];
+      const selectedLevel = levelControl.hidden ? null : levelSelect.value;
       const runMeta = `Duration: ${selectedDuration}${selectedLevel ? ` · Crazy Dial: ${selectedLevel}` : ''}`;
       fd.append('duration', selectedDuration);
       if (selectedLevel) fd.append('level', selectedLevel);
