@@ -47,7 +47,7 @@ import { handleSubmissionAdmin } from './submission-admin.js';
 import { validateSubmission } from './submission-store.js';
 import { createDownloadGate, authorizedPdfInput, readDownloadJSON } from './download-gate.js';
 import { createVersionPublisher } from './version-publisher.js';
-import { handleLabMonitoring } from './lab-monitoring.js';
+import { createUiSamples, handleLabMonitoring, handleUiSample } from './lab-monitoring.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const {
@@ -404,6 +404,8 @@ async function fileToBlock(file) {
 
 /* ---------- usage tracking ---------- */
 const SERVER_STARTED_AT = new Date().toISOString();
+// Browser click-latency samples for AI Agent Lab, stored next to the usage log (same volume).
+const uiSamples = createUiSamples({ file: process.env.UI_SAMPLE_LOG || path.join(path.dirname(USAGE_LOG), 'ui-samples.jsonl') });
 const MAX_RECORDS = 5000;
 let records = [];
 
@@ -963,8 +965,9 @@ http
       }
       if (req.method === 'GET' && pathname === '/internal/monitoring') {
         return handleLabMonitoring(req, res, url, { token: process.env.LAB_MONITORING_TOKEN?.trim(), records,
-          commit: process.env.RAILWAY_GIT_COMMIT_SHA || null, startedAt: SERVER_STARTED_AT });
+          commit: process.env.RAILWAY_GIT_COMMIT_SHA || null, startedAt: SERVER_STARTED_AT, uiSamples: uiSamples.list() });
       }
+      if (req.method === 'POST' && pathname === '/api/monitoring/ui-sample') return await handleUiSample(req, res, uiSamples, clientIp(req));
       if (req.method === 'GET' && pathname === '/api/usage') {
         if (!isAdmin(req, url)) { res.writeHead(404); return res.end('Not found'); }
         return json(res, 200, usageSummary());

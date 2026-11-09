@@ -1325,6 +1325,23 @@ const UNLOCK_URL = '/api/unlock-download';
       void saveDownloadedChoice();
     }
 
+    /* ---------- click latency for AI Agent Lab ---------- */
+    // Generate click → the generating screen painted: the second animation frame runs after the
+    // first frame had a chance to paint. Hidden tabs are skipped; failures are ignored.
+    function sendClickLatency(startedAt) {
+      if (document.hidden) return;
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (document.hidden) return;
+          const ms = performance.now() - startedAt;
+          fetch('/api/monitoring/ui-sample', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ metric: 'clickLatency', ms }), keepalive: true,
+          }).catch(() => {});
+        });
+      });
+    }
+
     /* ---------- submit -> /api/generate ---------- */
     async function submit() {
       if (busy) return;
@@ -1341,11 +1358,13 @@ const UNLOCK_URL = '/api/unlock-download';
       setDownload('B', '', '', '');
 
       busy = true;
+      const clickStartedAt = performance.now();
       mainContainer.classList.add('has-output');
       loadingOverlay.classList.add('is-loading');
       startScriptProgress();
       startLoadingFacts();
       resultBox.classList.remove('is-ready');
+      sendClickLatency(clickStartedAt);
 
       const fd = new FormData();
       fd.append('text', text);
