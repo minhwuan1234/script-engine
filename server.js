@@ -47,6 +47,7 @@ import { handleSubmissionAdmin } from './submission-admin.js';
 import { validateSubmission } from './submission-store.js';
 import { createDownloadGate, authorizedPdfInput, readDownloadJSON } from './download-gate.js';
 import { createVersionPublisher } from './version-publisher.js';
+import { handleLabMonitoring } from './lab-monitoring.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const {
@@ -402,6 +403,7 @@ async function fileToBlock(file) {
 }
 
 /* ---------- usage tracking ---------- */
+const SERVER_STARTED_AT = new Date().toISOString();
 const MAX_RECORDS = 5000;
 let records = [];
 
@@ -958,6 +960,10 @@ http
       if (req.method === 'GET' && (pathname === '/' || pathname === '/index.html')) return serveIndex(res);
       if (req.method === 'GET' && pathname === '/api/health') {
         return json(res, 200, { ok: true, archiveEnabled: !!archiveRuntime, sheetsEnabled: !!archiveRuntime?.sheetsEnabled, hasKey: WRITING_PROVIDER === 'openai' ? !!OPENAI_API_KEY : !!ANTHROPIC_API_KEY && (ORIGINAL_SKILL || !!OPENAI_API_KEY), skillSource: SKILL_SOURCE, model: WRITING_MODEL, provider: WRITING_PROVIDER, icpModel: ORIGINAL_SKILL ? null : ICP_MODEL, crazyLevels: ORIGINAL_SKILL ? CRAZY_LEVELS : ['High'] });
+      }
+      if (req.method === 'GET' && pathname === '/internal/monitoring') {
+        return handleLabMonitoring(req, res, url, { token: process.env.LAB_MONITORING_TOKEN?.trim(), records,
+          commit: process.env.RAILWAY_GIT_COMMIT_SHA || null, startedAt: SERVER_STARTED_AT });
       }
       if (req.method === 'GET' && pathname === '/api/usage') {
         if (!isAdmin(req, url)) { res.writeHead(404); return res.end('Not found'); }

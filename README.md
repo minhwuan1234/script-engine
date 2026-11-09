@@ -64,3 +64,30 @@ Never commit keys or those logs.
 
 Run tests with `node --test original-skill.test.js original-mode.integration.test.js openai-writer.test.js preference-store.test.js`.
 
+## AI Agent Lab monitoring
+
+`GET /internal/monitoring?days=1..30` feeds the Performance → Status tab of AI Agent Lab
+(protocol `app-monitoring-v1` with `profile-v1`, see `lab-monitoring.js`). It is disabled (404)
+until `LAB_MONITORING_TOKEN` is set to a random secret of at least 32 characters. The Lab sends it
+as a bearer token (401 otherwise). Responses are `Cache-Control: private, no-store`.
+
+The report is built from the usage records the server already keeps for each `/api/generate`
+request:
+
+- **Main Job:** `Tạo 2 phiên bản script`, one run per request. Its workload is, for example,
+  `1 tài liệu · DOCX + text · video 2–3 phút · Medium` (file extensions only, never file names,
+  text or scripts).
+- **Sub-jobs**, from the request's timing offsets:
+  - Đọc tài liệu
+  - Phân loại ICP (repository mode only)
+  - Viết Version A
+  - Viết Version B
+  - Hoàn thiện & lưu kết quả
+
+  Non-streaming clients have no version marks, so their writing is a single `Viết kịch bản (A + B)` step.
+- **Outcomes:** `ok` is success and other statuses fail the run. Rate-limited and bad requests are not runs.
+- **Tốc độ phản hồi:** the server-side P95 from the request to Version A being sent.
+
+History lasts as long as the usage log. Set `USAGE_LOG` on a mounted volume (for example
+`/data/usage.jsonl`); otherwise it restarts on each redeploy. Test with `node --test lab-monitoring.test.js`.
+
