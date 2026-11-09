@@ -1,6 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildReport, recordRuns, workloadOf, handleLabMonitoring, MAIN_JOB, STEPS } from './lab-monitoring.js';
+import { buildReport, recordRuns, workloadOf, handleLabMonitoring, createUiSamples, MAIN_JOB, STEPS } from './lab-monitoring.js';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 
 const NOW = Date.parse('2026-11-10T10:00:00Z');
 const rec = (extra) => ({ ts: '2026-11-10T09:00:00.000Z', status: 'ok', duration: '2-3 mins', level: 'Medium', files: ['docx'], text_chars: 0,
@@ -53,4 +56,28 @@ test('the endpoint is disabled without a token and checks the bearer token and d
   assert.equal(ok.status, 200);
   assert.equal(ok.headers['Cache-Control'], 'private, no-store');
   assert.equal(JSON.parse(ok.body).runtime.commit, 'abc');
+});
+
+test('browser click-latency samples are validated, rate-limited, persisted and reported', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ui-samples-'));
+  const file = path.join(dir, 'ui-samples.jsonl');
+  let t = NOW - 3600000;
+  const store = createUiSamples({ file, perHour: 3, now: () => t });
+  assert.equal(store.record(JSON.stringify({ metric: 'clickLatency', ms: 42.37 }), '1.1.1.1'), 204);
+  assert.equal(store.record(JSON.stringify({ metric: 'responseTime', ms: 5 }), '1.1.1.1'), 400, 'only click latency is accepted');
+  assert.equal(store.record(JSON.stringify({ metric: 'clickLatency', ms: -1 }), '1.1.1.1'), 400);
+  assert.equal(store.record('x'.repeat(300), '1.1.1.1'), 413);
+  store.record(JSON.stringify({ metric: 'clickLatency', ms: 80 }), '1.1.1.1');
+  store.record(JSON.stringify({ metric: 'clickLatency', ms: 120 }), '1.1.1.1');
+  assert.equal(store.record(JSON.stringify({ metric: 'clickLatency', ms: 90 }), '1.1.1.1'), 429, 'per-IP hourly limit');
+  assert.deepEqual(store.list().map((x) => x.ms), [42.4, 80, 120]);
+  return new Promise((done) => setTimeout(() => {
+    const reloaded = createUiSamples({ file });
+    assert.equal(reloaded.list().length, 3, 'samples survive a restart');
+    const r = buildReport([], { days: 7, now: NOW, uiSamples: reloaded.list() });
+    assert.deepEqual(r.performanceKpis.clickLatency, { p95Ms: 120, samples: 3 });
+    assert.ok(r.profile.kpiDescriptions.clickLatency.includes('Generate'));
+    fs.rmSync(dir, { recursive: true, force: true });
+    done();
+  }, 50));
 });

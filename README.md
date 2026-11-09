@@ -87,6 +87,9 @@ request:
   Non-streaming clients have no version marks, so their writing is a single `Viết kịch bản (A + B)` step.
 - **Outcomes:** `ok` is success and other statuses fail the run. Rate-limited and bad requests are not runs.
 - **Tốc độ phản hồi:** the server-side P95 from the request to Version A being sent.
+- **Độ nhạy thao tác:** a browser-measured P95 from the Generate click until the generating screen is painted.
+  - The page posts `{metric: "clickLatency", ms}` to `POST /api/monitoring/ui-sample`. The server checks each sample (0–60 s, body of 200 bytes at most) and allows 60 per IP per hour.
+  - Only the duration and time are stored, in `ui-samples.jsonl` next to `USAGE_LOG` (or at `UI_SAMPLE_LOG`).
 
 History lasts as long as the usage log. Set `USAGE_LOG` on a mounted volume (for example
 `/data/usage.jsonl`); otherwise it restarts on each redeploy. Test with `node --test lab-monitoring.test.js`.
