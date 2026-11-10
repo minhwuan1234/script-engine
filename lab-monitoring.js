@@ -55,9 +55,16 @@ export function recordRuns(rec, index) {
   return [main, ...steps];
 }
 
-const p95 = (values) => {
+export const KPI_STANDARD = 'ui-kpi-v2';
+// Browser metrics accepted by POST /api/monitoring/ui-sample, with their upper bound (ms).
+export const UI_METRICS = { clickLatency: 60000, responseTime: 600000 };
+
+// Nearest-rank P95 over the raw samples (0.1 ms precision as stored), no bucketing or smoothing.
+export const p95 = (values) => {
   const sorted = values.filter((v) => Number.isFinite(v)).sort((x, y) => x - y);
-  return sorted.length ? { p95Ms: sorted[Math.ceil(0.95 * sorted.length) - 1], samples: sorted.length } : { p95Ms: null, samples: 0 };
+  return sorted.length
+    ? { p95Ms: sorted[Math.ceil(0.95 * sorted.length) - 1], samples: sorted.length, precision: 'exact' }
+    : { p95Ms: null, samples: 0, precision: 'exact' };
 };
 
 export function buildReport(records, { days, now = Date.now(), commit = null, startedAt = null, uiSamples = [] } = {}) {
@@ -79,10 +86,12 @@ export function buildReport(records, { days, now = Date.now(), commit = null, st
     // No database is required: the report reads the server's usage records, so it is always ready.
     database: { status: 'ready' },
     jobRuns: { since: new Date(horizon).toISOString(), complete: records.length < 5000, runs: runs.slice(0, 5000) },
-    // Server-side time from the request to Version A being sent (first meaningful result).
+    // ui-kpi-v2: both KPIs are measured in the browser (index.html) from the Generate click.
+    // responseTime ends when the UI shows the server's first stream event (`accepted`) — it never
+    // waits for Version A or the AI; Version A time stays visible as a step in jobRuns.
     performanceKpis: {
-      responseTime: p95(inWindow.map((r) => ms(r.version_a_ms))),
-      // Browser-measured: click on Generate → the generating screen painted (index.html).
+      standard: KPI_STANDARD,
+      responseTime: p95(uiSamples.filter((x) => x.metric === 'responseTime' && Date.parse(x.ts) >= windowStart).map((x) => x.ms)),
       clickLatency: p95(uiSamples.filter((x) => x.metric === 'clickLatency' && Date.parse(x.ts) >= windowStart).map((x) => x.ms)),
       jobs: { executed: inWindow.length, validCompletions: inWindow.filter((r) => r.status === 'ok').length, technicalErrors: null },
     },
@@ -90,8 +99,11 @@ export function buildReport(records, { days, now = Date.now(), commit = null, st
       version: 'profile-v1',
       mainJob: { job: MAIN_JOB, steps: STEPS },
       kpiDescriptions: {
-        responseTime: 'Gửi yêu cầu tạo script → Version A được gửi về trình duyệt (đo phía server)',
-        clickLatency: "Bấm 'Generate' → màn hình đang tạo script hiển thị (đo trong trình duyệt)",
+        responseTime: "Bắt đầu: thời điểm bấm 'Generate' (event.timeStamp, hoặc performance.now() khi bắt đầu xử lý) → Kết thúc: "
+          + "khung hình thứ 2 (requestAnimationFrame lồng nhau) sau khi giao diện hiển thị hệ thống đã nhận yêu cầu "
+          + "(sự kiện stream đầu tiên 'accepted' từ /api/generate). Đo trong trình duyệt, không chờ Version A hay AI viết xong.",
+        clickLatency: "Bắt đầu: thời điểm bấm 'Generate' (event.timeStamp, hoặc performance.now() khi bắt đầu xử lý) → Kết thúc: "
+          + "khung hình thứ 2 (requestAnimationFrame lồng nhau) sau khi màn hình 'đang tạo script' được hiển thị. Đo trong trình duyệt.",
       },
     },
   };
@@ -112,7 +124,7 @@ export function handleLabMonitoring(req, res, url, { token, records, commit, sta
   return send(200, buildReport(records, { days, commit, startedAt, uiSamples }));
 }
 
-// Browser UI samples (click latency): bounded, rate-limited per IP, kept in memory and appended to
+// Browser UI samples (clickLatency, responseTime): bounded, rate-limited per IP and metric, kept in memory and appended to
 // a JSONL file next to the usage log so they survive redeploys on a volume. Only the metric name,
 // the duration and the time are stored.
 export function createUiSamples({ file, max = 5000, perHour = 60, now = () => Date.now() } = {}) {
@@ -121,7 +133,7 @@ export function createUiSamples({ file, max = 5000, perHour = 60, now = () => Da
     if (file && fs.existsSync(file)) {
       samples = fs.readFileSync(file, 'utf8').split('\n').filter(Boolean).slice(-max)
         .map((line) => { try { return JSON.parse(line); } catch { return null; } })
-        .filter((x) => x && x.metric === 'clickLatency' && Number.isFinite(x.ms));
+        .filter((x) => x && Object.hasOwn(UI_METRICS, x.metric) && Number.isFinite(x.ms));
     }
   } catch {}
   const hits = new Map();
@@ -132,15 +144,16 @@ export function createUiSamples({ file, max = 5000, perHour = 60, now = () => Da
       if (typeof body !== 'string' || body.length > 200) return 413;
       let input;
       try { input = JSON.parse(body); } catch { return 400; }
-      const value = Number(input?.ms);
-      if (input?.metric !== 'clickLatency' || !Number.isFinite(value) || value < 0 || value > 60000) return 400;
-      const t = now(), key = String(ip || '').slice(0, 64);
+      const metric = input?.metric;
+      const value = typeof input?.ms === 'number' ? input.ms : NaN;
+      if (typeof metric !== 'string' || !Object.hasOwn(UI_METRICS, metric) || !Number.isFinite(value) || value < 0 || value > UI_METRICS[metric]) return 400;
+      const t = now(), key = metric + ':' + String(ip || '').slice(0, 64);
       const recent = (hits.get(key) || []).filter((x) => t - x < 3600000);
       if (recent.length >= perHour) return 429;
       recent.push(t);
       hits.set(key, recent);
       if (hits.size > 5000) hits.clear();
-      const sample = { ts: new Date(t).toISOString(), metric: 'clickLatency', ms: Math.round(value * 10) / 10 };
+      const sample = { ts: new Date(t).toISOString(), metric, ms: Math.round(value * 10) / 10 };
       samples.push(sample);
       if (samples.length > max) samples.shift();
       if (file) {
@@ -154,7 +167,7 @@ export function createUiSamples({ file, max = 5000, perHour = 60, now = () => Da
   };
 }
 
-// POST /api/monitoring/ui-sample — body {"metric":"clickLatency","ms":number}.
+// POST /api/monitoring/ui-sample — body {"metric":"clickLatency"|"responseTime","ms":number}.
 export async function handleUiSample(req, res, uiSamples, ip) {
   let size = 0;
   const chunks = [];

@@ -825,7 +825,7 @@ const UNLOCK_URL = '/api/unlock-download';
     function markSourceReady() {
       scriptProgressAmount = Math.max(scriptProgressAmount, 20);
       scriptProgressCap = 99;
-      loadingStage.textContent = 'Writing your first script · This may take 1–3 minutes';
+      loadingStage.textContent = 'Request received · Writing your first script · This may take 1–3 minutes';
       paintScriptProgress();
     }
     function finishScriptProgress() {
@@ -1100,7 +1100,7 @@ const UNLOCK_URL = '/api/unlock-download';
       updateSubmit();
     });
     input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(); }
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(e); }
     });
 
     function updateSubmit() {
@@ -1325,25 +1325,35 @@ const UNLOCK_URL = '/api/unlock-download';
       void saveDownloadedChoice();
     }
 
-    /* ---------- click latency for AI Agent Lab ---------- */
-    // Generate click → the generating screen painted: the second animation frame runs after the
-    // first frame had a chance to paint. Hidden tabs are skipped; failures are ignored.
-    function sendClickLatency(startedAt) {
+    /* ---------- UI KPIs for AI Agent Lab (standard ui-kpi-v2) ---------- */
+    // Start: the click/keydown event's timeStamp when it is on the performance.now() clock
+    // (positive, not in the future, at most 10 s old); otherwise performance.now() at handler start.
+    function interactionStart(event) {
+      const now = performance.now();
+      const ts = event && event.timeStamp;
+      return Number.isFinite(ts) && ts > 0 && ts <= now && now - ts <= 10000 ? ts : now;
+    }
+    // End: inside the second nested animation frame after the UI change, i.e. after the frame
+    // showing it had a chance to paint. Hidden tabs are skipped; failures are ignored.
+    //   clickLatency: start → the generating screen painted.
+    //   responseTime: start → the first stream event ('accepted') shown in the UI.
+    function sendUiSample(metric, startedAt) {
       if (document.hidden) return;
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           if (document.hidden) return;
-          const ms = performance.now() - startedAt;
+          const ms = Math.round((performance.now() - startedAt) * 10) / 10;
           fetch('/api/monitoring/ui-sample', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ metric: 'clickLatency', ms }), keepalive: true,
+            body: JSON.stringify({ metric, ms }), keepalive: true,
           }).catch(() => {});
         });
       });
     }
 
     /* ---------- submit -> /api/generate ---------- */
-    async function submit() {
+    async function submit(event) {
+      const clickStartedAt = interactionStart(event);
       if (busy) return;
       const text = input.value;
       if (!text.trim() && attachedFiles.length === 0) return;
@@ -1358,13 +1368,12 @@ const UNLOCK_URL = '/api/unlock-download';
       setDownload('B', '', '', '');
 
       busy = true;
-      const clickStartedAt = performance.now();
       mainContainer.classList.add('has-output');
       loadingOverlay.classList.add('is-loading');
       startScriptProgress();
       startLoadingFacts();
       resultBox.classList.remove('is-ready');
-      sendClickLatency(clickStartedAt);
+      sendUiSample('clickLatency', clickStartedAt);
 
       const fd = new FormData();
       fd.append('text', text);
@@ -1381,15 +1390,24 @@ const UNLOCK_URL = '/api/unlock-download';
         const res = await fetch(API_URL, {
           method: 'POST', headers: { Accept: 'application/x-ndjson' }, body: fd,
         });
-        if (res.ok) markSourceReady();
-        if (res.headers.get('content-type')?.includes('application/x-ndjson')) {
+        const isStream = res.headers.get('content-type')?.includes('application/x-ndjson');
+        if (res.ok && !isStream) markSourceReady(); // streams show acceptance on their first event
+        if (isStream) {
           if (!res.body) throw new Error('Streaming response is unavailable.');
           const reader = res.body.getReader();
           const decoder = new TextDecoder();
           let buffer = '';
           let completed = false;
+          let shownAccepted = false;
           const handleEvent = (event) => {
-            if (event.type === 'heartbeat') return;
+            // The first stream event — normally 'accepted', sent before any AI work — means the
+            // server took the job: show it, then time responseTime to that paint (once per run).
+            if (!shownAccepted && event.type !== 'error') {
+              shownAccepted = true;
+              markSourceReady();
+              sendUiSample('responseTime', clickStartedAt);
+            }
+            if (event.type === 'heartbeat' || event.type === 'accepted') return;
             if (event.type === 'error') throw new Error(event.error || 'Generation failed.');
             if (event.type === 'version_a') {
               acceptDownloadAccess(event);
