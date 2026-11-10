@@ -86,9 +86,10 @@ request:
 
   Non-streaming clients have no version marks, so their writing is a single `Viết kịch bản (A + B)` step.
 - **Outcomes:** `ok` is success and other statuses fail the run. Rate-limited and bad requests are not runs.
-- **Tốc độ phản hồi:** the server-side P95 from the request to Version A being sent.
-- **Độ nhạy thao tác:** a browser-measured P95 from the Generate click until the generating screen is painted.
-  - The page posts `{metric: "clickLatency", ms}` to `POST /api/monitoring/ui-sample`. The server checks each sample (0–60 s, body of 200 bytes at most) and allows 60 per IP per hour.
+- **KPI standard `ui-kpi-v2`:** both KPIs are measured in the browser and reported as nearest-rank P95 over the raw samples (0.1 ms, `precision: "exact"`). Start = the Generate click/Enter event's `timeStamp` (or `performance.now()` at handler start); end = inside the second nested `requestAnimationFrame` after the UI change. Hidden tabs are skipped.
+- **Tốc độ phản hồi (`responseTime`, target 2.5 s):** click → the UI shows the first stream event of `/api/generate` (`accepted`, sent right after the request is validated and stored, before extraction, ICP or AI writing). It never waits for Version A; Version A time stays a step in `jobRuns`.
+- **Độ nhạy thao tác (`clickLatency`, target 200 ms):** click → the generating screen is painted.
+  - The page posts `{metric: "clickLatency" | "responseTime", ms}` to `POST /api/monitoring/ui-sample`. The server checks each sample (clickLatency 0–60 s, responseTime 0–600 s, body of 200 bytes at most) and allows 60 per IP per metric per hour.
   - Only the duration and time are stored, in `ui-samples.jsonl` next to `USAGE_LOG` (or at `UI_SAMPLE_LOG`).
 
 History lasts as long as the usage log. Set `USAGE_LOG` on a mounted volume (for example

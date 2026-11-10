@@ -706,6 +706,19 @@ async function handleGenerate(req, res) {
   const sendEvent = (type, payload = {}) => {
     if (streamResults && !res.destroyed) res.write(JSON.stringify({ type, ...payload }) + '\n');
   };
+  // Sends the 200 headers and starts the keep-alive once. Since headers go out early with
+  // status 200, later errors live in the response body (see finish()).
+  const startResponse = () => {
+    if (res.headersSent) return;
+    res.writeHead(200, {
+      'Content-Type': streamResults ? 'application/x-ndjson; charset=utf-8' : 'application/json; charset=utf-8',
+      'Cache-Control': 'no-cache, no-transform',
+      'X-Accel-Buffering': 'no',
+    });
+    heartbeat = setInterval(() => {
+      try { if (streamResults) sendEvent('heartbeat'); else res.write(' '); } catch {}
+    }, 15000);
+  };
 
   // Once callClaude() starts, this can run for a while. Node was already streaming from
   // Anthropic internally, but the browser never saw a byte until everything was done —
@@ -752,6 +765,15 @@ async function handleGenerate(req, res) {
       }
     }
 
+    // ui-kpi-v2: the browser's responseTime ends when the UI shows this first event, so it is
+    // sent as soon as the request is validated and stored — before file extraction, ICP
+    // classification or any AI writing starts. Non-streaming clients keep the old timing.
+    if (streamResults) {
+      startResponse();
+      sendEvent('accepted', submissionId ? { submissionId } : {});
+      rec.accepted_ms = Date.now() - t0;
+    }
+
     const blocks = [];
     const skipped = [];
     const fileTypes = [];
@@ -768,11 +790,12 @@ async function handleGenerate(req, res) {
     rec.extract_ms = Date.now() - t0;
     if (!text && blocks.length === 0) {
       rec.status = 'bad_request';
-      return json(res, 400, {
-        error: skipped.length
-          ? `Could not read file(s): ${skipped.join(', ')}. Use PDF, DOCX, PPTX, TXT, MD or paste text.`
-          : 'Provide text or a file.',
-      });
+      const error = skipped.length
+        ? `Could not read file(s): ${skipped.join(', ')}. Use PDF, DOCX, PPTX, TXT, MD or paste text.`
+        : 'Provide text or a file.';
+      // A streaming client already got 200 + `accepted`; the error goes in the body.
+      if (res.headersSent) return finish({ error });
+      return json(res, 400, { error });
     }
 
     // Pre-computed here, not asked of the model: the exact word/timing budget for the
@@ -812,15 +835,9 @@ async function handleGenerate(req, res) {
       `Return the final result in the skill's required output-format.md structure, as plain text — nothing else before or after it. Do not use Markdown or JSON.` +
       (text ? `\n\n--- Pasted text / instructions ---\n${text}` : '');
 
-    // From here on, the wait can run well past a minute — start the keep-alive.
-    res.writeHead(200, {
-      'Content-Type': streamResults ? 'application/x-ndjson; charset=utf-8' : 'application/json; charset=utf-8',
-      'Cache-Control': 'no-cache, no-transform',
-      'X-Accel-Buffering': 'no',
-    });
-    heartbeat = setInterval(() => {
-      try { if (streamResults) sendEvent('heartbeat'); else res.write(' '); } catch {}
-    }, 15000);
+    // From here on, the wait can run well past a minute — start the keep-alive
+    // (streaming clients already got headers + `accepted` above).
+    startResponse();
 
     versionPublisher = createVersionPublisher({ store: archiveRuntime?.store, submissionId,
       ownerToken: downloadOwnerToken, sendEvent,

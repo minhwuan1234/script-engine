@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildReport, recordRuns, workloadOf, handleLabMonitoring, createUiSamples, MAIN_JOB, STEPS } from './lab-monitoring.js';
+import { buildReport, recordRuns, workloadOf, handleLabMonitoring, createUiSamples, p95, MAIN_JOB, STEPS } from './lab-monitoring.js';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -37,7 +37,11 @@ test('the report follows app-monitoring-v1 with profile, runs and response time'
   assert.equal(r.window.days, 7);
   assert.deepEqual(r.profile.mainJob, { job: MAIN_JOB, steps: STEPS });
   assert.equal(r.jobRuns.runs.filter((x) => x.job === MAIN_JOB).length, 2, 'runs older than 61 days are left out');
-  assert.deepEqual(r.performanceKpis.responseTime, { p95Ms: 40000, samples: 1 }, 'only the 7-day window counts for the KPI');
+  assert.equal(r.performanceKpis.standard, 'ui-kpi-v2');
+  assert.deepEqual(r.performanceKpis.responseTime, { p95Ms: null, samples: 0, precision: 'exact' },
+    'server-side version_a_ms is no longer reported as responseTime');
+  assert.ok(r.jobRuns.runs.some((x) => x.job === 'Viết Version A'), 'Version A time stays available as a step');
+  assert.equal(r.performanceKpis.jobs.executed, 1, 'only the 7-day window counts for jobs');
   assert.equal(r.database.status, 'ready');
 });
 
@@ -64,7 +68,9 @@ test('browser click-latency samples are validated, rate-limited, persisted and r
   let t = NOW - 3600000;
   const store = createUiSamples({ file, perHour: 3, now: () => t });
   assert.equal(store.record(JSON.stringify({ metric: 'clickLatency', ms: 42.37 }), '1.1.1.1'), 204);
-  assert.equal(store.record(JSON.stringify({ metric: 'responseTime', ms: 5 }), '1.1.1.1'), 400, 'only click latency is accepted');
+  assert.equal(store.record(JSON.stringify({ metric: 'version_a', ms: 5 }), '1.1.1.1'), 400, 'unknown metrics are rejected');
+  assert.equal(store.record(JSON.stringify({ metric: 'clickLatency', ms: 60001 }), '1.1.1.1'), 400, 'clickLatency max 60 s');
+  assert.equal(store.record(JSON.stringify({ metric: 'clickLatency', ms: '42' }), '1.1.1.1'), 400, 'ms must be a number');
   assert.equal(store.record(JSON.stringify({ metric: 'clickLatency', ms: -1 }), '1.1.1.1'), 400);
   assert.equal(store.record('x'.repeat(300), '1.1.1.1'), 413);
   store.record(JSON.stringify({ metric: 'clickLatency', ms: 80 }), '1.1.1.1');
@@ -75,9 +81,31 @@ test('browser click-latency samples are validated, rate-limited, persisted and r
     const reloaded = createUiSamples({ file });
     assert.equal(reloaded.list().length, 3, 'samples survive a restart');
     const r = buildReport([], { days: 7, now: NOW, uiSamples: reloaded.list() });
-    assert.deepEqual(r.performanceKpis.clickLatency, { p95Ms: 120, samples: 3 });
+    assert.deepEqual(r.performanceKpis.clickLatency, { p95Ms: 120, samples: 3, precision: 'exact' });
     assert.ok(r.profile.kpiDescriptions.clickLatency.includes('Generate'));
     fs.rmSync(dir, { recursive: true, force: true });
     done();
   }, 50));
+});
+
+test('browser responseTime samples are accepted within bounds and reported as exact P95 (ui-kpi-v2)', () => {
+  let t = NOW - 3600000;
+  const store = createUiSamples({ perHour: 30, now: () => t });
+  assert.equal(store.record(JSON.stringify({ metric: 'responseTime', ms: 600001 }), '2.2.2.2'), 400, 'responseTime max 600 s');
+  assert.equal(store.record(JSON.stringify({ metric: 'responseTime', ms: -0.1 }), '2.2.2.2'), 400);
+  assert.equal(store.record(JSON.stringify({ metric: 'responseTime', ms: 600000 }), '2.2.2.2'), 204, 'upper bound is inclusive');
+  // 20 more samples 100.04 … 2000.04 ms → 21 raw samples; nearest rank ceil(0.95·21) = 20.
+  for (let i = 1; i <= 20; i++) assert.equal(store.record(JSON.stringify({ metric: 'responseTime', ms: i * 100 + 0.04 }), '2.2.2.2'), 204);
+  assert.equal(store.record(JSON.stringify({ metric: 'clickLatency', ms: 33.33 }), '2.2.2.2'), 204, 'limits are per metric');
+  t = NOW - 30 * 86400000; // outside the 7-day window
+  store.record(JSON.stringify({ metric: 'responseTime', ms: 1 }), '3.3.3.3');
+  const r = buildReport([rec({ version_a_ms: 23000 })], { days: 7, now: NOW, uiSamples: store.list() });
+  assert.equal(r.performanceKpis.standard, 'ui-kpi-v2');
+  assert.deepEqual(r.performanceKpis.responseTime, { p95Ms: 2000, samples: 21, precision: 'exact' },
+    'browser samples, nearest-rank, 0.1 ms; never version_a_ms (23000)');
+  assert.deepEqual(r.performanceKpis.clickLatency, { p95Ms: 33.3, samples: 1, precision: 'exact' });
+  assert.ok(r.profile.kpiDescriptions.responseTime.includes('accepted'));
+  assert.ok(r.profile.kpiDescriptions.responseTime.includes('không chờ Version A'));
+  assert.ok(r.profile.kpiDescriptions.clickLatency.includes('requestAnimationFrame'));
+  assert.deepEqual(p95([5, 1, 3]), { p95Ms: 5, samples: 3, precision: 'exact' });
 });

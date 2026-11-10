@@ -60,10 +60,12 @@ The viewer checks a daily weight.
 - Mocked generation for parser verification.
 `;
   let upstreamRequest;
+  let upstreamGate = null; // when set, the mocked AI holds its answer until the test releases it
   const upstream = http.createServer(async (req, res) => {
     const chunks = [];
     for await (const chunk of req) chunks.push(chunk);
     upstreamRequest = JSON.parse(Buffer.concat(chunks).toString());
+    if (upstreamGate) await upstreamGate.promise;
     res.writeHead(200, { 'content-type': 'text/event-stream' });
     res.write(`data: ${JSON.stringify({ type: 'message_start', message: { usage: {
       input_tokens: 120, cache_read_input_tokens: 50, cache_creation_input_tokens: 10,
@@ -122,14 +124,33 @@ The viewer checks a daily weight.
   highForm.append('text', 'Track your weight every morning.');
   highForm.append('duration', '30s-60s');
   highForm.append('level', 'High');
+  let release;
+  upstreamGate = { promise: new Promise((resolve) => { release = resolve; }) };
   const streamed = await fetch(`${base}/api/generate`, {
     method: 'POST', headers: { Accept: 'application/x-ndjson' }, body: highForm,
   });
-  const events = (await streamed.text()).trim().split('\n').map((line) => JSON.parse(line));
-  assert.deepEqual(events.map((event) => event.type), ['version_a', 'version_b', 'complete']);
+  // ui-kpi-v2: the first stream event is `accepted`, sent while the AI has not answered yet.
+  const reader = streamed.body.getReader();
+  const decoder = new TextDecoder();
+  let body = '';
+  while (!body.includes('\n')) {
+    const { value, done } = await reader.read();
+    assert.ok(!done, 'stream ended before the first event');
+    body += decoder.decode(value, { stream: true });
+  }
+  assert.equal(JSON.parse(body.slice(0, body.indexOf('\n'))).type, 'accepted', 'accepted arrives before the AI answers');
+  release();
+  upstreamGate = null;
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    body += decoder.decode(value, { stream: true });
+  }
+  const events = body.trim().split('\n').map((line) => JSON.parse(line));
+  assert.deepEqual(events.map((event) => event.type), ['accepted', 'version_a', 'version_b', 'complete']);
   assert.match(upstreamRequest.messages[0].content.at(-1).text, /Crazy level: High/);
   assert.equal(events.at(-1).data.level, 'High');
-  assert.equal((events[0].text.match(/^TIME:/gm) || []).length, 2, 'streamed hook is also one row');
+  assert.equal((events[1].text.match(/^TIME:/gm) || []).length, 2, 'streamed hook is also one row');
   assert.equal(events.at(-1).data.usage.output_tokens, 80);
   const pdf = await fetch(`${base}/api/download-pdf`, {
     method: 'POST', headers: { 'content-type': 'application/json' },
