@@ -48,6 +48,7 @@ import { validateSubmission } from './submission-store.js';
 import { createDownloadGate, authorizedPdfInput, readDownloadJSON } from './download-gate.js';
 import { createVersionPublisher } from './version-publisher.js';
 import { createUiSamples, handleLabMonitoring, handleUiSample } from './lab-monitoring.js';
+import { sendTelemetryToDashboard } from './telemetry.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const {
@@ -450,6 +451,11 @@ function recordUsage(rec) {
     fs.mkdirSync(path.dirname(USAGE_LOG), { recursive: true });
     fs.appendFile(USAGE_LOG, JSON.stringify(rec) + '\n', () => {});
   } catch {}
+
+  // Asynchronously dispatch telemetry to F.Learning Performance Dashboard
+  sendTelemetryToDashboard(rec).catch((err) => {
+    console.warn('[Telemetry] Non-blocking dispatch warning:', err.message);
+  });
 }
 
 function totals(list) {
