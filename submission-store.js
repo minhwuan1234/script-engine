@@ -37,10 +37,12 @@ export function createSubmissionStore({ pool, objects }) {
     async migrate() {
       const sql = await readFile(new URL('./migrations/001-submissions.sql', import.meta.url), 'utf8');
       const downloadSql = await readFile(new URL('./migrations/002-download-email.sql', import.meta.url), 'utf8');
+      const hubspotSql = await readFile(new URL('./migrations/003-hubspot-download.sql', import.meta.url), 'utf8');
       await transaction(pool, async (client) => {
         await client.query('SELECT pg_advisory_xact_lock(76432001)');
         await client.query(sql);
         await client.query(downloadSql);
+        await client.query(hubspotSql);
       });
     },
     async save({ text, files, duration, level }) {
@@ -112,6 +114,26 @@ export function createSubmissionStore({ pool, objects }) {
           COALESCE(result->>'version_b_text',result->>'version_b_md','') <> '')
         RETURNING download_email`, [id, email])).rows[0];
       return row?.download_email || null;
+    },
+    async claimHubSpotSubmission(id, claim) {
+      // Keep the claim longer than the HubSpot request and let it expire after a process crash.
+      const acquired = await pool.query(`UPDATE submissions
+        SET hubspot_claim=$2, hubspot_retry_at=now()+interval '30 seconds'
+        WHERE id=$1 AND hubspot_submitted_at IS NULL AND download_email IS NOT NULL
+          AND (hubspot_retry_at IS NULL OR hubspot_retry_at <= now())
+        RETURNING id`, [id, claim]);
+      if (acquired.rows.length) return 'claimed';
+      const current = await pool.query('SELECT hubspot_submitted_at FROM submissions WHERE id=$1', [id]);
+      return current.rows[0]?.hubspot_submitted_at ? 'confirmed' : 'pending';
+    },
+    async finishHubSpotSubmission(id, claim, accepted, retryMs) {
+      const result = await pool.query(`UPDATE submissions SET
+        hubspot_submitted_at=CASE WHEN $3::boolean THEN now() ELSE NULL END,
+        hubspot_claim=NULL,
+        hubspot_retry_at=CASE WHEN $4::integer > 0
+          THEN now()+$4::integer * interval '1 millisecond' ELSE NULL END
+        WHERE id=$1 AND hubspot_claim=$2 RETURNING id`, [id, claim, accepted, retryMs]);
+      return result.rows.length > 0;
     },
     async file(submissionId, fileId) {
       const row = (await pool.query(`SELECT * FROM submission_files

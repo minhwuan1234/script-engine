@@ -97,6 +97,6 @@ export async function createArchiveRuntime(env = process.env) {
     const sheets = createSheetsClient({ auth, spreadsheetId: env.GOOGLE_SHEET_ID, tab: env.GOOGLE_SHEET_TAB || 'Submissions' });
     stopWorker = startReportWorker({ pool, sheets, baseUrl: config.baseUrl });
   }
-  return { store, sheetsEnabled: config.sheetsEnabled,
+  return { store, baseUrl: config.baseUrl, sheetsEnabled: config.sheetsEnabled,
     async close() { stopWorker(); s3.destroy(); await pool.end(); } };
 }
