@@ -1,3 +1,4 @@
+import { createDriveClient } from './drive-sync.js';
 import { createSubmissionStore } from './submission-store.js';
 import { REPORT_HEADERS, startReportWorker } from './sheets-sync.js';
 
@@ -85,7 +86,8 @@ export async function createArchiveRuntime(env = process.env) {
     get: async (key) => (await s3.send(new GetObjectCommand({ Bucket: env.S3_BUCKET, Key: key }),
       { abortSignal: AbortSignal.timeout(60000) })).Body,
   };
-  const store = createSubmissionStore({ pool, objects });
+  const folderId = config.sheetsEnabled && env.GOOGLE_DRIVE_FOLDER_ID;
+  const store = createSubmissionStore({ pool, objects, driveEnabled: Boolean(folderId) });
   await store.migrate();
   let stopWorker = () => {};
   if (config.sheetsEnabled) {
@@ -95,7 +97,11 @@ export async function createArchiveRuntime(env = process.env) {
     const auth = new JWT({ email: credentials.client_email, key: credentials.private_key,
       scopes: ['https://www.googleapis.com/auth/spreadsheets'] });
     const sheets = createSheetsClient({ auth, spreadsheetId: env.GOOGLE_SHEET_ID, tab: env.GOOGLE_SHEET_TAB || 'Submissions' });
-    stopWorker = startReportWorker({ pool, sheets, baseUrl: config.baseUrl });
+    const drive = folderId ? createDriveClient({ folderId, objects, auth: new JWT({
+      email: credentials.client_email, key: credentials.private_key,
+      scopes: ['https://www.googleapis.com/auth/drive'],
+    }) }) : null;
+    stopWorker = startReportWorker({ pool, sheets, drive, baseUrl: config.baseUrl });
   }
   return { store, baseUrl: config.baseUrl, sheetsEnabled: config.sheetsEnabled,
     async close() { stopWorker(); s3.destroy(); await pool.end(); } };

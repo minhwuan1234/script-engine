@@ -31,18 +31,20 @@ async function transaction(pool, fn) {
   } finally { client.release(); }
 }
 
-export function createSubmissionStore({ pool, objects }) {
+export function createSubmissionStore({ pool, objects, driveEnabled = false }) {
   return {
     pool,
     async migrate() {
       const sql = await readFile(new URL('./migrations/001-submissions.sql', import.meta.url), 'utf8');
       const downloadSql = await readFile(new URL('./migrations/002-download-email.sql', import.meta.url), 'utf8');
       const hubspotSql = await readFile(new URL('./migrations/003-hubspot-download.sql', import.meta.url), 'utf8');
+      const driveSql = await readFile(new URL('./migrations/004-drive-report.sql', import.meta.url), 'utf8');
       await transaction(pool, async (client) => {
         await client.query('SELECT pg_advisory_xact_lock(76432001)');
         await client.query(sql);
         await client.query(downloadSql);
         await client.query(hubspotSql);
+        await client.query(driveSql);
       });
     },
     async save({ text, files, duration, level }) {
@@ -61,10 +63,10 @@ export function createSubmissionStore({ pool, objects }) {
         for (const item of items) {
           item.bytes = Buffer.from(await item.file.arrayBuffer());
           await client.query(`INSERT INTO submission_files
-            (id,submission_id,original_name,object_key,mime_type,size_bytes,sha256)
-            VALUES($1,$2,$3,$4,$5,$6,$7)`, [item.id, id, item.file.name, item.key,
+            (id,submission_id,original_name,object_key,mime_type,size_bytes,sha256,drive_sync_requested)
+            VALUES($1,$2,$3,$4,$5,$6,$7,$8)`, [item.id, id, item.file.name, item.key,
             item.file.type || 'application/octet-stream', item.bytes.length,
-            crypto.createHash('sha256').update(item.bytes).digest('hex')]);
+            crypto.createHash('sha256').update(item.bytes).digest('hex'), driveEnabled]);
         }
       });
       try {

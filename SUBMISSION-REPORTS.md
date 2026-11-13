@@ -186,3 +186,13 @@ In staging, generate a script, unlock it with a test email, confirm the
 submission in HubSpot and download A and B. Repeat unlock for the same
 submission and verify that it has only one form submission. To roll back to
 PostgreSQL-only email capture, set `HUBSPOT_FORMS_ENABLED=false` and redeploy.
+
+### Google Drive links
+
+Set `GOOGLE_DRIVE_FOLDER_ID` on the app service to enable copies of newly archived
+uploads. Enable Google Drive API in the existing service account's project and
+give that account upload access to the target folder in a Shared Drive. Use
+restricted sharing and give report readers Viewer access through Drive.
+The report worker copies originals from the private bucket and updates the
+Document upload column. It keeps the admin link while a Drive copy is pending
+and retries in the background. Existing uploads are excluded.
