@@ -17,14 +17,14 @@ export function createDriveClient({ auth, folderId, objects, fetchImpl = fetch }
     async checkFolder() {
       const folder = await request(`/drive/v3/files/${folderId}?supportsAllDrives=true&fields=driveId,mimeType,trashed,capabilities(canAddChildren)`);
       if (!folder.driveId || folder.trashed || folder.mimeType !== 'application/vnd.google-apps.folder'
-          || !folder.capabilities?.canAddChildren) throw new Error('Drive folder is unavailable for upload.');
+          || !folder.capabilities?.canAddChildren) throw Object.assign(new Error('Drive folder is unavailable for upload.'), { status: 403 });
       let pageToken = '';
       do {
         const params = new URLSearchParams({ supportsAllDrives: 'true', fields: 'nextPageToken,permissions(type)' });
         if (pageToken) params.set('pageToken', pageToken);
         const page = await request(`/drive/v3/files/${folderId}/permissions?${params}`);
         if (page.permissions?.some(({ type }) => type === 'anyone' || type === 'domain')) {
-          throw new Error('Drive folder must be restricted to named users and groups.');
+          throw Object.assign(new Error('Drive folder must be restricted to named users and groups.'), { status: 403 });
         }
         pageToken = page.nextPageToken;
       } while (pageToken);

@@ -41,6 +41,7 @@ export async function syncReports({ pool, sheets, drive, baseUrl, batchSize = 20
       return;
     }
     let folderCheck;
+    let driveErrorLogged = false;
     for (const row of rows) {
       let driveFailed = false;
       try {
@@ -50,8 +51,13 @@ export async function syncReports({ pool, sheets, drive, baseUrl, batchSize = 20
           try {
             await (folderCheck ??= drive.checkFolder());
             file.drive_view_url = await drive.copy(client, file);
-          } catch {
+          } catch (error) {
             driveFailed = true;
+            if (!driveErrorLogged) {
+              const status = Number.isInteger(error.status) ? error.status : 'unavailable';
+              console.warn(`Google Drive report sync pending (HTTP ${status}).`);
+              driveErrorLogged = true;
+            }
           }
         }
         await sheets.write(Number(row.report_row), reportRow(row, files, baseUrl));
