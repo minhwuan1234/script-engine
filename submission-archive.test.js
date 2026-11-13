@@ -9,6 +9,7 @@ import { archiveConfig, createSheetsClient } from './archive-runtime.js';
 import { authorized, handleSubmissionAdmin } from './submission-admin.js';
 import { createDownloadGate, normalizeEmail, authorizedPdfInput } from './download-gate.js';
 import { createVersionPublisher } from './version-publisher.js';
+import { hubspotConfig, createHubSpotLeadConfirmation } from './hubspot.js';
 
 async function fixture(t, putOverride) {
   const db = new PGlite();
@@ -258,6 +259,75 @@ test('a streamed A unlocks before completion; the same grant unlocks B when it a
   assert.equal((await store.get(id)).download_email, 'early@example.com');
   assert.equal((await gate.authorize({ submissionId: id, version: 'A', token: grant.downloadToken })).title, 'Final title');
   assert.equal((await store.get(id)).result.downloadOwnerToken, undefined);
+});
+
+test('HubSpot Forms configuration is opt-in and requires the archive and form IDs', () => {
+  assert.equal(hubspotConfig({}), null);
+  const env = { HUBSPOT_FORMS_ENABLED: 'true', HUBSPOT_PORTAL_ID: '12345',
+    HUBSPOT_FORM_GUID: '00000000-0000-0000-0000-000000000001' };
+  assert.throws(() => hubspotConfig(env), /SUBMISSION_ARCHIVE_ENABLED/);
+  env.SUBMISSION_ARCHIVE_ENABLED = 'true';
+  assert.throws(() => hubspotConfig({ ...env, HUBSPOT_PORTAL_ID: '' }), /HUBSPOT_PORTAL_ID/);
+  assert.throws(() => hubspotConfig({ ...env, HUBSPOT_FORM_GUID: 'invalid' }), /HUBSPOT_FORM_GUID/);
+  assert.equal(hubspotConfig(env).formGuid, env.HUBSPOT_FORM_GUID);
+});
+
+test('HubSpot confirmation gates PDFs and reuses the first email across retries and concurrent unlocks', async (t) => {
+  const { store, pool } = await fixture(t);
+  const id = await store.save({ text: 'source', files: [], duration: '30s-60s', level: 'Low' });
+  await store.saveVersion(id, 'A', { title: 'Style A', text: 'Durable A' });
+  const config = { portalId: '12345', formGuid: '00000000-0000-0000-0000-000000000001' };
+  const pageUri = 'https://example.com';
+  const requests = [];
+  let markStarted, releaseRequest;
+  const started = new Promise((resolve) => { markStarted = resolve; });
+  const release = new Promise((resolve) => { releaseRequest = resolve; });
+  const confirmHubSpotLead = createHubSpotLeadConfirmation({
+    store, config, pageUri,
+    async fetchImpl(url, options) {
+      requests.push({ url, options });
+      if (requests.length === 1) return new Response(null, { status: 429, headers: { 'Retry-After': '60' } });
+      markStarted();
+      await release;
+      return new Response(null, { status: 200 });
+    },
+  });
+  const gate = createDownloadGate({ store, secret: 'test-only', confirmHubSpotLead });
+  const input = { submissionId: id, ownerToken: gate.owner(id), email: 'person@EXAMPLE.COM' };
+  await assert.rejects(gate.unlock({ ...input, ownerToken: 'invalid' }), { status: 403 });
+  await assert.rejects(gate.unlock({ ...input, email: 'invalid' }), { status: 400 });
+  assert.equal(requests.length, 0);
+
+  await assert.rejects(gate.unlock(input), { status: 503 });
+  assert.equal((await store.get(id)).download_email, 'person@example.com');
+  await assert.rejects(gate.unlock(input), { status: 503 });
+  assert.equal(requests.length, 1, 'rate limited submissions wait before sending again');
+  await pool.query("UPDATE submissions SET hubspot_retry_at=now()-interval '1 second' WHERE id=$1", [id]);
+
+  const retry = { ...input, email: 'another@example.com' };
+  const first = gate.unlock(retry);
+  await Promise.race([started, first]);
+  try {
+    await assert.rejects(gate.unlock(retry), { status: 503 });
+    assert.equal(requests.length, 2);
+  } finally {
+    releaseRequest();
+  }
+  const { downloadToken } = await first;
+  const { url, options } = requests[1];
+  assert.equal(url, `https://api.hsforms.com/submissions/v3/integration/submit/${config.portalId}/${config.formGuid}`);
+  assert.equal(options.method, 'POST');
+  const { submittedAt, ...payload } = JSON.parse(options.body);
+  assert.ok(Number.isFinite(submittedAt));
+  assert.deepEqual(payload, {
+    fields: [{ name: 'email', value: 'person@example.com' }],
+    context: { pageUri, pageName: 'F.Learning Script Engine' },
+  });
+  assert.equal((await gate.authorize({ submissionId: id, version: 'A', token: downloadToken })).text, 'Durable A');
+  await store.saveVersion(id, 'B', { title: 'Style B', text: 'Durable B' });
+  assert.equal((await gate.authorize({ submissionId: id, version: 'B', token: downloadToken })).text, 'Durable B');
+  await gate.unlock(retry);
+  assert.equal(requests.length, 2, 'a confirmed submission is not sent again');
 });
 
 test('B-only and failed generations retain the available version and its email gate', async (t) => {

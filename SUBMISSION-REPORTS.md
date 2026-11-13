@@ -160,3 +160,29 @@ the synthetic acceptance check above.
 - Railway Buckets: https://docs.railway.com/storage-buckets
 - Google Sheets values: https://developers.google.com/workspace/sheets/api/guides/values
 - Google service accounts: https://developers.google.com/identity/protocols/oauth2/service-account
+
+## HubSpot Forms for PDF unlock
+
+Create and publish a dedicated Script Engine form with a required email field.
+Confirm the form accepts the configured app domain and the email-only payload.
+Verify its consent and workflow settings before enabling delivery. If the form
+requires explicit consent, wire the applicable user-facing choices and
+`legalConsentOptions` before enabling it.
+
+On Railway, configure `HUBSPOT_PORTAL_ID` and `HUBSPOT_FORM_GUID` for that
+form. Use a separate test form for staging. The app uses the public Forms
+submission endpoint and needs no HubSpot access token. Enable
+`HUBSPOT_FORMS_ENABLED=true` with the submission archive enabled. Migration
+003 runs on startup alongside the archive migrations.
+
+The first email stored for a submission is the email sent to HubSpot. A
+successful HubSpot response is recorded before the app grants PDF access.
+An upstream failure leaves the email saved and the UI asks the user to retry.
+An expired sending claim allows recovery after a process interruption.
+A lost response may still result in a repeated form submission when retried.
+The app sends on unlock requests only, so deployment does not backfill old rows.
+
+In staging, generate a script, unlock it with a test email, confirm the
+submission in HubSpot and download A and B. Repeat unlock for the same
+submission and verify that it has only one form submission. To roll back to
+PostgreSQL-only email capture, set `HUBSPOT_FORMS_ENABLED=false` and redeploy.

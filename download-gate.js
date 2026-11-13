@@ -24,7 +24,7 @@ export function normalizeEmail(value) {
 
 // Different purposes prevent the owner capability from being used as a PDF grant.
 // Neither capability is an admin token. Signed IDs cannot be swapped by the client.
-export function createDownloadGate({ store, secret, now = Date.now }) {
+export function createDownloadGate({ store, secret, confirmHubSpotLead, now = Date.now }) {
   if (!secret) throw new Error('A signing secret is required for download email gating.');
   const sign = (payload) => {
     const body = Buffer.from(JSON.stringify(payload)).toString('base64url');
@@ -54,6 +54,7 @@ export function createDownloadGate({ store, secret, now = Date.now }) {
       // Grant is issued only after the email is committed to PostgreSQL.
       const storedEmail = await store.captureDownloadEmail(submissionId, normalized);
       if (!storedEmail) throw deny();
+      if (confirmHubSpotLead) await confirmHubSpotLead(submissionId, storedEmail);
       const expiresAt = now() + 3600_000;
       return { ok: true, expiresAt, downloadToken: sign({ id: submissionId,
         purpose: 'pdf-download', emailHash: digest(storedEmail), expiresAt }) };

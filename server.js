@@ -43,6 +43,7 @@ import { buildWritingSystem } from './writing-instructions.js';
 import { buildOriginalSkillSystem, originalSkillInstruction } from './original-skill.js';
 import { callOpenAI, estimateOpenAICost } from './openai-writer.js';
 import { createArchiveRuntime } from './archive-runtime.js';
+import { hubspotConfig, createHubSpotLeadConfirmation } from './hubspot.js';
 import { handleSubmissionAdmin } from './submission-admin.js';
 import { validateSubmission } from './submission-store.js';
 import { createDownloadGate, authorizedPdfInput, readDownloadJSON } from './download-gate.js';
@@ -83,8 +84,14 @@ const OPENAI_API_KEY = CANONICAL_OPENAI_API_KEY || process.env.OPEN_AI_API;
 const ANTHROPIC_API_KEY = process.env.CLAUDE_API || process.env.ANTHROPIC_API_KEY;
 
 const MAX_BODY = 25 * 1024 * 1024; // total upload cap
+const hubspot = hubspotConfig(process.env);
 const archiveRuntime = await createArchiveRuntime();
-const downloadGate = archiveRuntime ? createDownloadGate({ store: archiveRuntime.store, secret: ADMIN_TOKEN }) : null;
+const confirmHubSpotLead = hubspot ? createHubSpotLeadConfirmation({
+  store: archiveRuntime.store, config: hubspot, pageUri: archiveRuntime.baseUrl,
+}) : undefined;
+const downloadGate = archiveRuntime ? createDownloadGate({
+  store: archiveRuntime.store, secret: ADMIN_TOKEN, confirmHubSpotLead,
+}) : null;
 const hits = new Map();
 const preferenceStore = createPreferenceStore(PREFERENCE_LOG);
 const icpSignalStore = createIcpSignalStore(ICP_SIGNAL_LOG, {
