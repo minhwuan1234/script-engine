@@ -62,10 +62,10 @@ adds a frozen orange header, wraps cells and writes these columns:
 | Submit ID | Created at (UTC) | Input text | Document upload | Status | Duration | Level | File count | Submission details | Updated at (UTC) | Email |
 |---|---|---|---|---|---|---|---|---|---|---|
 
-All user-controlled cells use `RAW` mode, never formulas. Original text is complete
+The worker writes user-controlled text as literal cell values. Original text is complete
 in PostgreSQL; text above 40,000 characters is shortened in the report and linked
-to the full admin view. Multiple uploaded documents appear as separate lines in
-the same report cell. The Sheet contains names and admin links, not file bytes.
+to the full admin view. Each available Drive URL appears as a clickable line in
+the Document upload cell.
 
 ## 4. Enable and deploy
 
@@ -194,5 +194,8 @@ uploads. Enable Google Drive API in the existing service account's project and
 give that account upload access to the target folder in a Shared Drive. Use
 restricted sharing and give report readers Viewer access through Drive.
 The report worker copies originals from the private bucket and updates the
-Document upload column. It keeps the admin link while a Drive copy is pending
-and retries in the background. Existing uploads are excluded.
+Document upload column with clickable Drive URLs, one per line. While a Drive
+copy is pending, the worker retries in the background and the original is
+available through Submission details. The first startup with Drive copying
+enabled queues existing report rows for refresh and previously stored files
+without Drive URLs for copying. The worker processes the queue in batches.
