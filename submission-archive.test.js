@@ -123,16 +123,47 @@ test('worker reconciles abandoned uploads and report text stays within cell boun
   assert.equal(row.input_text.length, 60000);
 });
 
-test('Sheets writes RAW into deterministic ranges and escapes tab names', async () => {
+test('Sheets writes clickable document URLs and keeps user input literal', async () => {
   const requests = [];
   const sheets = createSheetsClient({ auth: { getAccessToken: async () => ({ token: 'test-only' }) },
     spreadsheetId: 'sheet123', tab: "User's Submissions", fetchImpl: async (url, options) => {
-      requests.push({ url, ...options }); return Response.json({});
+      requests.push({ url, ...options });
+      return Response.json(options.method === 'GET' ? { sheets: [{ properties: {
+        sheetId: 42, title: "User's Submissions", gridProperties: { rowCount: 1000, columnCount: 11 },
+      } }] } : {});
     } });
-  await sheets.write(9, ['=1+1']);
-  assert.match(requests[0].url, /valueInputOption=RAW/);
-  assert.ok(decodeURIComponent(requests[0].url).includes("'User''s Submissions'!A9:K9"));
-  assert.deepEqual(JSON.parse(requests[0].body).values, [['=1+1']]);
+  await sheets.ensure(9);
+  assert.match(requests[1].url, /valueInputOption=RAW/);
+  assert.ok(decodeURIComponent(requests[1].url).includes("'User''s Submissions'!A1:K1"));
+
+  const first = 'https://drive.google.com/file/d/first/view?usp=drivesdk';
+  const second = 'https://drive.google.com/file/d/second/view';
+  const submission = { id: 'id', input_text: '=1+1', created_at: 0, updated_at: 0,
+    status: 'completed', duration: '2-3 mins', level: 'High' };
+  const values = reportRow(submission, [
+    { stored: true, original_name: 'first.txt', drive_view_url: first },
+    { stored: true, original_name: 'pending.txt' },
+    { stored: false, original_name: 'incomplete.txt' },
+    { stored: true, original_name: 'second.txt', drive_view_url: second },
+  ], 'https://example.com');
+  await sheets.write(9, values);
+  assert.ok(requests[2].url.endsWith(':batchUpdate'));
+  const { updateCells } = JSON.parse(requests[2].body).requests[0];
+  assert.deepEqual(updateCells.start, { sheetId: 42, rowIndex: 8, columnIndex: 0 });
+  const cells = updateCells.rows[0].values;
+  assert.deepEqual(cells[2].userEnteredValue, { stringValue: '=1+1' });
+  assert.deepEqual(cells[3], {
+    userEnteredValue: { stringValue: `${first}\n${second}` },
+    textFormatRuns: [
+      { startIndex: 0, format: { link: { uri: first } } },
+      { startIndex: first.length + 1, format: { link: { uri: second } } },
+    ],
+  });
+  assert.deepEqual(cells[7].userEnteredValue, { numberValue: 4 });
+
+  await sheets.write(9, reportRow(submission, [{ stored: true }], 'https://example.com'));
+  assert.deepEqual(JSON.parse(requests[3].body).requests[0].updateCells.rows[0].values[3],
+    { userEnteredValue: { stringValue: '' }, textFormatRuns: [] });
 });
 
 test('archive disabled by default; enable requires configuration and a safe origin', () => {

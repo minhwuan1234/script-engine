@@ -35,6 +35,7 @@ export function createSheetsClient({ auth, spreadsheetId, tab = 'Submissions', f
   }
   const write = (range, values) => request(`/values/${encodeURIComponent(range)}?valueInputOption=RAW`,
     'PUT', { values, majorDimension: 'ROWS' });
+  let sheetId;
   return {
     async ensure(row) {
       const data = await request('?fields=sheets.properties');
@@ -63,8 +64,28 @@ export function createSheetsClient({ auth, spreadsheetId, tab = 'Submissions', f
         } }] });
       }
       await write(`${a1}!A1:K1`, [REPORT_HEADERS]);
+      sheetId = sheet.sheetId;
     },
-    write(row, values) { return write(`${a1}!A${row}:K${row}`, [values]); },
+    write(row, values) {
+      const cells = values.map((value) => ({
+        userEnteredValue: typeof value === 'number' ? { numberValue: value } : { stringValue: value },
+      }));
+      const documentCell = cells[REPORT_HEADERS.indexOf('Document upload')];
+      const links = documentCell.userEnteredValue.stringValue;
+      documentCell.textFormatRuns = [];
+      if (links) {
+        let startIndex = 0;
+        for (const uri of links.split('\n')) {
+          documentCell.textFormatRuns.push({ startIndex, format: { link: { uri } } });
+          startIndex += uri.length + 1;
+        }
+      }
+      return request(':batchUpdate', 'POST', { requests: [{ updateCells: {
+        start: { sheetId, rowIndex: row - 1, columnIndex: 0 },
+        rows: [{ values: cells }],
+        fields: 'userEnteredValue,textFormatRuns',
+      } }] });
+    },
   };
 }
 

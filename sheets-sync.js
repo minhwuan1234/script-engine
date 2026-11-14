@@ -6,8 +6,16 @@ export function reportRow(submission, files, baseUrl) {
   const text = submission.input_text.length > 40000
     ? submission.input_text.slice(0, 39500) + '\n[Truncated in report. Open Submission details for full text.]'
     : submission.input_text;
+  const documentLinks = [];
+  let linkTextLength = 0;
+  for (const file of files) {
+    if (!file.stored || !file.drive_view_url) continue;
+    linkTextLength += file.drive_view_url.length + (documentLinks.length ? 1 : 0);
+    if (linkTextLength > 40000) break;
+    documentLinks.push(file.drive_view_url);
+  }
   return [submission.id, new Date(submission.created_at).toISOString(), text,
-    files.map((file) => `${file.original_name}${file.stored ? ` — ${file.drive_view_url || `${details}#file=${file.id}`}` : ' [upload incomplete]'}`).join('\n').slice(0, 40000),
+    documentLinks.join('\n'),
     submission.status, submission.duration, submission.level, files.length,
     details, new Date(submission.updated_at).toISOString(), submission.download_email || ''];
 }
