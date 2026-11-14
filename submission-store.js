@@ -39,13 +39,24 @@ export function createSubmissionStore({ pool, objects, driveEnabled = false }) {
       const downloadSql = await readFile(new URL('./migrations/002-download-email.sql', import.meta.url), 'utf8');
       const hubspotSql = await readFile(new URL('./migrations/003-hubspot-download.sql', import.meta.url), 'utf8');
       const driveSql = await readFile(new URL('./migrations/004-drive-report.sql', import.meta.url), 'utf8');
-      await transaction(pool, async (client) => {
+      const backfillSql = driveEnabled
+        ? await readFile(new URL('./migrations/005-drive-report-backfill.sql', import.meta.url), 'utf8')
+        : null;
+      const backfill = await transaction(pool, async (client) => {
         await client.query('SELECT pg_advisory_xact_lock(76432001)');
         await client.query(sql);
         await client.query(downloadSql);
         await client.query(hubspotSql);
         await client.query(driveSql);
+        if (!backfillSql) return null;
+        await client.query('CREATE TABLE IF NOT EXISTS submission_report_migrations (name text PRIMARY KEY)');
+        const { rows } = await client.query(backfillSql);
+        return rows[0];
       });
+      if (backfill?.applied) {
+        console.info(`Drive report backfill queued ${backfill.files} archived files and ${backfill.rows} report rows.`);
+      }
+      return backfill?.applied ?? false;
     },
     async save({ text, files, duration, level }) {
       validateSubmission(text, files);

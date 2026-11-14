@@ -196,6 +196,6 @@ restricted sharing and give report readers Viewer access through Drive.
 The report worker copies originals from the private bucket and updates the
 Document upload column with clickable Drive URLs, one per line. While a Drive
 copy is pending, the worker retries in the background and the original is
-available through Submission details. To refresh rows with previously synced
-Drive URLs, run `npm run reports:resync` in the app environment after deployment.
-Uploads archived before Drive copying was enabled are excluded from copying.
+available through Submission details. The first startup with Drive copying
+enabled queues existing report rows for refresh and previously stored files
+without Drive URLs for copying. The worker processes the queue in batches.

@@ -109,7 +109,7 @@ export async function createArchiveRuntime(env = process.env) {
   };
   const folderId = config.sheetsEnabled && env.GOOGLE_DRIVE_FOLDER_ID;
   const store = createSubmissionStore({ pool, objects, driveEnabled: Boolean(folderId) });
-  await store.migrate();
+  const backfillQueued = await store.migrate();
   let stopWorker = () => {};
   if (config.sheetsEnabled) {
     const { JWT } = await import('google-auth-library');
@@ -122,7 +122,7 @@ export async function createArchiveRuntime(env = process.env) {
       email: credentials.client_email, key: credentials.private_key,
       scopes: ['https://www.googleapis.com/auth/drive'],
     }) }) : null;
-    stopWorker = startReportWorker({ pool, sheets, drive, baseUrl: config.baseUrl });
+    stopWorker = startReportWorker({ pool, sheets, drive, baseUrl: config.baseUrl, backfillQueued });
   }
   return { store, baseUrl: config.baseUrl, sheetsEnabled: config.sheetsEnabled,
     async close() { stopWorker(); s3.destroy(); await pool.end(); } };

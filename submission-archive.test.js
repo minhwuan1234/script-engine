@@ -61,6 +61,42 @@ test('failed object upload remains auditable and cannot be downloaded', async (t
   assert.equal(await store.file(row.id, file.id), null);
 });
 
+test('Drive backfill refreshes existing rows and copies stored files once', async (t) => {
+  const { store, pool, saved } = await fixture(t);
+  const id = await store.save({ text: 'source', files: [
+    new File(['already on Drive'], 'existing.txt'),
+    new File(['archive bytes'], 'legacy.txt'),
+    new File(['failed upload'], 'incomplete.txt'),
+  ], duration: '2-3 mins', level: 'Low' });
+  await store.finish(id, 'completed');
+  const existing = 'https://drive.google.com/file/d/existing/view';
+  const legacy = 'https://drive.google.com/file/d/legacy/view';
+  await pool.query("UPDATE submission_files SET drive_view_url=$1 WHERE original_name='existing.txt'", [existing]);
+  await pool.query("UPDATE submission_files SET drive_sync_requested=NULL WHERE original_name='legacy.txt'");
+  await pool.query("UPDATE submission_files SET stored=false WHERE original_name='incomplete.txt'");
+  await pool.query('UPDATE submissions SET synced_revision=revision');
+
+  const driveStore = createSubmissionStore({ pool, driveEnabled: true });
+  assert.equal(await driveStore.migrate(), true);
+  assert.equal(await driveStore.migrate(), false);
+  const copies = [];
+  const reports = [];
+  const options = { pool, baseUrl: 'https://example.com',
+    drive: { checkFolder: async () => {}, copy: async (client, file) => {
+      copies.push(file.original_name);
+      assert.deepEqual(saved.get(file.object_key), Buffer.from('archive bytes'));
+      await client.query('UPDATE submission_files SET drive_view_url=$2 WHERE id=$1', [file.id, legacy]);
+      return legacy;
+    } },
+    sheets: { ensure: async () => {}, write: async (_, values) => reports.push(values) },
+  };
+  await syncReports(options);
+  await syncReports(options);
+  assert.deepEqual(copies, ['legacy.txt']);
+  assert.equal(reports.length, 1);
+  assert.deepEqual(reports[0][3].split('\n').sort(), [existing, legacy]);
+});
+
 test('rejects excess files, unsupported types and actual aggregate bytes', () => {
   assert.throws(() => validateSubmission('', []), /Provide text/);
   assert.throws(() => validateSubmission('x', Array(4).fill({ name: 'a.txt', size: 1 })), /at most 3/);

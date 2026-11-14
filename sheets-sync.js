@@ -87,12 +87,25 @@ export async function syncReports({ pool, sheets, drive, baseUrl, batchSize = 20
   }
 }
 
-export function startReportWorker(options, intervalMs = 60000) {
+export function startReportWorker({ backfillQueued, ...options }, intervalMs = 60000) {
   let running = false;
+  let checkBackfill = backfillQueued;
   const tick = async () => {
     if (running) return;
     running = true;
-    try { await syncReports(options); }
+    try {
+      await syncReports(options);
+      if (checkBackfill) {
+        const { rows: [status] } = await options.pool.query(`SELECT
+          EXISTS (SELECT 1 FROM submissions WHERE revision > synced_revision) AS pending_reports,
+          EXISTS (SELECT 1 FROM submission_files
+            WHERE stored AND drive_sync_requested AND drive_view_url IS NULL) AS pending_files`);
+        if (!status.pending_reports && !status.pending_files) {
+          console.info('Drive report backfill complete.');
+          checkBackfill = false;
+        }
+      }
+    }
     catch { console.error('Submission report sync unavailable; will retry.'); }
     finally { running = false; }
   };
