@@ -92,7 +92,13 @@ export function createSheetsClient({ auth, spreadsheetId, tab = 'Submissions', f
       const documentCell = cells[REPORT_HEADERS.indexOf('Document upload')];
       const links = documentCell.userEnteredValue.stringValue;
       documentCell.textFormatRuns = [];
-      if (links) documentCell.textFormatRuns.push({ startIndex: 0, format: { link: { uri: links } } });
+      if (links) {
+        let startIndex = 0;
+        for (const uri of links.split('\n')) {
+          documentCell.textFormatRuns.push({ startIndex, format: { link: { uri } } });
+          startIndex += uri.length + 1;
+        }
+      }
       return request(':batchUpdate', 'POST', { requests: [{ updateCells: {
         start: { sheetId, rowIndex: row - 1, columnIndex: 0 },
         rows: [{ values: cells }],
@@ -135,7 +141,7 @@ export async function createArchiveRuntime(env = process.env) {
       email: credentials.client_email, key: credentials.private_key,
       scopes: ['https://www.googleapis.com/auth/drive'],
     }) }) : null;
-    stopWorker = startReportWorker({ pool, sheets, drive, folderUrl: folderId ? `https://drive.google.com/drive/folders/${folderId}` : undefined, backfillQueued });
+    stopWorker = startReportWorker({ pool, sheets, drive, backfillQueued });
   }
   return { store, baseUrl: config.baseUrl, sheetsEnabled: config.sheetsEnabled,
     async close() { stopWorker(); s3.destroy(); await pool.end(); } };

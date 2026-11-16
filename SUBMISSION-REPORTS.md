@@ -64,8 +64,8 @@ adds a frozen orange header, wraps cells and writes these columns:
 
 The email timestamp uses Vietnam time. Both email fields stay blank until
 an email is captured. Long input text is shortened in the report and retained
-in PostgreSQL. Document upload links to the containing Shared Drive folder
-when a file has been copied there.
+in PostgreSQL. Document upload shows a separate clickable link for each file copied to
+Shared Drive.
 
 ## 4. Enable and deploy
 
@@ -85,7 +85,7 @@ Submit a harmless sample text and a small TXT file. Check:
 1. The final generate response includes `submissionId`.
 2. PostgreSQL has that ID and exact text, and the bucket has the file bytes.
 3. The Sheet receives one row within roughly a minute after processing begins.
-4. Open the Document upload folder link and check that the test file is present.
+4. Open the Document upload link and check that it opens the test file.
 5. Retrying sync must not duplicate rows.
 
 `GET /api/admin/archive-status` with `Authorization: Bearer <ADMIN_TOKEN>` reports
@@ -193,7 +193,7 @@ uploads. Enable Google Drive API in the existing service account's project and
 give that account upload access to the target folder in a Shared Drive. Use
 restricted sharing and give report readers Viewer access through Drive.
 The report worker copies originals from the private bucket and updates the
-Document upload column with a clickable link to the containing Shared Drive folder.
+Document upload column with a clickable Google Drive link for each uploaded file.
 While a Drive copy is pending, the worker retries in the background. The first startup with Drive copying
 enabled queues existing report rows for refresh and previously stored files
 without Drive URLs for copying. The worker processes the queue in batches.

@@ -81,7 +81,7 @@ test('Drive backfill refreshes existing rows and copies stored files once', asyn
   assert.equal(await driveStore.migrate(), false);
   const copies = [];
   const reports = [];
-  const options = { pool, folderUrl: 'https://drive.google.com/drive/folders/report',
+  const options = { pool,
     drive: { checkFolder: async () => {}, copy: async (client, file) => {
       copies.push(file.original_name);
       assert.deepEqual(saved.get(file.object_key), Buffer.from('archive bytes'));
@@ -94,7 +94,7 @@ test('Drive backfill refreshes existing rows and copies stored files once', asyn
   await syncReports(options);
   assert.deepEqual(copies, ['legacy.txt']);
   assert.equal(reports.length, 1);
-  assert.equal(reports[0][3], options.folderUrl);
+  assert.deepEqual(reports[0][3].split('\n').sort(), [existing, legacy]);
 });
 
 test('rejects excess files, unsupported types and actual aggregate bytes', () => {
@@ -173,7 +173,6 @@ test('Sheets writes clickable document URLs and keeps user input literal', async
   assert.ok(decodeURIComponent(requests[1].url).includes("'User''s Submissions'!A1:F1"));
 
   const first = 'https://drive.google.com/file/d/first/view?usp=drivesdk';
-  const folder = 'https://drive.google.com/drive/folders/report';
   const second = 'https://drive.google.com/file/d/second/view';
   const submission = { id: 'id', input_text: '=1+1', created_at: 0, updated_at: 0,
     status: 'completed', duration: '2-3 mins', level: 'High' };
@@ -182,7 +181,7 @@ test('Sheets writes clickable document URLs and keeps user input literal', async
     { stored: true, original_name: 'pending.txt' },
     { stored: false, original_name: 'incomplete.txt' },
     { stored: true, original_name: 'second.txt', drive_view_url: second },
-  ], folder);
+  ]);
   await sheets.write(9, values);
   assert.ok(requests[2].url.endsWith(':batchUpdate'));
   const { updateCells } = JSON.parse(requests[2].body).requests[0];
@@ -190,12 +189,15 @@ test('Sheets writes clickable document URLs and keeps user input literal', async
   const cells = updateCells.rows[0].values;
   assert.deepEqual(cells[2].userEnteredValue, { stringValue: '=1+1' });
   assert.deepEqual(cells[3], {
-    userEnteredValue: { stringValue: folder },
-    textFormatRuns: [{ startIndex: 0, format: { link: { uri: folder } } }],
+    userEnteredValue: { stringValue: `${first}\n${second}` },
+    textFormatRuns: [
+      { startIndex: 0, format: { link: { uri: first } } },
+      { startIndex: first.length + 1, format: { link: { uri: second } } },
+    ],
   });
   assert.equal(cells.length, 6);
 
-  await sheets.write(9, reportRow(submission, [{ stored: true }], folder));
+  await sheets.write(9, reportRow(submission, [{ stored: true }]));
   assert.deepEqual(JSON.parse(requests[3].body).requests[0].updateCells.rows[0].values[3],
     { userEnteredValue: { stringValue: '' }, textFormatRuns: [] });
 });

@@ -5,19 +5,20 @@ const emailDate = new Intl.DateTimeFormat('sv-SE', {
   timeZone: 'Asia/Ho_Chi_Minh', dateStyle: 'short', timeStyle: 'medium',
 });
 
-export function reportRow(submission, files, folderUrl) {
+export function reportRow(submission, files) {
   const text = submission.input_text.length > 40000
     ? submission.input_text.slice(0, 39500) + '\n[Truncated in report.]'
     : submission.input_text;
-  const folder = files.some((file) => file.stored && file.drive_view_url) ? folderUrl : '';
+  const documentLinks = files.filter((file) => file.stored && file.drive_view_url)
+    .map((file) => file.drive_view_url).join('\n');
   return [submission.download_email_at ? emailDate.format(new Date(submission.download_email_at)) : '',
-    submission.download_email || '', text, folder || '', submission.duration, submission.level];
+    submission.download_email || '', text, documentLinks, submission.duration, submission.level];
 }
 
 // One durable row number per submission, allocated by PostgreSQL. A network retry
 // overwrites the same range, including after a successful write whose reply was lost.
 // Keep this dedicated tab in original row order; use filter views for sorting.
-export async function syncReports({ pool, sheets, drive, folderUrl, batchSize = 20 }) {
+export async function syncReports({ pool, sheets, drive, batchSize = 20 }) {
   const client = await pool.connect();
   let locked = false;
   try {
@@ -62,7 +63,7 @@ export async function syncReports({ pool, sheets, drive, folderUrl, batchSize = 
             }
           }
         }
-        await sheets.write(Number(row.report_row), reportRow(row, files, folderUrl));
+        await sheets.write(Number(row.report_row), reportRow(row, files));
         if (driveFailed) throw new Error('Drive sync pending.');
         await client.query(`UPDATE submissions SET synced_revision=$2,sync_attempts=0,sync_error=NULL
           WHERE id=$1 AND revision=$2`, [row.id, row.revision]);

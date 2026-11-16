@@ -52,7 +52,7 @@ export function createSubmissionStore({ pool, objects, driveEnabled = false, rep
         await client.query('CREATE TABLE IF NOT EXISTS submission_report_migrations (name text PRIMARY KEY)');
         if (reportEnabled) {
           await client.query(`WITH applied AS (
-            INSERT INTO submission_report_migrations(name) VALUES ('six-column-report')
+            INSERT INTO submission_report_migrations(name) VALUES ('six-column-report-file-links')
             ON CONFLICT DO NOTHING RETURNING name
           )
           UPDATE submissions SET revision=revision+1,sync_attempts=0,sync_error=NULL,next_sync_at=now()
