@@ -165,12 +165,12 @@ test('Sheets writes clickable document URLs and keeps user input literal', async
     spreadsheetId: 'sheet123', tab: "User's Submissions", fetchImpl: async (url, options) => {
       requests.push({ url, ...options });
       return Response.json(options.method === 'GET' ? { sheets: [{ properties: {
-        sheetId: 42, title: "User's Submissions", gridProperties: { rowCount: 1000, columnCount: 6 },
+        sheetId: 42, title: "User's Submissions", gridProperties: { rowCount: 1000, columnCount: 7 },
       } }] } : {});
     } });
   await sheets.ensure(9);
   assert.match(requests[1].url, /valueInputOption=RAW/);
-  assert.ok(decodeURIComponent(requests[1].url).includes("'User''s Submissions'!A1:F1"));
+  assert.ok(decodeURIComponent(requests[1].url).includes("'User''s Submissions'!A1:G1"));
 
   const first = 'https://drive.google.com/file/d/first/view?usp=drivesdk';
   const second = 'https://drive.google.com/file/d/second/view';
@@ -195,13 +195,21 @@ test('Sheets writes clickable document URLs and keeps user input literal', async
       { startIndex: first.length + 1, format: { link: { uri: second } } },
     ],
   });
-  assert.equal(cells.length, 6);
+  assert.equal(cells.length, 7);
 
   await sheets.write(9, reportRow(submission, [{ stored: true }]));
   assert.deepEqual(JSON.parse(requests[3].body).requests[0].updateCells.rows[0].values[3],
     { userEnteredValue: { stringValue: '' }, textFormatRuns: [] });
 });
 
+test('script output supports partial legacy results and oversized cells', () => {
+  const row = { id: 'id', input_text: '', duration: '2-3 mins', level: 'Low',
+    result: { version_b_md: 'Legacy script' } };
+  assert.equal(reportRow(row, [], 'https://example.com')[6], 'Version B\n\nLegacy script');
+  row.result.version_a_text = 'a'.repeat(50000);
+  assert.match(reportRow(row, [], 'https://example.com')[6], /https:\/\/example.com\/admin\/submissions\/id$/);
+});
+ 
 test('legacy report moves retained columns before clearing obsolete values', async () => {
   const batches = [];
   const sheets = createSheetsClient({ spreadsheetId: 'sheet123',
@@ -224,7 +232,7 @@ test('legacy report moves retained columns before clearing obsolete values', asy
   assert.deepEqual(batches[0].slice(0, 3).map(({ copyPaste }) =>
     [copyPaste.source.startColumnIndex, copyPaste.destination.startColumnIndex]), [[10, 1], [5, 4], [6, 5]]);
   assert.equal(batches[0][4].repeatCell.range.startColumnIndex, 6);
-  assert.equal(batches[0][5].updateCells.rows[0].values.length, 6);
+  assert.equal(batches[0][5].updateCells.rows[0].values.length, 7);
 });
 
 test('archive disabled by default; enable requires configuration and a safe origin', () => {
@@ -295,6 +303,7 @@ test('one committed email unlocks both authoritative versions and syncs email an
     ensure: async () => {}, write: async (_, values) => { report = values; },
   } });
   assert.equal(report[1], 'person@example.com');
+  assert.equal(report[6], 'Version A — Style A\n\nStored script A\n\nVersion B — Style B\n\nStored script B');
   assert.match(report[0], /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
 });
 

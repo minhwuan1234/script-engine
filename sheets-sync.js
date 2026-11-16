@@ -1,24 +1,37 @@
 export const REPORT_HEADERS = ['Ngày submit email', 'Email', 'Input text', 'Document upload',
-  'Duration', 'Level'];
+  'Duration', 'Level', 'Script output'];
 
 const emailDate = new Intl.DateTimeFormat('sv-SE', {
   timeZone: 'Asia/Ho_Chi_Minh', dateStyle: 'short', timeStyle: 'medium',
 });
 
-export function reportRow(submission, files) {
+export function reportRow(submission, files, baseUrl) {
   const text = submission.input_text.length > 40000
     ? submission.input_text.slice(0, 39500) + '\n[Truncated in report.]'
     : submission.input_text;
   const documentLinks = files.filter((file) => file.stored && file.drive_view_url)
     .map((file) => file.drive_view_url).join('\n');
+  const result = submission.result ?? {};
+  const scripts = [];
+  for (const letter of ['A', 'B']) {
+    const key = `version_${letter.toLowerCase()}`;
+    const body = result[`${key}_text`] || result[`${key}_md`];
+    if (!body) continue;
+    const title = result[`${key}_title`];
+    const label = `Version ${letter}`;
+    scripts.push(`${title && title !== label ? `${label} — ${title}` : label}\n\n${body}`);
+  }
+  const output = scripts.join('\n\n');
+  const scriptOutput = output.length <= 50000 ? output :
+    `Script exceeds the Google Sheets cell limit. Full output: ${baseUrl}/admin/submissions/${submission.id}`;
   return [submission.download_email_at ? emailDate.format(new Date(submission.download_email_at)) : '',
-    submission.download_email || '', text, documentLinks, submission.duration, submission.level];
+    submission.download_email || '', text, documentLinks, submission.duration, submission.level, scriptOutput];
 }
 
 // One durable row number per submission, allocated by PostgreSQL. A network retry
 // overwrites the same range, including after a successful write whose reply was lost.
 // Keep this dedicated tab in original row order; use filter views for sorting.
-export async function syncReports({ pool, sheets, drive, batchSize = 20 }) {
+export async function syncReports({ pool, sheets, drive, baseUrl, batchSize = 20 }) {
   const client = await pool.connect();
   let locked = false;
   try {
@@ -63,7 +76,7 @@ export async function syncReports({ pool, sheets, drive, batchSize = 20 }) {
             }
           }
         }
-        await sheets.write(Number(row.report_row), reportRow(row, files));
+        await sheets.write(Number(row.report_row), reportRow(row, files, baseUrl));
         if (driveFailed) throw new Error('Drive sync pending.');
         await client.query(`UPDATE submissions SET synced_revision=$2,sync_attempts=0,sync_error=NULL
           WHERE id=$1 AND revision=$2`, [row.id, row.revision]);

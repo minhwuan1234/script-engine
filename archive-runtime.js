@@ -82,7 +82,7 @@ export function createSheetsClient({ auth, spreadsheetId, tab = 'Submissions', f
           ] });
         }
       }
-      await write(`${a1}!A1:F1`, [REPORT_HEADERS]);
+      await write(`${a1}!A1:G1`, [REPORT_HEADERS]);
       sheetId = sheet.sheetId;
     },
     write(row, values) {
@@ -141,7 +141,7 @@ export async function createArchiveRuntime(env = process.env) {
       email: credentials.client_email, key: credentials.private_key,
       scopes: ['https://www.googleapis.com/auth/drive'],
     }) }) : null;
-    stopWorker = startReportWorker({ pool, sheets, drive, backfillQueued });
+    stopWorker = startReportWorker({ pool, sheets, drive, baseUrl: config.baseUrl, backfillQueued });
   }
   return { store, baseUrl: config.baseUrl, sheetsEnabled: config.sheetsEnabled,
     async close() { stopWorker(); s3.destroy(); await pool.end(); } };
