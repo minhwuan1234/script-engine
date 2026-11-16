@@ -31,7 +31,7 @@ async function transaction(pool, fn) {
   } finally { client.release(); }
 }
 
-export function createSubmissionStore({ pool, objects, driveEnabled = false }) {
+export function createSubmissionStore({ pool, objects, driveEnabled = false, reportEnabled = driveEnabled }) {
   return {
     pool,
     async migrate() {
@@ -48,8 +48,17 @@ export function createSubmissionStore({ pool, objects, driveEnabled = false }) {
         await client.query(downloadSql);
         await client.query(hubspotSql);
         await client.query(driveSql);
-        if (!backfillSql) return null;
+        if (!reportEnabled && !backfillSql) return null;
         await client.query('CREATE TABLE IF NOT EXISTS submission_report_migrations (name text PRIMARY KEY)');
+        if (reportEnabled) {
+          await client.query(`WITH applied AS (
+            INSERT INTO submission_report_migrations(name) VALUES ('six-column-report')
+            ON CONFLICT DO NOTHING RETURNING name
+          )
+          UPDATE submissions SET revision=revision+1,sync_attempts=0,sync_error=NULL,next_sync_at=now()
+          WHERE EXISTS (SELECT 1 FROM applied)`);
+        }
+        if (!backfillSql) return null;
         const { rows } = await client.query(backfillSql);
         return rows[0];
       });

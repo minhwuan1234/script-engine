@@ -59,13 +59,13 @@ In Google Cloud:
 The worker creates the `Submissions` tab automatically on the first pending sync,
 adds a frozen orange header, wraps cells and writes these columns:
 
-| Submit ID | Created at (UTC) | Input text | Document upload | Status | Duration | Level | File count | Submission details | Updated at (UTC) | Email |
-|---|---|---|---|---|---|---|---|---|---|---|
+| Ngày submit email | Email | Input text | Document upload | Duration | Level |
+|---|---|---|---|---|---|
 
-The worker writes user-controlled text as literal cell values. Original text is complete
-in PostgreSQL; text above 40,000 characters is shortened in the report and linked
-to the full admin view. Each available Drive URL appears as a clickable line in
-the Document upload cell.
+The email timestamp uses Vietnam time. Both email fields stay blank until
+an email is captured. Long input text is shortened in the report and retained
+in PostgreSQL. Document upload links to the containing Shared Drive folder
+when a file has been copied there.
 
 ## 4. Enable and deploy
 
@@ -85,9 +85,8 @@ Submit a harmless sample text and a small TXT file. Check:
 1. The final generate response includes `submissionId`.
 2. PostgreSQL has that ID and exact text, and the bucket has the file bytes.
 3. The Sheet receives one row within roughly a minute after processing begins.
-4. The same row changes to `completed` after AI succeeds (or an error status).
-5. Open its `Submission details` link, enter the admin token and download the file.
-6. Anonymous API requests must return 401. Retrying sync must not duplicate rows.
+4. Open the Document upload folder link and check that the test file is present.
+5. Retrying sync must not duplicate rows.
 
 `GET /api/admin/archive-status` with `Authorization: Bearer <ADMIN_TOKEN>` reports
 submission count, pending sync count, sync error count and incomplete submissions.
@@ -101,7 +100,7 @@ owner capability scoped to that submission. The browser shows one shared email f
 and keeps both PDF buttons hidden. `POST /api/unlock-download` requires the owner
 capability and a syntactically valid email address. The server saves the first email
 and collection timestamp, increments the report revision and issues a one-hour PDF
-grant. The report's new `Email` column is K; existing A:J columns keep their positions.
+grant. The report shows the email and capture time in columns B and A.
 
 The same grant unlocks every available version and also unlocks the other version when
 it arrives. The final event does not reset the email confirmation. If generation fails
@@ -194,8 +193,7 @@ uploads. Enable Google Drive API in the existing service account's project and
 give that account upload access to the target folder in a Shared Drive. Use
 restricted sharing and give report readers Viewer access through Drive.
 The report worker copies originals from the private bucket and updates the
-Document upload column with clickable Drive URLs, one per line. While a Drive
-copy is pending, the worker retries in the background and the original is
-available through Submission details. The first startup with Drive copying
+Document upload column with a clickable link to the containing Shared Drive folder.
+While a Drive copy is pending, the worker retries in the background. The first startup with Drive copying
 enabled queues existing report rows for refresh and previously stored files
 without Drive URLs for copying. The worker processes the queue in batches.

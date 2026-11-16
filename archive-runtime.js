@@ -36,13 +36,14 @@ export function createSheetsClient({ auth, spreadsheetId, tab = 'Submissions', f
   const write = (range, values) => request(`/values/${encodeURIComponent(range)}?valueInputOption=RAW`,
     'PUT', { values, majorDimension: 'ROWS' });
   let sheetId;
+  const columnCount = REPORT_HEADERS.length;
   return {
     async ensure(row) {
       const data = await request('?fields=sheets.properties');
       let sheet = data.sheets?.find((item) => item.properties.title === tab)?.properties;
       if (!sheet) {
         const result = await request(':batchUpdate', 'POST', { requests: [{ addSheet: {
-          properties: { title: tab, gridProperties: { rowCount: Math.max(1000, row + 100), columnCount: 11, frozenRowCount: 1 } },
+          properties: { title: tab, gridProperties: { rowCount: Math.max(1000, row + 100), columnCount, frozenRowCount: 1 } },
         } }] });
         sheet = result.replies[0].addSheet.properties;
         await request(':batchUpdate', 'POST', { requests: [
@@ -55,15 +56,33 @@ export function createSheetsClient({ auth, spreadsheetId, tab = 'Submissions', f
           { updateDimensionProperties: { range: { sheetId: sheet.sheetId, dimension: 'COLUMNS', startIndex: 2, endIndex: 4 },
             properties: { pixelSize: 350 }, fields: 'pixelSize' } },
         ] });
-      } else if (sheet.gridProperties.rowCount < row || sheet.gridProperties.columnCount < 11) {
+      } else if (sheet.gridProperties.rowCount < row || sheet.gridProperties.columnCount < columnCount) {
         await request(':batchUpdate', 'POST', { requests: [{ updateSheetProperties: {
           properties: { sheetId: sheet.sheetId, gridProperties: {
             rowCount: Math.max(sheet.gridProperties.rowCount, row + 100),
-            columnCount: Math.max(sheet.gridProperties.columnCount, 11),
+            columnCount: Math.max(sheet.gridProperties.columnCount, columnCount),
           } }, fields: 'gridProperties.rowCount,gridProperties.columnCount',
         } }] });
       }
-      await write(`${a1}!A1:K1`, [REPORT_HEADERS]);
+      if (sheetId === undefined && sheet.gridProperties.columnCount >= 11) {
+        const header = await request(`/values/${encodeURIComponent(`${a1}!A1:K1`)}`);
+        if (header.values?.[0]?.[0] === 'Submit ID' && header.values[0][10] === 'Email') {
+          const range = (startColumnIndex, endColumnIndex, startRowIndex = 1) =>
+            ({ sheetId: sheet.sheetId, startColumnIndex, endColumnIndex, startRowIndex, endRowIndex: sheet.gridProperties.rowCount });
+          const copy = (from, to) => ({ copyPaste: {
+            source: range(from, from + 1), destination: range(to, to + 1), pasteType: 'PASTE_VALUES',
+          } });
+          await request(':batchUpdate', 'POST', { requests: [
+            copy(10, 1), copy(5, 4), copy(6, 5),
+            { repeatCell: { range: range(0, 1), cell: {}, fields: 'userEnteredValue,textFormatRuns' } },
+            { repeatCell: { range: range(6, 11, 0), cell: {}, fields: 'userEnteredValue,textFormatRuns' } },
+            { updateCells: { start: { sheetId: sheet.sheetId, rowIndex: 0, columnIndex: 0 },
+              rows: [{ values: REPORT_HEADERS.map((stringValue) => ({ userEnteredValue: { stringValue } })) }],
+              fields: 'userEnteredValue' } },
+          ] });
+        }
+      }
+      await write(`${a1}!A1:F1`, [REPORT_HEADERS]);
       sheetId = sheet.sheetId;
     },
     write(row, values) {
@@ -73,13 +92,7 @@ export function createSheetsClient({ auth, spreadsheetId, tab = 'Submissions', f
       const documentCell = cells[REPORT_HEADERS.indexOf('Document upload')];
       const links = documentCell.userEnteredValue.stringValue;
       documentCell.textFormatRuns = [];
-      if (links) {
-        let startIndex = 0;
-        for (const uri of links.split('\n')) {
-          documentCell.textFormatRuns.push({ startIndex, format: { link: { uri } } });
-          startIndex += uri.length + 1;
-        }
-      }
+      if (links) documentCell.textFormatRuns.push({ startIndex: 0, format: { link: { uri: links } } });
       return request(':batchUpdate', 'POST', { requests: [{ updateCells: {
         start: { sheetId, rowIndex: row - 1, columnIndex: 0 },
         rows: [{ values: cells }],
@@ -108,7 +121,7 @@ export async function createArchiveRuntime(env = process.env) {
       { abortSignal: AbortSignal.timeout(60000) })).Body,
   };
   const folderId = config.sheetsEnabled && env.GOOGLE_DRIVE_FOLDER_ID;
-  const store = createSubmissionStore({ pool, objects, driveEnabled: Boolean(folderId) });
+  const store = createSubmissionStore({ pool, objects, driveEnabled: Boolean(folderId), reportEnabled: config.sheetsEnabled });
   const backfillQueued = await store.migrate();
   let stopWorker = () => {};
   if (config.sheetsEnabled) {
@@ -122,7 +135,7 @@ export async function createArchiveRuntime(env = process.env) {
       email: credentials.client_email, key: credentials.private_key,
       scopes: ['https://www.googleapis.com/auth/drive'],
     }) }) : null;
-    stopWorker = startReportWorker({ pool, sheets, drive, baseUrl: config.baseUrl, backfillQueued });
+    stopWorker = startReportWorker({ pool, sheets, drive, folderUrl: folderId ? `https://drive.google.com/drive/folders/${folderId}` : undefined, backfillQueued });
   }
   return { store, baseUrl: config.baseUrl, sheetsEnabled: config.sheetsEnabled,
     async close() { stopWorker(); s3.destroy(); await pool.end(); } };

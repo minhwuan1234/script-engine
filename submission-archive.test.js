@@ -81,7 +81,7 @@ test('Drive backfill refreshes existing rows and copies stored files once', asyn
   assert.equal(await driveStore.migrate(), false);
   const copies = [];
   const reports = [];
-  const options = { pool, baseUrl: 'https://example.com',
+  const options = { pool, folderUrl: 'https://drive.google.com/drive/folders/report',
     drive: { checkFolder: async () => {}, copy: async (client, file) => {
       copies.push(file.original_name);
       assert.deepEqual(saved.get(file.object_key), Buffer.from('archive bytes'));
@@ -94,7 +94,7 @@ test('Drive backfill refreshes existing rows and copies stored files once', asyn
   await syncReports(options);
   assert.deepEqual(copies, ['legacy.txt']);
   assert.equal(reports.length, 1);
-  assert.deepEqual(reports[0][3].split('\n').sort(), [existing, legacy]);
+  assert.equal(reports[0][3], options.folderUrl);
 });
 
 test('rejects excess files, unsupported types and actual aggregate bytes', () => {
@@ -153,7 +153,7 @@ test('worker reconciles abandoned uploads and report text stays within cell boun
   await pool.query("UPDATE submissions SET status='storing',updated_at=now()-interval '2 hours' WHERE id=$1", [id]);
   let values;
   await syncReports({ pool, sheets: { ensure: async () => {}, write: async (_, row) => { values = row; } }, baseUrl: 'https://example.com' });
-  assert.equal(values[4], 'interrupted');
+  assert.equal((await pool.query('SELECT status FROM submissions WHERE id=$1', [id])).rows[0].status, 'interrupted');
   assert.ok(values[2].length < 40000); assert.match(values[2], /Truncated/);
   const row = (await pool.query('SELECT * FROM submissions')).rows[0];
   assert.equal(row.input_text.length, 60000);
@@ -165,14 +165,15 @@ test('Sheets writes clickable document URLs and keeps user input literal', async
     spreadsheetId: 'sheet123', tab: "User's Submissions", fetchImpl: async (url, options) => {
       requests.push({ url, ...options });
       return Response.json(options.method === 'GET' ? { sheets: [{ properties: {
-        sheetId: 42, title: "User's Submissions", gridProperties: { rowCount: 1000, columnCount: 11 },
+        sheetId: 42, title: "User's Submissions", gridProperties: { rowCount: 1000, columnCount: 6 },
       } }] } : {});
     } });
   await sheets.ensure(9);
   assert.match(requests[1].url, /valueInputOption=RAW/);
-  assert.ok(decodeURIComponent(requests[1].url).includes("'User''s Submissions'!A1:K1"));
+  assert.ok(decodeURIComponent(requests[1].url).includes("'User''s Submissions'!A1:F1"));
 
   const first = 'https://drive.google.com/file/d/first/view?usp=drivesdk';
+  const folder = 'https://drive.google.com/drive/folders/report';
   const second = 'https://drive.google.com/file/d/second/view';
   const submission = { id: 'id', input_text: '=1+1', created_at: 0, updated_at: 0,
     status: 'completed', duration: '2-3 mins', level: 'High' };
@@ -181,7 +182,7 @@ test('Sheets writes clickable document URLs and keeps user input literal', async
     { stored: true, original_name: 'pending.txt' },
     { stored: false, original_name: 'incomplete.txt' },
     { stored: true, original_name: 'second.txt', drive_view_url: second },
-  ], 'https://example.com');
+  ], folder);
   await sheets.write(9, values);
   assert.ok(requests[2].url.endsWith(':batchUpdate'));
   const { updateCells } = JSON.parse(requests[2].body).requests[0];
@@ -189,17 +190,39 @@ test('Sheets writes clickable document URLs and keeps user input literal', async
   const cells = updateCells.rows[0].values;
   assert.deepEqual(cells[2].userEnteredValue, { stringValue: '=1+1' });
   assert.deepEqual(cells[3], {
-    userEnteredValue: { stringValue: `${first}\n${second}` },
-    textFormatRuns: [
-      { startIndex: 0, format: { link: { uri: first } } },
-      { startIndex: first.length + 1, format: { link: { uri: second } } },
-    ],
+    userEnteredValue: { stringValue: folder },
+    textFormatRuns: [{ startIndex: 0, format: { link: { uri: folder } } }],
   });
-  assert.deepEqual(cells[7].userEnteredValue, { numberValue: 4 });
+  assert.equal(cells.length, 6);
 
-  await sheets.write(9, reportRow(submission, [{ stored: true }], 'https://example.com'));
+  await sheets.write(9, reportRow(submission, [{ stored: true }], folder));
   assert.deepEqual(JSON.parse(requests[3].body).requests[0].updateCells.rows[0].values[3],
     { userEnteredValue: { stringValue: '' }, textFormatRuns: [] });
+});
+
+test('legacy report moves retained columns before clearing obsolete values', async () => {
+  const batches = [];
+  const sheets = createSheetsClient({ spreadsheetId: 'sheet123',
+    auth: { getAccessToken: async () => ({ token: 'test-only' }) },
+    fetchImpl: async (url, options) => {
+      if (url.endsWith('?fields=sheets.properties')) return Response.json({ sheets: [{ properties: {
+        title: 'Submissions', sheetId: 42, gridProperties: { rowCount: 1000, columnCount: 26 },
+      } }] });
+      if (options.method === 'GET') return Response.json({ values: [[
+        'Submit ID', 'Created at (UTC)', 'Input text', 'Document upload', 'Status',
+        'Duration', 'Level', 'File count', 'Submission details', 'Updated at (UTC)', 'Email',
+      ]] });
+      if (options.method === 'POST') batches.push(JSON.parse(options.body).requests);
+      return Response.json({});
+    },
+  });
+  await sheets.ensure(9);
+  await sheets.ensure(9);
+  assert.equal(batches.length, 1);
+  assert.deepEqual(batches[0].slice(0, 3).map(({ copyPaste }) =>
+    [copyPaste.source.startColumnIndex, copyPaste.destination.startColumnIndex]), [[10, 1], [5, 4], [6, 5]]);
+  assert.equal(batches[0][4].repeatCell.range.startColumnIndex, 6);
+  assert.equal(batches[0][5].updateCells.rows[0].values.length, 6);
 });
 
 test('archive disabled by default; enable requires configuration and a safe origin', () => {
@@ -247,7 +270,7 @@ test('email gate rejects missing/invalid email and capabilities from other submi
   assert.equal((await store.get(id)).download_email, null);
 });
 
-test('one committed email unlocks both authoritative versions and syncs to column K', async (t) => {
+test('one committed email unlocks both authoritative versions and syncs email and capture time', async (t) => {
   const { store, pool } = await fixture(t);
   const id = await store.save({ text: 'source', files: [], duration: '2-3 mins', level: 'Medium' });
   await store.finish(id, 'completed', { title: 'Stored title', version_a_title: 'Style A', version_b_title: 'Style B',
@@ -269,7 +292,8 @@ test('one committed email unlocks both authoritative versions and syncs to colum
   await syncReports({ pool, baseUrl: 'https://example.com', sheets: {
     ensure: async () => {}, write: async (_, values) => { report = values; },
   } });
-  assert.equal(report[10], 'person@example.com');
+  assert.equal(report[1], 'person@example.com');
+  assert.match(report[0], /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
 });
 
 test('direct PDF calls cannot bypass email with DOM edits or arbitrary client text', async (t) => {

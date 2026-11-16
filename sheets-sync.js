@@ -1,29 +1,23 @@
-export const REPORT_HEADERS = ['Submit ID', 'Created at (UTC)', 'Input text', 'Document upload',
-  'Status', 'Duration', 'Level', 'File count', 'Submission details', 'Updated at (UTC)', 'Email'];
+export const REPORT_HEADERS = ['Ngày submit email', 'Email', 'Input text', 'Document upload',
+  'Duration', 'Level'];
 
-export function reportRow(submission, files, baseUrl) {
-  const details = `${baseUrl}/admin/submissions/${submission.id}`;
+const emailDate = new Intl.DateTimeFormat('sv-SE', {
+  timeZone: 'Asia/Ho_Chi_Minh', dateStyle: 'short', timeStyle: 'medium',
+});
+
+export function reportRow(submission, files, folderUrl) {
   const text = submission.input_text.length > 40000
-    ? submission.input_text.slice(0, 39500) + '\n[Truncated in report. Open Submission details for full text.]'
+    ? submission.input_text.slice(0, 39500) + '\n[Truncated in report.]'
     : submission.input_text;
-  const documentLinks = [];
-  let linkTextLength = 0;
-  for (const file of files) {
-    if (!file.stored || !file.drive_view_url) continue;
-    linkTextLength += file.drive_view_url.length + (documentLinks.length ? 1 : 0);
-    if (linkTextLength > 40000) break;
-    documentLinks.push(file.drive_view_url);
-  }
-  return [submission.id, new Date(submission.created_at).toISOString(), text,
-    documentLinks.join('\n'),
-    submission.status, submission.duration, submission.level, files.length,
-    details, new Date(submission.updated_at).toISOString(), submission.download_email || ''];
+  const folder = files.some((file) => file.stored && file.drive_view_url) ? folderUrl : '';
+  return [submission.download_email_at ? emailDate.format(new Date(submission.download_email_at)) : '',
+    submission.download_email || '', text, folder || '', submission.duration, submission.level];
 }
 
 // One durable row number per submission, allocated by PostgreSQL. A network retry
 // overwrites the same range, including after a successful write whose reply was lost.
 // Keep this dedicated tab in original row order; use filter views for sorting.
-export async function syncReports({ pool, sheets, drive, baseUrl, batchSize = 20 }) {
+export async function syncReports({ pool, sheets, drive, folderUrl, batchSize = 20 }) {
   const client = await pool.connect();
   let locked = false;
   try {
@@ -68,7 +62,7 @@ export async function syncReports({ pool, sheets, drive, baseUrl, batchSize = 20
             }
           }
         }
-        await sheets.write(Number(row.report_row), reportRow(row, files, baseUrl));
+        await sheets.write(Number(row.report_row), reportRow(row, files, folderUrl));
         if (driveFailed) throw new Error('Drive sync pending.');
         await client.query(`UPDATE submissions SET synced_revision=$2,sync_attempts=0,sync_error=NULL
           WHERE id=$1 AND revision=$2`, [row.id, row.revision]);
