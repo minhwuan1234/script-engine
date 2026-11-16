@@ -12,20 +12,18 @@ export function reportRow(submission, files, baseUrl) {
   const documentLinks = files.filter((file) => file.stored && file.drive_view_url)
     .map((file) => file.drive_view_url).join('\n');
   const result = submission.result ?? {};
-  const scripts = [];
-  for (const letter of ['A', 'B']) {
+  const scripts = ['A', 'B'].map((letter) => {
     const key = `version_${letter.toLowerCase()}`;
     const body = result[`${key}_text`] || result[`${key}_md`];
-    if (!body) continue;
+    if (!body) return '';
     const title = result[`${key}_title`];
     const label = `Version ${letter}`;
-    scripts.push(`${title && title !== label ? `${label} — ${title}` : label}\n\n${body}`);
-  }
-  const output = scripts.join('\n\n');
-  const scriptOutput = output.length <= 50000 ? output :
-    `Script exceeds the Google Sheets cell limit. Full output: ${baseUrl}/admin/submissions/${submission.id}`;
+    const output = `${title && title !== label ? `${label} — ${title}` : label}\n\n${body}`;
+    return output.length <= 50000 ? output :
+      `${label} exceeds the Google Sheets cell limit. Full output: ${baseUrl}/admin/submissions/${submission.id}`;
+  });
   return [submission.download_email_at ? emailDate.format(new Date(submission.download_email_at)) : '',
-    submission.download_email || '', text, documentLinks, submission.duration, submission.level, scriptOutput];
+    submission.download_email || '', text, documentLinks, submission.duration, submission.level, scripts];
 }
 
 // One durable row number per submission, allocated by PostgreSQL. A network retry

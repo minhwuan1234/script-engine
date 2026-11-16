@@ -35,7 +35,10 @@ export function createSheetsClient({ auth, spreadsheetId, tab = 'Submissions', f
   }
   const write = (range, values) => request(`/values/${encodeURIComponent(range)}?valueInputOption=RAW`,
     'PUT', { values, majorDimension: 'ROWS' });
+  const detailsTab = 'Script details';
+  if (tab === detailsTab) throw new Error('GOOGLE_SHEET_TAB conflicts with Script details.');
   let sheetId;
+  let detailsId;
   const columnCount = REPORT_HEADERS.length;
   return {
     async ensure(row) {
@@ -82,11 +85,43 @@ export function createSheetsClient({ auth, spreadsheetId, tab = 'Submissions', f
           ] });
         }
       }
+      let details = data.sheets?.find((item) => item.properties.title === detailsTab)?.properties;
+      if (!details) {
+        const result = await request(':batchUpdate', 'POST', { requests: [{ addSheet: {
+          properties: { title: detailsTab, gridProperties: {
+            rowCount: Math.max(1000, row + 100), columnCount: 2, frozenRowCount: 1,
+          } },
+        } }] });
+        details = result.replies[0].addSheet.properties;
+      } else if (details.gridProperties.rowCount < row) {
+        await request(':batchUpdate', 'POST', { requests: [{ updateSheetProperties: {
+          properties: { sheetId: details.sheetId, gridProperties: { rowCount: row + 100 } },
+          fields: 'gridProperties.rowCount',
+        } }] });
+      }
+      if (detailsId !== details.sheetId) {
+        const grid = { sheetId: details.sheetId };
+        await request(':batchUpdate', 'POST', { requests: [
+          { repeatCell: { range: { ...grid, startRowIndex: 0, endRowIndex: 1 },
+            cell: { userEnteredFormat: { backgroundColor: { red: 1, green: .58, blue: .21 },
+              textFormat: { bold: true } } }, fields: 'userEnteredFormat' } },
+          { repeatCell: { range: { ...grid, startRowIndex: 1, endColumnIndex: 2 },
+            cell: { userEnteredFormat: { wrapStrategy: 'WRAP', verticalAlignment: 'TOP' } },
+            fields: 'userEnteredFormat.wrapStrategy,userEnteredFormat.verticalAlignment' } },
+          { updateDimensionProperties: { range: { ...grid, dimension: 'COLUMNS', startIndex: 0, endIndex: 2 },
+            properties: { pixelSize: 600 }, fields: 'pixelSize' } },
+          { updateCells: { start: { ...grid, rowIndex: 0, columnIndex: 0 },
+            rows: [{ values: ['Version A', 'Version B'].map((stringValue) => ({ userEnteredValue: { stringValue } })) }],
+            fields: 'userEnteredValue' } },
+        ] });
+        detailsId = details.sheetId;
+      }
       await write(`${a1}!A1:G1`, [REPORT_HEADERS]);
       sheetId = sheet.sheetId;
     },
     write(row, values) {
-      const cells = values.map((value) => ({
+      const scripts = values.at(-1);
+      const cells = values.slice(0, -1).map((value) => ({
         userEnteredValue: typeof value === 'number' ? { numberValue: value } : { stringValue: value },
       }));
       const documentCell = cells[REPORT_HEADERS.indexOf('Document upload')];
@@ -99,11 +134,34 @@ export function createSheetsClient({ auth, spreadsheetId, tab = 'Submissions', f
           startIndex += uri.length + 1;
         }
       }
-      return request(':batchUpdate', 'POST', { requests: [{ updateCells: {
-        start: { sheetId, rowIndex: row - 1, columnIndex: 0 },
-        rows: [{ values: cells }],
-        fields: 'userEnteredValue,textFormatRuns',
-      } }] });
+      const labels = [];
+      const textFormatRuns = [];
+      let offset = 0;
+      for (const [index, script] of scripts.entries()) {
+        if (!script) continue;
+        const column = index === 0 ? 'A' : 'B';
+        const label = `Xem Version ${column}`;
+        textFormatRuns.push({ startIndex: offset, format: { link: {
+          uri: `https://docs.google.com/spreadsheets/d/${spreadsheetId}/edit#gid=${detailsId}&range=${column}${row}`,
+        } } });
+        labels.push(label);
+        offset += label.length;
+        textFormatRuns.push({ startIndex: offset, format: {} });
+        offset += ' · '.length;
+      }
+      if (textFormatRuns.length) textFormatRuns.pop();
+      cells.push({ userEnteredValue: { stringValue: labels.join(' · ') }, textFormatRuns });
+      return request(':batchUpdate', 'POST', { requests: [
+        { updateCells: {
+          start: { sheetId, rowIndex: row - 1, columnIndex: 0 },
+          rows: [{ values: cells }], fields: 'userEnteredValue,textFormatRuns',
+        } },
+        { updateCells: {
+          start: { sheetId: detailsId, rowIndex: row - 1, columnIndex: 0 },
+          rows: [{ values: scripts.map((stringValue) => ({ userEnteredValue: { stringValue } })) }],
+          fields: 'userEnteredValue',
+        } },
+      ] });
     },
   };
 }

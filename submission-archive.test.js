@@ -166,16 +166,19 @@ test('Sheets writes clickable document URLs and keeps user input literal', async
       requests.push({ url, ...options });
       return Response.json(options.method === 'GET' ? { sheets: [{ properties: {
         sheetId: 42, title: "User's Submissions", gridProperties: { rowCount: 1000, columnCount: 7 },
+      } }, { properties: {
+        sheetId: 43, title: 'Script details', gridProperties: { rowCount: 1000, columnCount: 2 },
       } }] } : {});
     } });
   await sheets.ensure(9);
-  assert.match(requests[1].url, /valueInputOption=RAW/);
-  assert.ok(decodeURIComponent(requests[1].url).includes("'User''s Submissions'!A1:G1"));
+  assert.match(requests[2].url, /valueInputOption=RAW/);
+  assert.ok(decodeURIComponent(requests[2].url).includes("'User''s Submissions'!A1:G1"));
 
   const first = 'https://drive.google.com/file/d/first/view?usp=drivesdk';
   const second = 'https://drive.google.com/file/d/second/view';
   const submission = { id: 'id', input_text: '=1+1', created_at: 0, updated_at: 0,
-    status: 'completed', duration: '2-3 mins', level: 'High' };
+    status: 'completed', duration: '2-3 mins', level: 'High',
+    result: { version_a_text: '=script A', version_b_text: 'script B' } };
   const values = reportRow(submission, [
     { stored: true, original_name: 'first.txt', drive_view_url: first },
     { stored: true, original_name: 'pending.txt' },
@@ -183,8 +186,8 @@ test('Sheets writes clickable document URLs and keeps user input literal', async
     { stored: true, original_name: 'second.txt', drive_view_url: second },
   ]);
   await sheets.write(9, values);
-  assert.ok(requests[2].url.endsWith(':batchUpdate'));
-  const { updateCells } = JSON.parse(requests[2].body).requests[0];
+  assert.ok(requests[3].url.endsWith(':batchUpdate'));
+  const { updateCells } = JSON.parse(requests[3].body).requests[0];
   assert.deepEqual(updateCells.start, { sheetId: 42, rowIndex: 8, columnIndex: 0 });
   const cells = updateCells.rows[0].values;
   assert.deepEqual(cells[2].userEnteredValue, { stringValue: '=1+1' });
@@ -196,18 +199,34 @@ test('Sheets writes clickable document URLs and keeps user input literal', async
     ],
   });
   assert.equal(cells.length, 7);
+  const detailUrl = 'https://docs.google.com/spreadsheets/d/sheet123/edit#gid=43&range=';
+  assert.deepEqual(cells[6], {
+    userEnteredValue: { stringValue: 'Xem Version A · Xem Version B' },
+    textFormatRuns: [
+      { startIndex: 0, format: { link: { uri: detailUrl + 'A9' } } },
+      { startIndex: 13, format: {} },
+      { startIndex: 16, format: { link: { uri: detailUrl + 'B9' } } },
+    ],
+  });
+  const details = JSON.parse(requests[3].body).requests[1].updateCells;
+  assert.deepEqual(details.start, { sheetId: 43, rowIndex: 8, columnIndex: 0 });
+  assert.deepEqual(details.rows[0].values.map((cell) => cell.userEnteredValue.stringValue),
+    ['Version A\n\n=script A', 'Version B\n\nscript B']);
 
-  await sheets.write(9, reportRow(submission, [{ stored: true }]));
-  assert.deepEqual(JSON.parse(requests[3].body).requests[0].updateCells.rows[0].values[3],
+  await sheets.write(9, reportRow({ ...submission, result: { version_b_text: 'script B' } }, [{ stored: true }]));
+  assert.deepEqual(JSON.parse(requests[4].body).requests[0].updateCells.rows[0].values[3],
     { userEnteredValue: { stringValue: '' }, textFormatRuns: [] });
+  const partial = JSON.parse(requests[4].body).requests[0].updateCells.rows[0].values[6];
+  assert.equal(partial.userEnteredValue.stringValue, 'Xem Version B');
+  assert.equal(partial.textFormatRuns[0].format.link.uri, detailUrl + 'B9');
 });
 
 test('script output supports partial legacy results and oversized cells', () => {
   const row = { id: 'id', input_text: '', duration: '2-3 mins', level: 'Low',
     result: { version_b_md: 'Legacy script' } };
-  assert.equal(reportRow(row, [], 'https://example.com')[6], 'Version B\n\nLegacy script');
+  assert.equal(reportRow(row, [], 'https://example.com')[6][1], 'Version B\n\nLegacy script');
   row.result.version_a_text = 'a'.repeat(50000);
-  assert.match(reportRow(row, [], 'https://example.com')[6], /https:\/\/example.com\/admin\/submissions\/id$/);
+  assert.match(reportRow(row, [], 'https://example.com')[6][0], /https:\/\/example.com\/admin\/submissions\/id$/);
 });
  
 test('legacy report moves retained columns before clearing obsolete values', async () => {
@@ -217,6 +236,8 @@ test('legacy report moves retained columns before clearing obsolete values', asy
     fetchImpl: async (url, options) => {
       if (url.endsWith('?fields=sheets.properties')) return Response.json({ sheets: [{ properties: {
         title: 'Submissions', sheetId: 42, gridProperties: { rowCount: 1000, columnCount: 26 },
+      } }, { properties: {
+        sheetId: 43, title: 'Script details', gridProperties: { rowCount: 1000, columnCount: 2 },
       } }] });
       if (options.method === 'GET') return Response.json({ values: [[
         'Submit ID', 'Created at (UTC)', 'Input text', 'Document upload', 'Status',
@@ -228,7 +249,7 @@ test('legacy report moves retained columns before clearing obsolete values', asy
   });
   await sheets.ensure(9);
   await sheets.ensure(9);
-  assert.equal(batches.length, 1);
+  assert.equal(batches.length, 2);
   assert.deepEqual(batches[0].slice(0, 3).map(({ copyPaste }) =>
     [copyPaste.source.startColumnIndex, copyPaste.destination.startColumnIndex]), [[10, 1], [5, 4], [6, 5]]);
   assert.equal(batches[0][4].repeatCell.range.startColumnIndex, 6);
@@ -303,7 +324,7 @@ test('one committed email unlocks both authoritative versions and syncs email an
     ensure: async () => {}, write: async (_, values) => { report = values; },
   } });
   assert.equal(report[1], 'person@example.com');
-  assert.equal(report[6], 'Version A — Style A\n\nStored script A\n\nVersion B — Style B\n\nStored script B');
+  assert.deepEqual(report[6], ['Version A — Style A\n\nStored script A', 'Version B — Style B\n\nStored script B']);
   assert.match(report[0], /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
 });
 

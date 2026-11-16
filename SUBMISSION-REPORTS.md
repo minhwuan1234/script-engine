@@ -65,9 +65,10 @@ adds a frozen orange header, wraps cells and writes these columns:
 The email timestamp uses Vietnam time. Both email fields stay blank until
 an email is captured. Long input text is shortened in the report and retained
 in PostgreSQL. Document upload shows a separate clickable link for each file copied to
-Shared Drive. Script output contains available versions A and B in one cell.
-If the combined output exceeds the Sheets cell limit, the cell points to the full
-script in the authenticated submission view.
+Shared Drive. Script output links to the available versions in Script details. They share
+the same row number and sit side by side. If one version exceeds the Sheets
+cell limit, its detail cell points to the authenticated submission view.
+Keep both tabs in their original row order.
 
 ## 4. Enable and deploy
 
