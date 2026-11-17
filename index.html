@@ -255,14 +255,12 @@
     white-space: pre-wrap; overflow-wrap: anywhere;
 }
 .tony-pixel-widget .tpw-preview-locked {
-    position: relative; display: grid; gap: 10px; min-height: 150px;
-    margin-top: 12px; padding: 16px; border-radius: 10px; background: #fffdfa;
+    position: relative; display: grid; min-height: 82px; box-sizing: border-box;
+    margin-top: 8px; padding: 12px; border-radius: 10px; background: #fffdfa;
 }
-.tony-pixel-widget .tpw-preview-skeleton { display: grid; gap: 11px; filter: blur(5px); user-select: none; }
+.tony-pixel-widget .tpw-preview-skeleton { display: grid; gap: 14px; filter: blur(5px); user-select: none; }
 .tony-pixel-widget .tpw-preview-skeleton span { display: block; height: 10px; border-radius: 5px; background: #d7d0c8; }
 .tony-pixel-widget .tpw-preview-skeleton span:nth-child(2) { width: 84%; }
-.tony-pixel-widget .tpw-preview-skeleton span:nth-child(3) { width: 92%; }
-.tony-pixel-widget .tpw-preview-skeleton span:nth-child(4) { width: 68%; }
 .tony-pixel-widget .tpw-preview-lock-message {
     position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
     padding: 12px; color: #7c2d12; font-size: 12px; font-weight: 800; text-align: center;
@@ -1227,10 +1225,10 @@ const FULL_RESULT_URL = '/api/unlocked-result';
       const skeleton = document.createElement('div');
       skeleton.className = 'tpw-preview-skeleton';
       skeleton.setAttribute('aria-hidden', 'true');
-      for (let i = 0; i < 4; i++) skeleton.appendChild(document.createElement('span'));
+      for (let i = 0; i < 2; i++) skeleton.appendChild(document.createElement('span'));
       const message = document.createElement('span');
       message.className = 'tpw-preview-lock-message';
-      message.textContent = 'Enter your email below to read the rest';
+      message.textContent = 'Submit your email to unlock the full version!';
       cover.append(skeleton, message);
       container.appendChild(cover);
     }
