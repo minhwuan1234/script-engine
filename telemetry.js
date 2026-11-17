@@ -24,6 +24,8 @@ export function buildSubJobStages(rec) {
     code: '01_extract_doc',
     name: 'Bóc tách văn bản gốc',
     nameEn: 'Document Extraction',
+    stepType: 'NON_AI',
+    description: 'Đọc và chuẩn hóa văn bản từ tài liệu đầu vào (PDF/Word/Text).',
     durationMs: dur1,
     status: 'SUCCESS',
     summary: rec.files && rec.files.length ? `Đọc ${rec.files.length} tài liệu (${rec.files.join(', ')})` : 'Đọc tài liệu đầu vào',
@@ -36,6 +38,8 @@ export function buildSubJobStages(rec) {
       code: '02_icp_strategy',
       name: 'Phân loại ICP & Chiến lược',
       nameEn: 'ICP & Strategy Selection',
+      stepType: 'AI',
+      description: 'AI phân tích chân dung khách hàng mục tiêu (ICP) và chọn góc tiếp cận kịch bản.',
       durationMs: dur2,
       status: 'SUCCESS',
       summary: rec.icp_guess ? `ICP: ${rec.icp_guess} (Source: ${rec.icp_source || 'skill'})` : 'Xác định nhóm đối tượng',
@@ -50,6 +54,8 @@ export function buildSubJobStages(rec) {
       code: '03_write_version_a',
       name: 'Viết kịch bản Version A',
       nameEn: 'Script Version A Generation',
+      stepType: 'AI',
+      description: 'AI soạn thảo đầy đủ kịch bản video Version A.',
       durationMs: durA,
       status: 'SUCCESS',
       summary: 'Hoàn thành bản thảo kịch bản Version A',
@@ -60,6 +66,8 @@ export function buildSubJobStages(rec) {
       code: '04_write_version_b',
       name: 'Viết kịch bản Version B',
       nameEn: 'Script Version B Generation',
+      stepType: 'AI',
+      description: 'AI soạn thảo kịch bản video Version B theo hướng tương phản.',
       durationMs: durB,
       status: 'SUCCESS',
       summary: 'Hoàn thành bản thảo kịch bản Version B tương phản',
@@ -70,6 +78,8 @@ export function buildSubJobStages(rec) {
       code: '05_parse_finalize',
       name: 'Chuẩn hóa kịch bản & Lưu trữ',
       nameEn: 'Parsing & Archiving',
+      stepType: 'NON_AI',
+      description: 'Parse kết quả JSON, định dạng bảng thoại và lưu trữ lịch sử chạy.',
       durationMs: dur5,
       status: rec.status === 'ok' ? 'SUCCESS' : 'ERROR',
       summary: rec.status === 'ok' ? 'Hoàn thiện bảng thoại, trực quan & lưu trữ' : (rec.error || 'Lỗi xử lý'),
@@ -81,6 +91,8 @@ export function buildSubJobStages(rec) {
       code: '03_write_combined',
       name: 'Viết kịch bản (Version A + B)',
       nameEn: 'Full Script Generation (A + B)',
+      stepType: 'AI',
+      description: 'AI sinh đồng thời 2 bản kịch bản tương phản Version A & B.',
       durationMs: durWrite,
       status: rec.status === 'ok' ? 'SUCCESS' : 'ERROR',
       summary: rec.status === 'ok' ? 'Sinh hoàn thiện 2 bản kịch bản tương phản' : (rec.error || 'Lỗi xử lý'),
@@ -94,6 +106,10 @@ export function buildSubJobStages(rec) {
  * Dispatches a completed generation execution to Dashboard Control Plane
  */
 export async function sendTelemetryToDashboard(rec, options = {}) {
+  if (process.env.NODE_ENV === 'test' || process.env.FLEARNING_TELEMETRY_DISABLED === 'true') {
+    return false;
+  }
+
   const dashboardUrl = (process.env.FLEARNING_DASHBOARD_URL || DEFAULT_DASHBOARD_URL).replace(/\/$/, '');
   const secret = process.env.FLEARNING_TELEMETRY_SECRET || '';
   const appUrl = process.env.PUBLIC_APP_URL || '';
@@ -102,10 +118,6 @@ export async function sendTelemetryToDashboard(rec, options = {}) {
 
   const stages = buildSubJobStages(rec);
   const totalDurationMs = Math.max(1, Number(rec.duration_ms) || 0);
-
-  // Response time: time to accepted event (or fallback to extract_ms / 50ms)
-  const responseTimeMs = rec.accepted_ms ? Number(rec.accepted_ms) : (options.responseTimeMs || 120);
-  const clickLatencyMs = options.clickLatencyMs || 90;
 
   const workloadParts = [];
   if (rec.files && rec.files.length) {
@@ -117,7 +129,21 @@ export async function sendTelemetryToDashboard(rec, options = {}) {
   if (rec.level) workloadParts.push(`Level: ${rec.level}`);
   const workload = workloadParts.join(' · ') || 'Tài liệu video script';
 
+  const llmCallsCount = rec.llm_calls !== undefined && Number(rec.llm_calls) > 0 ? Number(rec.llm_calls) : undefined;
+  const estCost = rec.est_cost_usd !== undefined ? Number(rec.est_cost_usd) : undefined;
+  const inputTokens = rec.input_tokens !== undefined ? Number(rec.input_tokens) : undefined;
+  const outputTokens = rec.output_tokens !== undefined ? Number(rec.output_tokens) : undefined;
+
+  const llmUsage = {
+    ...(rec.model ? { model: rec.model } : {}),
+    ...(inputTokens !== undefined && inputTokens > 0 ? { inputTokens } : {}),
+    ...(outputTokens !== undefined && outputTokens > 0 ? { outputTokens } : {}),
+    ...(estCost !== undefined && estCost > 0 ? { estimatedCostUsd: estCost } : {}),
+    ...(llmCallsCount !== undefined ? { llmCallsCount } : {}),
+  };
+
   const payload = {
+    schemaVersion: '2.2',
     toolSlug: TOOL_SLUG,
     toolName: TOOL_NAME,
     mainJob: MAIN_JOB_NAME,
@@ -128,15 +154,13 @@ export async function sendTelemetryToDashboard(rec, options = {}) {
     runId: rec.submission_id ? `sub_${rec.submission_id}` : `run_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
     status: rec.status === 'ok' ? 'SUCCESS' : 'ERROR',
     durationMs: totalDurationMs,
-    responseTimeMs,
-    clickLatencyMs,
     workload,
-    modelName: rec.model || process.env.OPENAI_MODEL || 'gpt-6-sol',
-    inputTokens: rec.input_tokens || undefined,
-    outputTokens: rec.output_tokens || undefined,
-    costUsd: rec.est_cost_usd || undefined,
+    ...(Object.keys(llmUsage).length > 0 ? { llmUsage } : {}),
     stages,
   };
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 3000);
 
   try {
     const headers = { 'Content-Type': 'application/json' };
@@ -148,6 +172,7 @@ export async function sendTelemetryToDashboard(rec, options = {}) {
       method: 'POST',
       headers,
       body: JSON.stringify(payload),
+      signal: controller.signal,
     });
 
     if (!res.ok) {
@@ -159,5 +184,8 @@ export async function sendTelemetryToDashboard(rec, options = {}) {
   } catch (err) {
     console.warn(`[Telemetry] Network error dispatching to dashboard:`, err.message);
     return false;
+  } finally {
+    clearTimeout(timeout);
   }
 }
+

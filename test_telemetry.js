@@ -19,17 +19,14 @@ async function main() {
     icp_source: 'original_skill',
     version_a_ms: 41200,
     version_b_ms: 78900,
-    accepted_ms: 110,
     input_tokens: 18500,
     output_tokens: 4200,
     est_cost_usd: 0.058,
+    llm_calls: 3,
     submission_id: 'test_demo_' + Date.now(),
   };
 
-  const ok = await sendTelemetryToDashboard(mockRec, {
-    clickLatencyMs: 85,
-    responseTimeMs: 110,
-  });
+  const ok = await sendTelemetryToDashboard(mockRec);
 
   console.log(`Telemetry test result: ${ok ? 'SUCCESS' : 'FAILED'}`);
   process.exit(ok ? 0 : 1);
@@ -39,3 +36,4 @@ main().catch((err) => {
   console.error('Test error:', err);
   process.exit(1);
 });
+
