@@ -315,6 +315,11 @@ test('one committed email unlocks both authoritative versions and syncs email an
     const result = await gate.authorize({ submissionId: id, version, token: unlocked.downloadToken });
     assert.equal(result.text, `Stored script ${version}`);
   }
+  await assert.rejects(gate.authorizeResult({ submissionId: id, token: ownerToken }), { status: 403 });
+  const fullResult = await gate.authorizeResult({ submissionId: id, token: unlocked.downloadToken });
+  assert.equal(fullResult.version_a_text, 'Stored script A');
+  assert.equal(fullResult.version_b_text, 'Stored script B');
+  assert.equal(fullResult.ok, true);
   const before = (await pool.query('SELECT revision FROM submissions WHERE id=$1', [id])).rows[0].revision;
   await gate.unlock({ submissionId: id, ownerToken, email: 'another@example.com' });
   assert.equal((await store.get(id)).download_email, 'person@example.com', 'first captured email remains unchanged');
@@ -374,10 +379,14 @@ test('a streamed A unlocks before completion; the same grant unlocks B when it a
   assert.equal(events[0].type, 'version_a');
   const grant = await gate.unlock({ submissionId: id, ownerToken: events[0].downloadOwnerToken, email: 'early@example.com' });
   assert.equal((await gate.authorize({ submissionId: id, version: 'A', token: grant.downloadToken })).text, 'Completed A');
+  const firstReveal = await gate.authorizeResult({ submissionId: id, token: grant.downloadToken });
+  assert.equal(firstReveal.version_a_text, 'Completed A');
+  assert.equal(firstReveal.version_b_text, '');
   await assert.rejects(gate.authorize({ submissionId: id, version: 'B', token: grant.downloadToken }), { status: 403 });
   publisher.publish('B', { title: 'Style B', text: 'Completed B' });
   await publisher.drain();
   assert.equal((await gate.authorize({ submissionId: id, version: 'B', token: grant.downloadToken })).text, 'Completed B');
+  assert.equal((await gate.authorizeResult({ submissionId: id, token: grant.downloadToken })).version_b_text, 'Completed B');
   await store.finish(id, 'completed', { title: 'Final title' });
   assert.equal((await store.get(id)).download_email, 'early@example.com');
   assert.equal((await gate.authorize({ submissionId: id, version: 'A', token: grant.downloadToken })).title, 'Final title');

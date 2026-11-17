@@ -1,6 +1,7 @@
 // Provider callbacks are synchronous. Serialize storage writes without blocking
 // upstream stream consumption, and publish each version only after it is durable.
-export function createVersionPublisher({ store, submissionId, ownerToken, sendEvent, onSent = () => {} }) {
+export function createVersionPublisher({ store, submissionId, ownerToken, sendEvent,
+  publicVersion = (version) => version, onSent = () => {} }) {
   let pending = Promise.resolve();
   let failed = false;
   return {
@@ -9,7 +10,7 @@ export function createVersionPublisher({ store, submissionId, ownerToken, sendEv
         if (failed) return;
         if (store && submissionId) await store.saveVersion(submissionId, letter, version);
         const access = store && submissionId ? { submissionId, downloadOwnerToken: ownerToken } : {};
-        sendEvent(`version_${letter.toLowerCase()}`, { ...version, ...access });
+        sendEvent(`version_${letter.toLowerCase()}`, { ...publicVersion(version), ...access });
         onSent(letter);
       }).catch(() => { failed = true; });
     },

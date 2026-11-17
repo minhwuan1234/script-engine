@@ -137,11 +137,11 @@
                         </div>
                     </div>
                     <form class="tpw-email-gate" hidden>
-                        <label class="tpw-email-label" for="tpw-download-email">Unlock both PDFs</label>
-                            <p class="tpw-email-description">Enter your email to download Version A and Version B.</p>
+                        <label class="tpw-email-label" for="tpw-download-email">Unlock the full scripts</label>
+                            <p class="tpw-email-description">Enter your email to read both complete versions and download their PDFs.</p>
                             <div class="tpw-email-controls">
                                 <input id="tpw-download-email" class="tpw-email-input" type="email" required maxlength="254" autocomplete="email" inputmode="email" placeholder="Your email address" aria-label="Email address">
-                                <button class="tpw-email-submit" type="submit">Unlock downloads</button>
+                                <button class="tpw-email-submit" type="submit">Unlock scripts &amp; PDFs</button>
                             </div>
                         <p class="tpw-email-status" role="status" aria-live="polite"></p>
                     </form>
@@ -253,6 +253,19 @@
 .tony-pixel-widget .tpw-script-note-copy {
     margin: 0; color: #22252a; font-size: 13px; line-height: 1.55;
     white-space: pre-wrap; overflow-wrap: anywhere;
+}
+.tony-pixel-widget .tpw-preview-locked {
+    position: relative; display: grid; gap: 10px; min-height: 150px;
+    margin-top: 12px; padding: 16px; border-radius: 10px; background: #fffdfa;
+}
+.tony-pixel-widget .tpw-preview-skeleton { display: grid; gap: 11px; filter: blur(5px); user-select: none; }
+.tony-pixel-widget .tpw-preview-skeleton span { display: block; height: 10px; border-radius: 5px; background: #d7d0c8; }
+.tony-pixel-widget .tpw-preview-skeleton span:nth-child(2) { width: 84%; }
+.tony-pixel-widget .tpw-preview-skeleton span:nth-child(3) { width: 92%; }
+.tony-pixel-widget .tpw-preview-skeleton span:nth-child(4) { width: 68%; }
+.tony-pixel-widget .tpw-preview-lock-message {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    padding: 12px; color: #7c2d12; font-size: 12px; font-weight: 800; text-align: center;
 }
 .tony-pixel-widget .tpw-output-actions { display: flex; align-items: center; gap: 8px; margin-top: 12px; flex: none; }
 .tony-pixel-widget .tpw-output-actions:not(:has(> button:not([hidden]))) { display: none; }
@@ -658,6 +671,7 @@ const API_URL = '/api/generate';
 const PICK_URL = '/api/pick';
 const PDF_URL = '/api/download-pdf';
 const UNLOCK_URL = '/api/unlock-download';
+const FULL_RESULT_URL = '/api/unlocked-result';
 
 (() => {
   document.querySelectorAll('.tony-pixel-widget').forEach(initPixelWidget);
@@ -759,6 +773,7 @@ const UNLOCK_URL = '/api/unlock-download';
     const emailStatus = $('.tpw-email-status');
     let downloadAccess = null;
     let downloadGrant = null;
+    const revealed = { A: false, B: false };
     let currentPick = null;
     const downloadable = { A: null, B: null };
     let generationEpoch = 0;
@@ -806,14 +821,19 @@ const UNLOCK_URL = '/api/unlock-download';
         if (epoch !== generationEpoch || access !== downloadAccess) return;
         downloadGrant = data;
         updateDownloadGate();
-        pickStatus.textContent = 'Downloads unlocked for both versions.';
+        await loadFullScripts(epoch, access);
+        pickStatus.textContent = 'Full scripts and PDFs unlocked.';
       } catch (error) {
-        if (epoch === generationEpoch) emailStatus.textContent = error.name === 'AbortError'
-          ? 'The request timed out. Please retry.' : error.message;
+        if (epoch === generationEpoch) {
+          downloadGrant = null;
+          updateDownloadGate();
+          emailStatus.textContent = error.name === 'AbortError'
+            ? 'The request timed out. Please retry.' : error.message;
+        }
       } finally {
         clearTimeout(timeout);
         emailSubmit.disabled = false;
-        emailSubmit.textContent = 'Unlock downloads';
+        emailSubmit.textContent = 'Unlock scripts & PDFs';
       }
     });
 
@@ -1198,6 +1218,42 @@ const UNLOCK_URL = '/api/unlock-download';
       }
       container.replaceChildren(fragment);
     }
+    function renderVersion(container, text, letter, locked) {
+      if (locked && revealed[letter]) return;
+      renderScript(container, text);
+      if (!locked) { revealed[letter] = true; return; }
+      const cover = document.createElement('div');
+      cover.className = 'tpw-preview-locked';
+      const skeleton = document.createElement('div');
+      skeleton.className = 'tpw-preview-skeleton';
+      skeleton.setAttribute('aria-hidden', 'true');
+      for (let i = 0; i < 4; i++) skeleton.appendChild(document.createElement('span'));
+      const message = document.createElement('span');
+      message.className = 'tpw-preview-lock-message';
+      message.textContent = 'Enter your email below to read the rest';
+      cover.append(skeleton, message);
+      container.appendChild(cover);
+    }
+    async function loadFullScripts(epoch = generationEpoch, access = downloadAccess) {
+      const grant = downloadGrant;
+      if (!access || !grant || grant.expiresAt <= Date.now()) return;
+      const response = await fetch(FULL_RESULT_URL, { method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${grant.downloadToken}` },
+        body: JSON.stringify({ submissionId: access.submissionId }) });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.ok) throw new Error(data.error || 'Could not unlock the full scripts. Please retry.');
+      if (epoch !== generationEpoch || access !== downloadAccess || grant !== downloadGrant) return;
+      if (data.version_a_text) {
+        const text = plainText(data.version_a_text);
+        renderVersion(outputA, text, 'A', false);
+        setDownload('A', data.title || data.version_a_title, text, data.duration, data.version_a_title);
+      }
+      if (data.version_b_text) {
+        const text = plainText(data.version_b_text);
+        renderVersion(outputB, text, 'B', false);
+        setDownload('B', data.title || data.version_b_title, text, data.duration, data.version_b_title);
+      }
+    }
     const versionText = (data, letter) => data[`version_${letter.toLowerCase()}_text`] ?? data[`version_${letter.toLowerCase()}_md`];
     const hasGatewayFields = (data) =>
       ['title', 'duration', 'icp', 'version_a_title', 'version_b_title'].every((k) => typeof data[k] === 'string') &&
@@ -1292,6 +1348,7 @@ const UNLOCK_URL = '/api/unlock-download';
       downloadAccess = null;
       downloadGrant = null;
       currentPick = null;
+      revealed.A = false; revealed.B = false;
       setDownload('A', '', '', '');
       setDownload('B', '', '', '');
       pickStatus.textContent = '';
@@ -1303,6 +1360,10 @@ const UNLOCK_URL = '/api/unlock-download';
     }
 
     function showResult(data) {
+      if (data.locked !== true) {
+        showError('The scripts could not be displayed securely. Please retry.');
+        return;
+      }
       acceptDownloadAccess(data);
       if (!hasGatewayFields(data) && !String(data.text || data.markdown || data.title || '').trim()) {
         showError('Generation finished without a script. Please retry.');
@@ -1317,14 +1378,7 @@ const UNLOCK_URL = '/api/unlock-download';
           updateDownloadGate();
           return;
         }
-        pickStatus.textContent = '';
-        // fallback: engine didn't return the expected gateway fields -> show raw text so nothing is lost
-        titleA.textContent = 'Result'; titleB.textContent = '-';
-        metaA.textContent = ''; metaB.textContent = '';
-        renderScript(outputA, plainText(data.text || data.markdown || data.title));
-        outputB.textContent = '';
-        setDownload('A', '', '', '');
-        setDownload('B', '', '', '');
+        showError('The scripts could not be formatted securely. Please retry.');
         return;
       }
 
@@ -1337,13 +1391,16 @@ const UNLOCK_URL = '/api/unlock-download';
       metaA.textContent = meta; metaB.textContent = meta;
       const scriptA = plainText(versionText(data, 'A'));
       const scriptB = plainText(versionText(data, 'B'));
-      renderScript(outputA, scriptA);
-      renderScript(outputB, scriptB);
+      renderVersion(outputA, scriptA, 'A', !!data.locked);
+      renderVersion(outputB, scriptB, 'B', !!data.locked);
       setDownload('A', data.title || data.version_a_title, scriptA, data.duration, data.version_a_title);
       setDownload('B', data.title || data.version_b_title, scriptB, data.duration, data.version_b_title);
       currentPick = data.ab_pick || null;
       pickStatus.textContent = downloadGrant && downloadGrant.expiresAt > Date.now()
-        ? 'Downloads unlocked for both versions.' : '';
+        ? 'Full scripts and PDFs unlocked.' : '';
+      if (data.locked && downloadGrant) void loadFullScripts().catch((error) => {
+        pickStatus.textContent = error.message || 'Could not load full scripts. Please retry.';
+      });
       void saveDownloadedChoice();
     }
 
@@ -1382,6 +1439,7 @@ const UNLOCK_URL = '/api/unlock-download';
       generationEpoch += 1;
       downloadAccess = null;
       downloadGrant = null;
+      revealed.A = false; revealed.B = false;
       emailStatus.textContent = '';
       currentPick = null;
       downloadedChoice = null;
@@ -1432,6 +1490,7 @@ const UNLOCK_URL = '/api/unlock-download';
             if (event.type === 'heartbeat' || event.type === 'accepted') return;
             if (event.type === 'error') throw new Error(event.error || 'Generation failed.');
             if (event.type === 'version_a') {
+              if (event.locked !== true) throw new Error('The script preview could not be displayed securely.');
               acceptDownloadAccess(event);
               receivedA = true;
               finishScriptProgress();
@@ -1443,14 +1502,18 @@ const UNLOCK_URL = '/api/unlock-download';
               titleA.textContent = event.title || 'Version A';
               metaA.textContent = runMeta;
               const scriptA = plainText(event.text ?? event.markdown);
-              renderScript(outputA, scriptA);
+              renderVersion(outputA, scriptA, 'A', !!event.locked);
               setDownload('A', event.workingTitle || titleA.textContent, scriptA, selectedDuration, titleA.textContent);
+              if (downloadGrant) void loadFullScripts().catch((error) => {
+                pickStatus.textContent = error.message || 'Could not load full scripts. Please retry.';
+              });
               if (!receivedB) {
                 titleB.textContent = 'Writing Version B...';
                 metaB.textContent = '';
                 outputB.textContent = 'The second script is being prepared.';
               }
             } else if (event.type === 'version_b') {
+              if (event.locked !== true) throw new Error('The script preview could not be displayed securely.');
               acceptDownloadAccess(event);
               receivedB = true;
               finishScriptProgress();
@@ -1461,8 +1524,11 @@ const UNLOCK_URL = '/api/unlock-download';
               titleB.textContent = event.title || 'Version B';
               metaB.textContent = runMeta;
               const scriptB = plainText(event.text ?? event.markdown);
-              renderScript(outputB, scriptB);
+              renderVersion(outputB, scriptB, 'B', !!event.locked);
               setDownload('B', event.workingTitle || titleB.textContent, scriptB, selectedDuration, titleB.textContent);
+              if (downloadGrant) void loadFullScripts().catch((error) => {
+                pickStatus.textContent = error.message || 'Could not load full scripts. Please retry.';
+              });
               if (!receivedA) {
                 titleA.textContent = 'Writing Version A...';
                 metaA.textContent = '';

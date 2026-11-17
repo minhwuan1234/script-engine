@@ -71,6 +71,19 @@ export function createDownloadGate({ store, secret, confirmHubSpotLead, now = Da
       return { version, title: result.title || result[`version_${letter}_title`],
         style: result[`version_${letter}_title`] || '', duration: row.duration, text };
     },
+    async authorizeResult({ submissionId, token } = {}) {
+      const grant = verify(token, submissionId, 'pdf-download');
+      const row = await store.get(submissionId);
+      if (!row?.download_email || grant.emailHash !== digest(row.download_email)) throw deny();
+      const result = row.result || {};
+      const versionA = result.version_a_text ?? result.version_a_md;
+      const versionB = result.version_b_text ?? result.version_b_md;
+      if (!versionA && !versionB) throw deny();
+      return { ok: true, title: result.title || '', duration: row.duration, level: row.level,
+        skill_source: result.skill_source || '', version_a_title: result.version_a_title || '',
+        version_b_title: result.version_b_title || '', version_a_text: versionA || '',
+        version_b_text: versionB || '' };
+    },
   };
 }
 
