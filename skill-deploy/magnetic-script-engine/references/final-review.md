@@ -48,8 +48,9 @@ choices and framing for implied claims; they do not need verbatim source wording
   the listener, or like someone explaining how the document was organized? Rework
   commentary about passages, references, “two places” and writing choices into the
   actual task or situation. Remove "In this video..." and similar generic lead-ins
-  when they delay the first useful thought. Preserve useful references to documents
-  the viewer uses.
+  when they delay the first useful thought. Keep references to the uploaded source
+  format out of Voiceover and On screen; flag a source-required document action in
+  Engine notes if removing it would change the instruction.
 - If a scene uses inner voice, does that thought lead to a source-supported answer
   at the moment it is needed? Check that the perspective stays clear, the scene is
   illustrative rather than a claimed testimonial, and its first spoken sentence
