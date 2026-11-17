@@ -55,14 +55,10 @@
                             <option value="Medium" selected>Medium: Playful Edutainment</option>
                             <option value="High">High: Cinematic Storytelling</option>
                         </select>
-                        <details class="tpw-level-picker" hidden>
-                            <summary aria-label="Crazy Dial"><span class="tpw-level-label">Medium: Playful Edutainment</span><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></summary>
-                            <div class="tpw-level-options" role="group" aria-label="Crazy Dial options">
-                                <button type="button" data-level="Low" aria-pressed="false">Low: Classic Explainer</button>
-                                <button type="button" data-level="Medium" aria-pressed="true">Medium: Playful Edutainment</button>
-                                <button type="button" data-level="High" aria-pressed="false">High: Cinematic Storytelling</button>
-                            </div>
-                        </details>
+                        <div class="tpw-level-slider">
+                            <span class="tpw-level-label" aria-hidden="true">Medium: Playful Edutainment</span>
+                            <input class="tpw-level-range" type="range" min="0" max="2" step="1" value="1" aria-label="Crazy Dial" aria-valuetext="Medium: Playful Edutainment">
+                        </div>
                     </div>
 
                     <div class="tpw-actions">
@@ -578,41 +574,75 @@
 <style>
 .tony-pixel-widget :is(.tpw-duration-control, .tpw-level-control) { position: relative; flex: 0 0 auto; justify-self: start; }
 .tony-pixel-widget :is(.tpw-duration-control, .tpw-level-control) [hidden] { display: none !important; }
-.tony-pixel-widget :is(.tpw-duration-picker, .tpw-level-picker) summary {
+.tony-pixel-widget .tpw-duration-picker summary {
     display: flex; align-items: center; justify-content: space-between; gap: 12px;
     height: 34px; padding: 0 12px; border: 1.5px solid #000;
     border-radius: 999px; background: #ffedd5; color: #000;
     font-size: 12px; font-weight: 800; cursor: pointer; list-style: none;
 }
-.tony-pixel-widget :is(.tpw-duration-picker, .tpw-level-picker) summary::-webkit-details-marker { display: none; }
-.tony-pixel-widget :is(.tpw-duration-picker, .tpw-level-picker) summary:hover { background-color: #ffe2bc; }
-.tony-pixel-widget :is(.tpw-duration-picker, .tpw-level-picker) summary svg {
+.tony-pixel-widget .tpw-duration-picker summary::-webkit-details-marker { display: none; }
+.tony-pixel-widget .tpw-duration-picker summary:hover { background-color: #ffe2bc; }
+.tony-pixel-widget .tpw-duration-picker summary svg {
     width: 16px; height: 16px; fill: none; stroke: currentColor;
     stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round;
     transition: transform .15s;
 }
-.tony-pixel-widget :is(.tpw-duration-picker, .tpw-level-picker)[open] summary svg { transform: rotate(180deg); }
-.tony-pixel-widget :is(.tpw-duration-options, .tpw-level-options) {
+.tony-pixel-widget .tpw-duration-picker[open] summary svg { transform: rotate(180deg); }
+.tony-pixel-widget .tpw-duration-options {
     position: absolute; bottom: calc(100% + 12px); left: 0; z-index: 25;
     width: 180px; max-width: 80vw; padding: 8px;
     border: 2px solid #000; border-radius: 16px; background: #fffaf3;
     box-shadow: 3px 4px 0 #000; display: grid; gap: 6px;
 }
-.tony-pixel-widget :is(.tpw-duration-options, .tpw-level-options) button {
+.tony-pixel-widget .tpw-duration-options button {
     display: flex; justify-content: space-between; align-items: center;
     width: 100%; min-height: 42px; padding: 9px 12px; margin: 0;
     border: 1.5px solid transparent; border-radius: 10px; background: transparent;
     color: #000; text-align: left; font: inherit; font-size: 13px;
     font-weight: 700; cursor: pointer;
 }
-.tony-pixel-widget :is(.tpw-duration-options, .tpw-level-options) button:hover { background: #ffedd5; border-color: #000; }
-.tony-pixel-widget :is(.tpw-duration-options, .tpw-level-options) button[aria-pressed="true"] { background: #ff9436; border-color: #000; box-shadow: 1px 2px 0 #000; }
-.tony-pixel-widget :is(.tpw-duration-options, .tpw-level-options) button[aria-pressed="true"]::after { content: '✓'; margin-left: 12px; }
-.tony-pixel-widget .tpw-level-options { width: 240px; }
-.tony-pixel-widget :is(.tpw-duration-picker, .tpw-level-picker) summary:focus-visible,
-.tony-pixel-widget :is(.tpw-duration-options, .tpw-level-options) button:focus-visible { outline: 3px solid #c75a00; outline-offset: 3px; }
+.tony-pixel-widget .tpw-duration-options button:hover { background: #ffedd5; border-color: #000; }
+.tony-pixel-widget .tpw-duration-options button[aria-pressed="true"] { background: #ff9436; border-color: #000; box-shadow: 1px 2px 0 #000; }
+.tony-pixel-widget .tpw-duration-options button[aria-pressed="true"]::after { content: '✓'; margin-left: 12px; }
+.tony-pixel-widget .tpw-duration-picker summary:focus-visible,
+.tony-pixel-widget .tpw-duration-options button:focus-visible { outline: 3px solid #c75a00; outline-offset: 3px; }
+.tony-pixel-widget .tpw-level-slider {
+    position: relative; width: 223px; height: 34px; box-sizing: border-box;
+    border: 1.5px solid #000; border-radius: 999px; background: #ffedd5;
+    --tpw-level-fill: 50%;
+}
+.tony-pixel-widget .tpw-level-label {
+    position: absolute; top: 2px; left: 8px; right: 8px; overflow: hidden;
+    color: #000; font-size: 11px; line-height: 14px; font-weight: 800;
+    text-align: center; white-space: nowrap; text-overflow: ellipsis; pointer-events: none;
+}
+.tony-pixel-widget .tpw-level-slider::after {
+    content: ''; position: absolute; left: 12px; right: 12px; bottom: 5px;
+    height: 4px; border-radius: 999px; pointer-events: none;
+    background: linear-gradient(to right, #ff9436 var(--tpw-level-fill), #d6b79a var(--tpw-level-fill));
+}
+.tony-pixel-widget input.tpw-level-range {
+    position: absolute; left: 8px; right: 8px; bottom: -3px; z-index: 1;
+    width: calc(100% - 16px); height: 18px; margin: 0; padding: 0;
+    appearance: none; -webkit-appearance: none; background: transparent; cursor: grab;
+}
+.tony-pixel-widget input.tpw-level-range:active { cursor: grabbing; }
+.tony-pixel-widget input.tpw-level-range::-webkit-slider-runnable-track { height: 4px; background: transparent; }
+.tony-pixel-widget input.tpw-level-range::-moz-range-track { height: 4px; background: transparent; }
+.tony-pixel-widget input.tpw-level-range::-webkit-slider-thumb {
+    width: 12px; height: 12px; margin-top: -4px; appearance: none; -webkit-appearance: none;
+    border: 1.5px solid #000; border-radius: 50%; background: #ff9436; box-shadow: 1px 1px 0 #000;
+}
+.tony-pixel-widget input.tpw-level-range::-moz-range-thumb {
+    width: 10px; height: 10px; border: 1.5px solid #000; border-radius: 50%;
+    background: #ff9436; box-shadow: 1px 1px 0 #000;
+}
+.tony-pixel-widget input.tpw-level-range:focus-visible { outline: 2px solid #7c2d12; outline-offset: 2px; border-radius: 999px; }
 @media (max-width: 767px) {
-    .tony-pixel-widget :is(.tpw-duration-picker, .tpw-level-picker) summary { height: 40px; }
+    .tony-pixel-widget .tpw-duration-picker summary, .tony-pixel-widget .tpw-level-slider { height: 40px; }
+    .tony-pixel-widget .tpw-level-label { top: 4px; }
+    .tony-pixel-widget .tpw-level-slider::after { bottom: 7px; }
+    .tony-pixel-widget input.tpw-level-range { bottom: -1px; }
 }
 </style>
 
@@ -674,38 +704,22 @@ const UNLOCK_URL = '/api/unlock-download';
     });
     const levelControl = $('.tpw-level-control');
     const levelSelect = $('.tpw-level');
-    const levelPicker = $('.tpw-level-picker');
-    const levelSummary = levelPicker.querySelector('summary');
-    const levelButtons = [...levelPicker.querySelectorAll('[data-level]')];
+    const levelRange = $('.tpw-level-range');
+    const levelLabel = $('.tpw-level-label');
+    const levels = ['Low', 'Medium', 'High'];
     const levelNames = { Low: 'Low: Classic Explainer', Medium: 'Medium: Playful Edutainment', High: 'High: Cinematic Storytelling' };
     const syncLevel = () => {
-      levelPicker.querySelector('.tpw-level-label').textContent = levelNames[levelSelect.value] || levelSelect.value;
-      levelButtons.forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.level === levelSelect.value)));
+      const index = levels.indexOf(levelSelect.value);
+      levelRange.value = String(Math.max(0, index));
+      levelRange.setAttribute('aria-valuetext', levelNames[levelSelect.value] || levelSelect.value);
+      levelLabel.textContent = levelNames[levelSelect.value] || levelSelect.value;
+      levelControl.querySelector('.tpw-level-slider').style.setProperty('--tpw-level-fill', `${Math.max(0, index) * 50}%`);
     };
     levelSelect.hidden = true;
-    levelPicker.hidden = false;
     levelSelect.addEventListener('change', syncLevel);
-    levelButtons.forEach((button) => button.addEventListener('click', () => {
-      levelSelect.value = button.dataset.level;
+    levelRange.addEventListener('input', () => {
+      levelSelect.value = levels[Number(levelRange.value)];
       levelSelect.dispatchEvent(new Event('change', { bubbles: true }));
-      levelPicker.open = false;
-      levelSummary.focus();
-    }));
-    document.addEventListener('click', (event) => {
-      if (!levelPicker.contains(event.target)) levelPicker.open = false;
-    });
-    levelPicker.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape') {
-        event.preventDefault(); levelPicker.open = false; levelSummary.focus();
-      } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-        event.preventDefault();
-        levelPicker.open = true;
-        const index = levelButtons.indexOf(document.activeElement);
-        const next = index < 0
-          ? (event.key === 'ArrowDown' ? 0 : levelButtons.length - 1)
-          : (index + (event.key === 'ArrowDown' ? 1 : -1) + levelButtons.length) % levelButtons.length;
-        levelButtons[next].focus();
-      }
     });
     syncLevel();
     fetch('/api/health').then((response) => response.json()).then((health) => {
