@@ -49,18 +49,6 @@
                     </details>
                     </div>
 
-                    <div class="tpw-level-control">
-                        <select class="tpw-level" aria-label="Crazy Dial">
-                            <option value="Low">Low: Classic Explainer</option>
-                            <option value="Medium" selected>Medium: Playful Edutainment</option>
-                            <option value="High">High: Cinematic Storytelling</option>
-                        </select>
-                        <div class="tpw-level-slider">
-                            <span class="tpw-level-tooltip" aria-hidden="true">Medium: Playful Edutainment</span>
-                            <input class="tpw-level-range" type="range" min="0" max="2" step="1" value="1" aria-label="Crazy Dial" aria-valuetext="Medium: Playful Edutainment">
-                        </div>
-                    </div>
-
                     <div class="tpw-actions">
 
                         <div class="tpw-plus-wrap">
@@ -89,6 +77,25 @@
 
                     <div class="tpw-drag-hint">Drop files here</div>
 
+                </div>
+            </div>
+
+            <div class="tpw-level-control" data-active-level="Medium">
+                <div class="tpw-level-heading">CREATIVE INTENSITY</div>
+                <div class="tpw-level-question">How far do you want to push it?</div>
+                <select class="tpw-level" aria-label="Crazy Dial">
+                    <option value="Low">Low: Classic Explainer</option>
+                    <option value="Medium" selected>Medium: Playful Edutainment</option>
+                    <option value="High">High: Cinematic Storytelling</option>
+                </select>
+                <div class="tpw-level-slider">
+                    <span class="tpw-level-tooltip" aria-hidden="true">Medium: Playful Edutainment</span>
+                    <input class="tpw-level-range" type="range" min="0" max="2" step="1" value="1" aria-label="Creative intensity" aria-valuetext="Medium: Playful Edutainment">
+                </div>
+                <div class="tpw-level-scale" aria-hidden="true">
+                    <span data-level="Low">LOW</span>
+                    <span data-level="Medium">MEDIUM</span>
+                    <span data-level="High">HIGH</span>
                 </div>
             </div>
 
@@ -375,7 +382,7 @@
 
 .tony-pixel-widget .tpw-input {
     flex: 1; min-width: 0; max-height: 100px; padding: 6px 0; margin: 0; border: 0 !important; outline: 0 !important; background: transparent !important;
-    box-shadow: none !important; resize: none; overflow-y: auto; font: inherit; font-size: 15px; font-weight: 600; line-height: 1.45; color: #000000; transform: none !important;
+    box-shadow: none !important; resize: none; overflow-y: auto; font: inherit; font-size: 15px; font-weight: 400; line-height: 1.45; color: #000000; transform: none !important;
 }
 .tony-pixel-widget .tpw-input:hover, .tony-pixel-widget .tpw-input:focus, .tony-pixel-widget .tpw-input:focus-visible {
     border: 0 !important; outline: 0 !important; background: transparent !important; box-shadow: none !important; transform: none !important;
@@ -560,7 +567,6 @@
         gap: 12px; padding: 14px;
     }
     .tony-pixel-widget .tpw-input { grid-column: 1 / -1; width: 100%; min-height: 54px; font-size: 16px; }
-    .tony-pixel-widget .tpw-level-control { grid-column: 1 / -1; grid-row: 3; justify-self: start; }
     .tony-pixel-widget .tpw-actions { grid-column: 2; grid-row: 2; }
     .tony-pixel-widget .tpw-main-container,
     .tony-pixel-widget .tpw-input-wrapper { transition: none; }
@@ -583,7 +589,7 @@
 </style>
 
 <style>
-.tony-pixel-widget :is(.tpw-duration-control, .tpw-level-control) { position: relative; flex: 0 0 auto; justify-self: start; }
+.tony-pixel-widget .tpw-duration-control { position: relative; flex: 0 0 auto; justify-self: start; }
 .tony-pixel-widget :is(.tpw-duration-control, .tpw-level-control) [hidden] { display: none !important; }
 .tony-pixel-widget .tpw-duration-picker summary {
     display: flex; align-items: center; justify-content: space-between; gap: 12px;
@@ -618,10 +624,27 @@
 .tony-pixel-widget .tpw-duration-picker summary:focus-visible,
 .tony-pixel-widget .tpw-duration-options button:focus-visible { outline: 3px solid #c75a00; outline-offset: 3px; }
 .tony-pixel-widget .tpw-level-slider {
-    position: relative; width: 223px; height: 34px; box-sizing: border-box;
-    border: 1.5px solid #000; border-radius: 999px; background: #ffedd5;
-    --tpw-level-fill: 50%;
+    position: relative; width: 100%; height: 38px; box-sizing: border-box;
 }
+.tony-pixel-widget .tpw-level-control {
+    position: relative; width: 100%; margin-top: 14px; padding: 18px 20px 14px;
+    border: 2px solid #000; border-radius: 18px; background: #fffaf3;
+    box-shadow: 2px 3px 0 #000; box-sizing: border-box;
+}
+.tony-pixel-widget .has-output .tpw-level-control { margin-top: 0; }
+.tony-pixel-widget .tpw-level-heading {
+    color: #9a3412; font-size: 11px; font-weight: 900; letter-spacing: .12em;
+}
+.tony-pixel-widget .tpw-level-question {
+    margin: 4px 0 13px; color: #111827; font-size: 16px; font-weight: 700;
+}
+.tony-pixel-widget .tpw-level-scale {
+    display: flex; justify-content: space-between; color: #64748b;
+    font-size: 11px; font-weight: 800; letter-spacing: .03em;
+}
+.tony-pixel-widget .tpw-level-control[data-active-level="Low"] .tpw-level-scale [data-level="Low"],
+.tony-pixel-widget .tpw-level-control[data-active-level="Medium"] .tpw-level-scale [data-level="Medium"],
+.tony-pixel-widget .tpw-level-control[data-active-level="High"] .tpw-level-scale [data-level="High"] { color: #c45b0b; }
 .tony-pixel-widget .tpw-level-tooltip {
     position: absolute; left: 50%; bottom: calc(100% + 8px); z-index: 3;
     padding: 5px 9px; border: 1.5px solid #000; border-radius: 8px;
@@ -635,29 +658,30 @@
     opacity: 1; visibility: visible; transform: translate(-50%, 0);
 }
 .tony-pixel-widget .tpw-level-slider::after {
-    content: ''; position: absolute; left: 12px; right: 12px; top: 50%;
-    height: 5px; border-radius: 999px; transform: translateY(-50%); pointer-events: none;
-    background: linear-gradient(to right, #ff9436 var(--tpw-level-fill), #d6b79a var(--tpw-level-fill));
+    content: ''; position: absolute; left: 11px; right: 11px; top: 50%;
+    height: 9px; border-radius: 999px; transform: translateY(-50%); pointer-events: none;
+    background: linear-gradient(to right, #1eafa8, #f49a30 50%, #eb3780);
 }
 .tony-pixel-widget input.tpw-level-range {
-    position: absolute; left: 8px; right: 8px; top: 50%; z-index: 1;
-    width: calc(100% - 16px); height: 20px; margin: 0; padding: 0; transform: translateY(-50%);
+    position: absolute; left: 0; top: 50%; z-index: 1;
+    width: 100%; height: 28px; margin: 0; padding: 0; transform: translateY(-50%);
     appearance: none; -webkit-appearance: none; background: transparent; cursor: grab;
 }
 .tony-pixel-widget input.tpw-level-range:active { cursor: grabbing; }
-.tony-pixel-widget input.tpw-level-range::-webkit-slider-runnable-track { height: 4px; background: transparent; }
-.tony-pixel-widget input.tpw-level-range::-moz-range-track { height: 4px; background: transparent; }
+.tony-pixel-widget input.tpw-level-range::-webkit-slider-runnable-track { height: 9px; background: transparent; }
+.tony-pixel-widget input.tpw-level-range::-moz-range-track { height: 9px; background: transparent; }
 .tony-pixel-widget input.tpw-level-range::-webkit-slider-thumb {
-    width: 16px; height: 16px; margin-top: -6px; appearance: none; -webkit-appearance: none;
-    border: 1.5px solid #000; border-radius: 50%; background: #ff9436; box-shadow: 1px 1px 0 #000;
+    width: 26px; height: 26px; margin-top: -9px; appearance: none; -webkit-appearance: none;
+    border: 5px solid #f49a30; border-radius: 50%; background: #fff; box-shadow: 0 0 0 4px #fff3e5;
 }
 .tony-pixel-widget input.tpw-level-range::-moz-range-thumb {
-    width: 14px; height: 14px; border: 1.5px solid #000; border-radius: 50%;
-    background: #ff9436; box-shadow: 1px 1px 0 #000;
+    width: 16px; height: 16px; border: 5px solid #f49a30; border-radius: 50%;
+    background: #fff; box-shadow: 0 0 0 4px #fff3e5;
 }
 .tony-pixel-widget input.tpw-level-range:focus-visible { outline: 2px solid #000; outline-offset: 2px; border-radius: 999px; }
 @media (max-width: 767px) {
-    .tony-pixel-widget .tpw-duration-picker summary, .tony-pixel-widget .tpw-level-slider { height: 40px; }
+    .tony-pixel-widget .tpw-duration-picker summary { height: 40px; }
+    .tony-pixel-widget .tpw-level-control { padding: 16px 16px 12px; }
 }
 </style>
 
@@ -729,7 +753,7 @@ const FULL_RESULT_URL = '/api/unlocked-result';
       levelRange.value = String(Math.max(0, index));
       levelRange.setAttribute('aria-valuetext', levelNames[levelSelect.value] || levelSelect.value);
       levelTooltip.textContent = levelNames[levelSelect.value] || levelSelect.value;
-      levelControl.querySelector('.tpw-level-slider').style.setProperty('--tpw-level-fill', `${Math.max(0, index) * 50}%`);
+      levelControl.dataset.activeLevel = levelSelect.value;
     };
     levelSelect.hidden = true;
     levelSelect.addEventListener('change', syncLevel);
