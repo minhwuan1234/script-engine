@@ -447,7 +447,7 @@ function estimateCost(u) {
       (u.cache_read_input_tokens || 0) * pin * (CLAUDE_MODEL === 'claude-sonnet-5-5' ? 0.05 : 0.1) +
       (u.output_tokens || 0) * pout) /
     1e6;
-  return Math.round(usd * 10000) / 10000;
+  return Math.round(usd * 1000000) / 1000000;
 }
 
 function recordUsage(rec) {
