@@ -23,11 +23,6 @@
             <p>Drop a dense PDF, deck, or ebook. Get a YouTube-ready script back - then choose a Crazy Dial level, from calm-and-educational to impossible-to-look-away.</p>
         </section>
         <div class="tpw-main-container">
-            <div class="tpw-composer-panel">
-            <div class="tpw-composer-heading">
-                <span>SOURCE</span>
-                <strong>Add your material</strong>
-            </div>
 
             <div class="tpw-files"></div>
 
@@ -102,7 +97,6 @@
                     <span data-level="Medium">MEDIUM</span>
                     <span data-level="High">HIGH</span>
                 </div>
-            </div>
             </div>
 
             <div class="tpw-output-section">
@@ -377,22 +371,12 @@
 .tony-pixel-widget button.tpw-chip-remove:hover { background: none !important; color: #ef4444 !important; }
 
 /* INPUT */
-.tony-pixel-widget .tpw-composer-panel {
-    width: 100%; padding: 22px; border: 2px solid #000; border-radius: 24px;
-    background: #fff; box-shadow: 3px 4px 0 #000; box-sizing: border-box;
-}
-.tony-pixel-widget .tpw-composer-heading { display: grid; gap: 5px; margin-bottom: 18px; }
-.tony-pixel-widget .tpw-composer-heading span {
-    color: #9a3412; font-size: 11px; font-weight: 900; letter-spacing: .12em;
-}
-.tony-pixel-widget .tpw-composer-heading strong { color: #111827; font-size: 20px; }
-.tony-pixel-widget .has-output .tpw-composer-panel { box-shadow: none; }
 .tony-pixel-widget .tpw-input-wrapper {
-    width: 100%; position: relative; pointer-events: auto; border: 1.5px solid #d7d0c7; border-radius: 16px; background: #ffffff;
-    box-shadow: none; transform: none; transition: border-color .18s ease;
+    width: 100%; position: relative; pointer-events: auto; border: 2px solid #000000; border-radius: 18px; background: #ffffff;
+    box-shadow: 2px 3px 0px #000000; transform: none; transition: box-shadow .18s ease;
 }
-.tony-pixel-widget .tpw-input-wrapper:hover { border-color: #b7aa9a; }
-.tony-pixel-widget .tpw-input-wrapper:focus-within { border-color: #c45b0b; }
+.tony-pixel-widget .tpw-input-wrapper:hover { box-shadow: 2px 3px 0px #000000; }
+.tony-pixel-widget .tpw-input-wrapper:focus-within { box-shadow: 3px 4px 0px #000000; }
 
 .tony-pixel-widget .tpw-dropzone { position: relative; display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 14px; border-radius: inherit; }
 
@@ -578,8 +562,6 @@
     .tony-pixel-widget .tpw-heading-line { display: inline; }
     .tony-pixel-widget .tpw-intro p { font-size: 14px; line-height: 1.5; }
     .tony-pixel-widget .tpw-main-container { width: 100%; max-width: none; margin-top: auto; }
-    .tony-pixel-widget .tpw-composer-panel { padding: 16px; }
-    .tony-pixel-widget .tpw-composer-heading { margin-bottom: 14px; }
     .tony-pixel-widget .tpw-dropzone {
         display: grid; grid-template-columns: minmax(0, 1fr) auto;
         gap: 12px; padding: 14px;
@@ -596,7 +578,7 @@
     .tony-pixel-widget .tpw-menu { right: 0; bottom: 50px; }
     .tony-pixel-widget .tpw-main-container.has-output { margin: 0; padding: 10px; }
     .tony-pixel-widget:has(.has-output) .tpw-content { padding-bottom: max(16px, env(safe-area-inset-bottom)); }
-    .tony-pixel-widget .has-output .tpw-composer-panel {
+    .tony-pixel-widget .has-output .tpw-input-wrapper {
         position: sticky; top: 0; z-index: 5;
     }
 }
@@ -645,9 +627,11 @@
     position: relative; width: 100%; height: 38px; box-sizing: border-box;
 }
 .tony-pixel-widget .tpw-level-control {
-    position: relative; width: 100%; margin-top: 20px; padding: 20px 0 0;
-    border-top: 1.5px solid #e7ded4; box-sizing: border-box;
+    position: relative; width: 100%; margin-top: 14px; padding: 18px 20px 14px;
+    border: 2px solid #000; border-radius: 18px; background: #fffaf3;
+    box-shadow: 2px 3px 0 #000; box-sizing: border-box;
 }
+.tony-pixel-widget .has-output .tpw-level-control { margin-top: 0; }
 .tony-pixel-widget .tpw-level-heading {
     color: #9a3412; font-size: 11px; font-weight: 900; letter-spacing: .12em;
 }
