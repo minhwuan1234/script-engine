@@ -822,7 +822,7 @@ const FULL_RESULT_URL = '/api/unlocked-result';
         downloadGrant = data;
         updateDownloadGate();
         await loadFullScripts(epoch, access);
-        pickStatus.textContent = 'Full scripts and PDFs unlocked.';
+        pickStatus.textContent = '';
       } catch (error) {
         if (epoch === generationEpoch) {
           downloadGrant = null;
@@ -1396,8 +1396,7 @@ const FULL_RESULT_URL = '/api/unlocked-result';
       setDownload('A', data.title || data.version_a_title, scriptA, data.duration, data.version_a_title);
       setDownload('B', data.title || data.version_b_title, scriptB, data.duration, data.version_b_title);
       currentPick = data.ab_pick || null;
-      pickStatus.textContent = downloadGrant && downloadGrant.expiresAt > Date.now()
-        ? 'Full scripts and PDFs unlocked.' : '';
+      pickStatus.textContent = '';
       if (data.locked && downloadGrant) void loadFullScripts().catch((error) => {
         pickStatus.textContent = error.message || 'Could not load full scripts. Please retry.';
       });
