@@ -56,7 +56,7 @@
                             <option value="High">High: Cinematic Storytelling</option>
                         </select>
                         <div class="tpw-level-slider">
-                            <span class="tpw-level-label" aria-hidden="true">Medium: Playful Edutainment</span>
+                            <span class="tpw-level-tooltip" aria-hidden="true">Medium: Playful Edutainment</span>
                             <input class="tpw-level-range" type="range" min="0" max="2" step="1" value="1" aria-label="Crazy Dial" aria-valuetext="Medium: Playful Edutainment">
                         </div>
                     </div>
@@ -611,38 +611,42 @@
     border: 1.5px solid #000; border-radius: 999px; background: #ffedd5;
     --tpw-level-fill: 50%;
 }
-.tony-pixel-widget .tpw-level-label {
-    position: absolute; top: 2px; left: 8px; right: 8px; overflow: hidden;
-    color: #000; font-size: 11px; line-height: 14px; font-weight: 800;
-    text-align: center; white-space: nowrap; text-overflow: ellipsis; pointer-events: none;
+.tony-pixel-widget .tpw-level-tooltip {
+    position: absolute; left: 50%; bottom: calc(100% + 8px); z-index: 3;
+    padding: 5px 9px; border: 1.5px solid #000; border-radius: 8px;
+    background: #fff8f0; box-shadow: 2px 2px 0 #000; color: #000;
+    font-size: 11px; line-height: 1.2; font-weight: 800; white-space: nowrap;
+    pointer-events: none; opacity: 0; visibility: hidden;
+    transform: translate(-50%, 4px); transition: opacity .15s ease, transform .15s ease, visibility .15s;
+}
+.tony-pixel-widget .tpw-level-slider:hover .tpw-level-tooltip,
+.tony-pixel-widget .tpw-level-slider:focus-within .tpw-level-tooltip {
+    opacity: 1; visibility: visible; transform: translate(-50%, 0);
 }
 .tony-pixel-widget .tpw-level-slider::after {
-    content: ''; position: absolute; left: 12px; right: 12px; bottom: 5px;
-    height: 4px; border-radius: 999px; pointer-events: none;
+    content: ''; position: absolute; left: 12px; right: 12px; top: 50%;
+    height: 5px; border-radius: 999px; transform: translateY(-50%); pointer-events: none;
     background: linear-gradient(to right, #ff9436 var(--tpw-level-fill), #d6b79a var(--tpw-level-fill));
 }
 .tony-pixel-widget input.tpw-level-range {
-    position: absolute; left: 8px; right: 8px; bottom: -3px; z-index: 1;
-    width: calc(100% - 16px); height: 18px; margin: 0; padding: 0;
+    position: absolute; left: 8px; right: 8px; top: 50%; z-index: 1;
+    width: calc(100% - 16px); height: 20px; margin: 0; padding: 0; transform: translateY(-50%);
     appearance: none; -webkit-appearance: none; background: transparent; cursor: grab;
 }
 .tony-pixel-widget input.tpw-level-range:active { cursor: grabbing; }
 .tony-pixel-widget input.tpw-level-range::-webkit-slider-runnable-track { height: 4px; background: transparent; }
 .tony-pixel-widget input.tpw-level-range::-moz-range-track { height: 4px; background: transparent; }
 .tony-pixel-widget input.tpw-level-range::-webkit-slider-thumb {
-    width: 12px; height: 12px; margin-top: -4px; appearance: none; -webkit-appearance: none;
+    width: 16px; height: 16px; margin-top: -6px; appearance: none; -webkit-appearance: none;
     border: 1.5px solid #000; border-radius: 50%; background: #ff9436; box-shadow: 1px 1px 0 #000;
 }
 .tony-pixel-widget input.tpw-level-range::-moz-range-thumb {
-    width: 10px; height: 10px; border: 1.5px solid #000; border-radius: 50%;
+    width: 14px; height: 14px; border: 1.5px solid #000; border-radius: 50%;
     background: #ff9436; box-shadow: 1px 1px 0 #000;
 }
 .tony-pixel-widget input.tpw-level-range:focus-visible { outline: 2px solid #7c2d12; outline-offset: 2px; border-radius: 999px; }
 @media (max-width: 767px) {
     .tony-pixel-widget .tpw-duration-picker summary, .tony-pixel-widget .tpw-level-slider { height: 40px; }
-    .tony-pixel-widget .tpw-level-label { top: 4px; }
-    .tony-pixel-widget .tpw-level-slider::after { bottom: 7px; }
-    .tony-pixel-widget input.tpw-level-range { bottom: -1px; }
 }
 </style>
 
@@ -705,14 +709,14 @@ const UNLOCK_URL = '/api/unlock-download';
     const levelControl = $('.tpw-level-control');
     const levelSelect = $('.tpw-level');
     const levelRange = $('.tpw-level-range');
-    const levelLabel = $('.tpw-level-label');
+    const levelTooltip = $('.tpw-level-tooltip');
     const levels = ['Low', 'Medium', 'High'];
     const levelNames = { Low: 'Low: Classic Explainer', Medium: 'Medium: Playful Edutainment', High: 'High: Cinematic Storytelling' };
     const syncLevel = () => {
       const index = levels.indexOf(levelSelect.value);
       levelRange.value = String(Math.max(0, index));
       levelRange.setAttribute('aria-valuetext', levelNames[levelSelect.value] || levelSelect.value);
-      levelLabel.textContent = levelNames[levelSelect.value] || levelSelect.value;
+      levelTooltip.textContent = levelNames[levelSelect.value] || levelSelect.value;
       levelControl.querySelector('.tpw-level-slider').style.setProperty('--tpw-level-fill', `${Math.max(0, index) * 50}%`);
     };
     levelSelect.hidden = true;
