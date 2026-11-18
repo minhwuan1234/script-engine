@@ -501,23 +501,23 @@
 <style>
 /* Studio welcome layout. Keep the canvas and generation gateway unchanged. */
 .tony-pixel-widget {
-    height: 100vh; height: 100dvh; min-height: 560px;
+    height: 100vh; height: 100dvh; min-height: 0;
 }
-.tony-pixel-widget .tpw-content { gap: 36px; }
+.tony-pixel-widget .tpw-content { gap: 36px; justify-content: flex-start; }
+.tony-pixel-widget .tpw-main-container:not(.has-output) { margin-block: auto; }
 .tony-pixel-widget .tpw-main-container { width: min(100%, 900px); flex-shrink: 0; }
 .tony-pixel-widget .tpw-dropzone { padding: 14px 18px; }
 .tony-pixel-widget:has(.has-output) .tpw-content { justify-content: flex-start; }
 .tony-pixel-widget .tpw-main-container.has-output { margin: auto 0; }
 
-/* The mobile composer stays at the bottom of the app viewport, including in an iframe.
-   A grid keeps the textarea above the duration and action controls without moving DOM nodes. */
+/* Stack the mobile composer controls within the centered group. */
 @media (max-width: 767px) {
     .tony-pixel-widget { min-height: 0; }
     .tony-pixel-widget .tpw-content {
-        padding: 24px 16px max(16px, env(safe-area-inset-bottom));
+        padding: max(16px, env(safe-area-inset-top), env(safe-area-inset-bottom)) 16px;
         justify-content: flex-start; gap: 24px;
     }
-    .tony-pixel-widget .tpw-main-container { width: 100%; max-width: none; margin-top: auto; }
+    .tony-pixel-widget .tpw-main-container { width: 100%; max-width: none; }
     .tony-pixel-widget .tpw-dropzone {
         display: grid; grid-template-columns: minmax(0, 1fr) auto;
         gap: 12px; padding: 14px;
