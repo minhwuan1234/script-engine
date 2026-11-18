@@ -17,11 +17,6 @@
     <canvas class="tpw-canvas"></canvas>
 
     <div class="tpw-content">
-        <section class="tpw-intro" aria-labelledby="tpw-heading">
-            <div class="tpw-eyebrow"><strong>F.Learning</strong> · Script Studio</div>
-            <h1 id="tpw-heading"><span class="tpw-heading-line">Turn your text-wall nightmare</span> <span class="tpw-heading-line">into a script people <span class="tpw-underline">can’t scroll past.</span></span></h1>
-            <p>Drop a dense PDF, deck, or ebook. Get a YouTube-ready script back - then choose a Crazy Dial level, from calm-and-educational to impossible-to-look-away.</p>
-        </section>
         <div class="tpw-main-container">
 
             <div class="tpw-files"></div>
@@ -509,37 +504,8 @@
     height: 100vh; height: 100dvh; min-height: 560px;
 }
 .tony-pixel-widget .tpw-content { gap: 36px; }
-.tony-pixel-widget .tpw-intro {
-    width: min(100%, 980px); flex-shrink: 0; text-align: center;
-    color: #000; pointer-events: auto;
-}
-.tony-pixel-widget .tpw-eyebrow {
-    display: inline-block; padding: 7px 12px; border: 1.5px solid #000;
-    border-radius: 12px; background: #ff9436; box-shadow: 0 3px 0 #000;
-    font-size: 12px; line-height: 1.4; color: #333;
-}
-.tony-pixel-widget .tpw-intro h1 {
-    max-width: 860px; margin: 24px auto; font-size: clamp(30px, 3.2vw, 42px);
-    font-family: 'Rethink Sans', Arial, sans-serif;
-    line-height: 1.2; letter-spacing: -.03em; font-weight: 700;
-    text-wrap: balance;
-}
-.tony-pixel-widget .tpw-heading-line { display: block; }
-.tony-pixel-widget .tpw-underline {
-    position: relative; display: inline-block; z-index: 0;
-}
-.tony-pixel-widget .tpw-underline::after {
-    content: ''; position: absolute; left: 0; right: 0; bottom: -7px;
-    height: 5px; background: #ff9436; transform: rotate(-1deg);
-    box-shadow: 8px 8px 0 -1px #ff9436; z-index: -1;
-}
-.tony-pixel-widget .tpw-intro p {
-    max-width: 760px; margin: 0 auto; font-size: 17px;
-    line-height: 1.6; color: #595959; text-wrap: pretty;
-}
 .tony-pixel-widget .tpw-main-container { width: min(100%, 900px); flex-shrink: 0; }
 .tony-pixel-widget .tpw-dropzone { padding: 14px 18px; }
-.tony-pixel-widget:has(.has-output) .tpw-intro { display: none; }
 .tony-pixel-widget:has(.has-output) .tpw-content { justify-content: flex-start; }
 .tony-pixel-widget .tpw-main-container.has-output { margin: auto 0; }
 
@@ -551,16 +517,6 @@
         padding: 24px 16px max(16px, env(safe-area-inset-bottom));
         justify-content: flex-start; gap: 24px;
     }
-    .tony-pixel-widget .tpw-intro {
-        flex: 1; min-height: 0; display: flex; flex-direction: column;
-        align-items: center; justify-content: center;
-    }
-    .tony-pixel-widget .tpw-eyebrow { font-size: 11px; padding: 6px 10px; border-radius: 10px; }
-    .tony-pixel-widget .tpw-intro h1 {
-        font-size: clamp(27px, 7.5vw, 42px); margin: 22px 0 24px;
-    }
-    .tony-pixel-widget .tpw-heading-line { display: inline; }
-    .tony-pixel-widget .tpw-intro p { font-size: 14px; line-height: 1.5; }
     .tony-pixel-widget .tpw-main-container { width: 100%; max-width: none; margin-top: auto; }
     .tony-pixel-widget .tpw-dropzone {
         display: grid; grid-template-columns: minmax(0, 1fr) auto;
@@ -581,10 +537,6 @@
     .tony-pixel-widget .has-output .tpw-input-wrapper {
         position: sticky; top: 0; z-index: 5;
     }
-}
-@media (max-width: 767px) and (max-height: 650px) {
-    .tony-pixel-widget .tpw-intro { min-height: 310px; flex-shrink: 0; }
-    .tony-pixel-widget .tpw-intro h1 { font-size: 27px; }
 }
 </style>
 
