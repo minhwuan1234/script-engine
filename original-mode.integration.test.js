@@ -42,7 +42,7 @@ The viewer checks a daily weight.
 ### Script
 | Time | Voiceover | On screen |
 |---|---|---|
-| 0:15–0:30 | Write down the number. | A daily log. |
+| 0:15–0:30 | Write down the number. Compare it with yesterday. The rest stays locked. | A daily log. |
 **Why we wrote it this way:** A familiar routine becomes useful.
 **Best when:** Viewers already own a scale.
 ## Version B — Mechanism reveal: "What changes"
@@ -53,7 +53,7 @@ The viewer checks a daily weight.
 ### Script
 | Time | Voiceover | On screen |
 |---|---|---|
-| 0:15–0:30 | Track the change each morning. | Two dates in a log. |
+| 0:15–0:30 | Track the change each morning. Compare both dates. The rest stays locked. | Two dates in a log. |
 **Why we wrote it this way:** A number becomes a signal.
 **Best when:** Viewers need the reason to remember the habit.
 ## Engine notes
@@ -112,11 +112,13 @@ The viewer checks a daily weight.
   assert.equal(result.usage.cache_read_input_tokens, 50);
   assert.equal(result.usage.output_tokens, 80);
   assert.ok(result.usage.duration_s >= 0);
-  assert.match(result.version_a_text, /Why we wrote it this way:/i);
+  assert.equal(result.locked, true);
   assert.match(result.version_a_text, /^HOOK \(0:00-0:15\)$/m);
   assert.match(result.version_a_text, /TIME: 0:00-0:15\nVOICEOVER: My scale tells me something\. A small change matters\. It tells me when to call\./);
-  assert.equal((result.version_a_text.match(/^TIME:/gm) || []).length, 2, 'one hook row and one script row');
-  assert.match(result.version_b_text, /Best when:/i);
+  assert.match(result.version_a_text, /Write down the number\. Compare it with yesterday\./);
+  assert.ok(!JSON.stringify(result).includes('The rest stays locked'));
+  assert.ok(!JSON.stringify(result).includes('Why we wrote it this way'));
+  assert.equal((result.version_a_text.match(/^TIME:/gm) || []).length, 1, 'only the hook timestamp is public');
   assert.match(upstreamRequest.system[0].text, /===== SKILL.md =====/);
   assert.match(upstreamRequest.system[0].text, /===== ADDITIONAL REFERENCE: example-guidance\.md =====/);
   assert.match(upstreamRequest.messages[0].content.at(-1).text, /Crazy level: Medium/);
@@ -150,7 +152,9 @@ The viewer checks a daily weight.
   assert.deepEqual(events.map((event) => event.type), ['accepted', 'version_a', 'version_b', 'complete']);
   assert.match(upstreamRequest.messages[0].content.at(-1).text, /Crazy level: High/);
   assert.equal(events.at(-1).data.level, 'High');
-  assert.equal((events[1].text.match(/^TIME:/gm) || []).length, 2, 'streamed hook is also one row');
+  assert.equal(events[1].locked, true);
+  assert.ok(!body.includes('The rest stays locked'), 'stream must not expose the remaining script');
+  assert.equal((events[1].text.match(/^TIME:/gm) || []).length, 1, 'streamed hook is also one row');
   assert.equal(events.at(-1).data.usage.output_tokens, 80);
   const pdf = await fetch(`${base}/api/download-pdf`, {
     method: 'POST', headers: { 'content-type': 'application/json' },

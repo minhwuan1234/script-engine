@@ -67,8 +67,9 @@ where they belong, without a stock transition at every timestamp. A causal conne
 requires a sourced causal link; a fluent sentence must not invent a medical reason.
 If the reason is absent, explain the application without adding a “because”.
 
-Speak about the subject rather than the document's arrangement. Mention a guide,
-card or handbook when the viewer needs to use it. Avoid “the source establishes”,
+Speak about the subject rather than the document's arrangement. Keep references to
+the uploaded guide, card or handbook out of the Hook and Script; speak the supported
+point directly to the viewer. Avoid “the source establishes”,
 “the manager appears twice” or narration about why the writer chose a scene.
 The ending should leave a clarified thought or useful next action, not announce
 that the script has completed its narrative promise.

@@ -33,8 +33,13 @@ policy, records one A/B vote from the first successful PDF download, keeps Crazy
 level fixed at High and excludes the retired Journey style. Its instructions are
 loaded by `writing-instructions.js` from `skill-deploy/magnetic-script-engine/`.
 
-The browser requests `/api/generate` as NDJSON,
-shows Version A when complete, then Version B, and offers a PDF download for each.
+The browser requests `/api/generate` as NDJSON and shows Version A when complete,
+then Version B. Before email capture, the server sends only the Hook and first two
+spoken Script sentences per version. The remainder is represented by blurred
+placeholders, never by full script text in the browser. After the email is saved,
+the same PDF grant authorizes `/api/unlocked-result` to fetch both complete scripts
+and enables a PDF download for each. This unlock requires the submission archive;
+without it, generation remains preview-only and downloads are unavailable.
 The Crazy Dial control is shown only in original mode, where the selected level
 is passed to the writing skill and shown in each result card.
 During generation, the F.Learning facts rotate every eight seconds. A separate

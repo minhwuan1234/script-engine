@@ -98,8 +98,18 @@ do. Let that relationship govern the language. Use contractions, natural fragmen
 short reactions and longer explanations as the thought requires. There is no
 per-sentence word quota. Keep exact locked wording within otherwise flexible speech.
 
-Begin inside the subject: a task, an object, a question or a moment. Describe the
-source document only when the document itself is the thing the viewer needs to use.
+Begin inside the subject: a task, an object, a question or a moment. The uploaded
+document supplies facts behind the scenes; the finished video stands on its own.
+In both versions' Hook and Script, do not mention or depict the uploaded leaflet,
+guide, booklet, PDF, handout, document, its title, pages or sections as the source
+of authority or a framing device. Replace "the leaflet says" and "the guide
+recommends" with the supported point spoken directly to the viewer. Keep every
+source-required condition and qualifier, and use visuals to show the situation or
+mechanism instead of the source format. Before releasing a version, scan its
+Voiceover and On screen cells and rewrite any source-format references. If the
+source explicitly requires the viewer to use a named document as an action and
+removing it would change that instruction, flag the conflict in Engine notes
+instead of inventing a replacement.
 Cut throat-clearing such as "In this video, we'll...", "Let's talk about...",
 "Did you know...?" and "It's important to understand..." when they delay the
 actual idea. Replace them with a detail, action or question specific to this
@@ -107,8 +117,8 @@ source, in words a person would say aloud. The first line should earn attention
 through its content, not a louder introduction.
 “The guide mentions the manager twice” explains a writer's observation; it does not
 give the viewer a reason to care. Move to the actual situation the rule addresses.
-“Working hours are in the handbook” can be useful; “the source establishes two
-separate information channels” sounds like analysis and belongs outside voiceover.
+“The source establishes two separate information channels” sounds like analysis
+and belongs outside voiceover. State the supported rule in the viewer's situation.
 
 Write the spoken thought before fitting it into timestamp blocks. Group speech by
 meaningful beats; do not add a stiff transition just to start a new block. Let the

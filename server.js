@@ -48,6 +48,7 @@ import { handleSubmissionAdmin } from './submission-admin.js';
 import { validateSubmission } from './submission-store.js';
 import { createDownloadGate, authorizedPdfInput, readDownloadJSON } from './download-gate.js';
 import { createVersionPublisher } from './version-publisher.js';
+import { scriptPreview, publicScriptResult } from './script-preview.js';
 import { createUiSamples, handleLabMonitoring, handleUiSample } from './lab-monitoring.js';
 import { sendTelemetryToDashboard } from './telemetry.js';
 
@@ -609,6 +610,15 @@ async function handleUnlockDownload(req, res) {
   return json(res, 200, result);
 }
 
+async function handleUnlockedResult(req, res) {
+  res.setHeader('Cache-Control', 'no-store');
+  if (!downloadGate) return json(res, 503, { error: 'Script unlock is temporarily unavailable.' });
+  const input = await readDownloadJSON(req);
+  const header = req.headers.authorization || '';
+  const token = header.startsWith('Bearer ') ? header.slice(7) : '';
+  return json(res, 200, await downloadGate.authorizeResult({ submissionId: input.submissionId, token }));
+}
+
 // Call Messages API with streaming (avoids long-request timeouts).
 // Returns the final text, stop reason and token usage. `usage` is filled in as events arrive,
 // so a caller can still read partial usage if the stream fails midway.
@@ -744,8 +754,9 @@ async function handleGenerate(req, res) {
     if (submissionId) obj.submissionId = submissionId;
     if (heartbeat) { clearInterval(heartbeat); heartbeat = null; }
     try {
-      if (streamResults) sendEvent(obj.error ? 'error' : 'complete', obj.error ? { error: obj.error, usage: obj.usage } : { data: obj });
-      else res.write(JSON.stringify(obj));
+      const publicOutput = obj.error ? obj : publicScriptResult(obj);
+      if (streamResults) sendEvent(obj.error ? 'error' : 'complete', obj.error ? { error: obj.error, usage: obj.usage } : { data: publicOutput });
+      else res.write(JSON.stringify(publicOutput));
       res.end();
     } catch {} // client likely disconnected — nothing to do
   };
@@ -854,6 +865,8 @@ async function handleGenerate(req, res) {
 
     versionPublisher = createVersionPublisher({ store: archiveRuntime?.store, submissionId,
       ownerToken: downloadOwnerToken, sendEvent,
+      publicVersion: (version) => ({ workingTitle: version.workingTitle, title: version.title,
+        text: scriptPreview(version.text), locked: true }),
       onSent: (letter) => { rec[`version_${letter.toLowerCase()}_ms`] = Date.now() - t0; } });
     const onText = (partial) => {
       if (!streamResults) return;
@@ -894,12 +907,8 @@ async function handleGenerate(req, res) {
     rec.status = parsed.ok ? 'ok' : 'parse_error';
 
     if (!parsed.ok) {
-      // Engine didn't follow the fixed heading structure — still hand back readable
-      // text so nothing is lost; the frontend has a fallback path for this case.
-      return finish({
-        text: toPlainText(markdown), skipped, stop_reason: stopReason,
-        usage: runUsage(),
-      });
+      // A raw fallback could expose the complete script before email unlock.
+      return finish({ error: 'The scripts could not be formatted securely. Please retry.', usage: runUsage() });
     }
 
     // Only offer feedback for a complete parsed pair.
@@ -1005,6 +1014,7 @@ http
       if (req.method === 'POST' && pathname === '/api/generate') return await handleGenerate(req, res);
       if (req.method === 'POST' && pathname === '/api/download-pdf') return await handleDownloadPdf(req, res);
       if (req.method === 'POST' && pathname === '/api/unlock-download') return await handleUnlockDownload(req, res);
+      if (req.method === 'POST' && pathname === '/api/unlocked-result') return await handleUnlockedResult(req, res);
       if (req.method === 'POST' && pathname === '/api/pick') return await handlePick(req, res);
       res.writeHead(404); res.end('Not found');
     } catch (err) {
