@@ -10,6 +10,11 @@
 <script src="https://dashboard-tool-performance.up.railway.app/rum.js" data-tool="script-engine" defer></script>
 <style>html,body{margin:0;padding:0}
 </style>
+<script>
+if (window.parent !== window && new URLSearchParams(location.search).get('embed') === '1') {
+  document.documentElement.classList.add('tpw-embedded');
+}
+</script>
 </head>
 <body>
 
@@ -1582,6 +1587,53 @@ const FULL_RESULT_URL = '/api/unlocked-result';
 })();
 </script>
 
+
+<style>
+@media (max-width: 1024px) and (orientation: portrait), (max-width: 767px) {
+  html.tpw-embedded .tony-pixel-widget { height: auto; min-height: 0; }
+  html.tpw-embedded .tony-pixel-widget .tpw-content {
+    position: relative; inset: auto; overflow: visible;
+    justify-content: flex-start; padding: 28px 16px;
+  }
+  html.tpw-embedded .tony-pixel-widget .tpw-main-container,
+  html.tpw-embedded .tony-pixel-widget .tpw-main-container.has-output {
+    margin: 0; flex-shrink: 0;
+  }
+}
+</style>
+
+<script>
+(() => {
+  if (!document.documentElement.classList.contains('tpw-embedded')) return;
+  const content = document.querySelector('.tpw-content');
+  const compact = matchMedia('(max-width: 1024px) and (orientation: portrait), (max-width: 767px)');
+  let parentOrigin;
+  let frame = 0;
+  let previous = '';
+  const publish = () => {
+    frame = 0;
+    if (!parentOrigin) return;
+    const height = Math.ceil(content.getBoundingClientRect().height);
+    const state = compact.matches + ':' + height;
+    if (state === previous) return;
+    previous = state;
+    parent.postMessage({ type: 'fle-script-tool:height', compact: compact.matches, height }, parentOrigin);
+  };
+  const schedule = () => {
+    if (!frame) frame = requestAnimationFrame(publish);
+  };
+  addEventListener('message', (event) => {
+    if (event.source !== parent || event.data?.type !== 'fle-script-tool:init') return;
+    if (!/^https?:\/\//.test(event.origin)) return;
+    parentOrigin = event.origin;
+    previous = '';
+    schedule();
+  });
+  new ResizeObserver(schedule).observe(content);
+  compact.addEventListener('change', schedule);
+  addEventListener('resize', schedule, { passive: true });
+})();
+</script>
 </body>
 </html>
 
