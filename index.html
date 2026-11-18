@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Rethink+Sans:wght@700&display=swap" rel="stylesheet">
-<script src="https://dashboard-tool-performance.up.railway.app/rum.js" data-tool="script-engine" defer></script>
+<script src="https://dashboard-tool-performance.up.railway.app/rum.js" data-tool="script-engine" data-auto-ux="true" defer></script>
 <style>html,body{margin:0;padding:0}
 </style>
 </head>
@@ -140,11 +140,11 @@
                             </div>
                         </div>
                     </div>
-                    <form class="tpw-email-gate" hidden>
+                    <form class="tpw-email-gate" data-ux-ignore="true" hidden>
                         <label class="tpw-email-label" for="tpw-download-email">Unlock both PDFs</label>
                             <p class="tpw-email-description">Enter your email to download Version A and Version B.</p>
                             <div class="tpw-email-controls">
-                                <input id="tpw-download-email" class="tpw-email-input" type="email" required maxlength="254" autocomplete="email" inputmode="email" placeholder="Your email address" aria-label="Email address">
+                                <input id="tpw-download-email" class="tpw-email-input" data-ux-ignore="true" type="email" required maxlength="254" autocomplete="email" inputmode="email" placeholder="Your email address" aria-label="Email address">
                                 <button class="tpw-email-submit" type="submit">Unlock downloads</button>
                             </div>
                         <p class="tpw-email-status" role="status" aria-live="polite"></p>
@@ -1357,7 +1357,10 @@ const UNLOCK_URL = '/api/unlock-download';
       const clickStartedAt = interactionStart(event);
       if (busy) return;
       const text = input.value;
-      if (!text.trim() && attachedFiles.length === 0) return;
+      if (!text.trim() && attachedFiles.length === 0) {
+        window.FLTelemetry?.taskValidationError?.('input_material');
+        return;
+      }
       generationEpoch += 1;
       downloadAccess = null;
       downloadGrant = null;
@@ -1375,6 +1378,7 @@ const UNLOCK_URL = '/api/unlock-download';
       startLoadingFacts();
       resultBox.classList.remove('is-ready');
       sendUiSample('clickLatency', clickStartedAt);
+      window.FLTelemetry?.taskSubmit?.('Script generation', 'generating_script');
 
       const fd = new FormData();
       fd.append('text', text);
@@ -1453,6 +1457,7 @@ const UNLOCK_URL = '/api/unlock-download';
               stopLoadingFacts();
               loadingOverlay.classList.remove('is-loading');
               showResult(event.data || {});
+              window.FLTelemetry?.taskComplete?.('Script generation');
               if (event.data?.skipped?.length) metaB.textContent = `Skipped (unsupported): ${event.data.skipped.join(', ')}`;
             }
           };
@@ -1482,10 +1487,12 @@ const UNLOCK_URL = '/api/unlock-download';
         loadingOverlay.classList.remove('is-loading');
         stopLoadingFacts();
         showResult(data);
+        window.FLTelemetry?.taskComplete?.('Script generation');
         if (data.skipped && data.skipped.length) {
           metaB.textContent = `Skipped (unsupported): ${data.skipped.join(', ')}`;
         }
       } catch (err) {
+        window.FLTelemetry?.taskError?.('Script generation', err?.message);
         stopScriptProgress();
         stopLoadingFacts();
         loadingOverlay.classList.remove('is-loading');
