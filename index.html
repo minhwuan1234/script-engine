@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Rethink+Sans:wght@700&display=swap" rel="stylesheet">
-<script src="https://dashboard-tool-performance.up.railway.app/rum.js" data-tool="script-engine" defer></script>
+<script src="https://dashboard-tool-performance.up.railway.app/rum.js" data-tool="script-engine" data-auto-ux="true" defer></script>
 <style>html,body{margin:0;padding:0}
 </style>
 <script>
@@ -144,11 +144,11 @@ if (window.parent !== window && new URLSearchParams(location.search).get('embed'
                             </div>
                         </div>
                     </div>
-                    <form class="tpw-email-gate" hidden>
+                    <form class="tpw-email-gate" data-ux-ignore="true" hidden>
                         <label class="tpw-email-label" for="tpw-download-email">Unlock the full scripts</label>
                             <p class="tpw-email-description">Enter your email to read both complete versions and download their PDFs.</p>
                             <div class="tpw-email-controls">
-                                <input id="tpw-download-email" class="tpw-email-input" type="email" required maxlength="254" autocomplete="email" inputmode="email" placeholder="Your email address" aria-label="Email address">
+                                <input id="tpw-download-email" class="tpw-email-input" data-ux-ignore="true" type="email" required maxlength="254" autocomplete="email" inputmode="email" placeholder="Your email address" aria-label="Email address">
                                 <button class="tpw-email-submit" type="submit">Unlock scripts &amp; PDFs</button>
                             </div>
                         <p class="tpw-email-status" role="status" aria-live="polite"></p>
@@ -1414,7 +1414,10 @@ const FULL_RESULT_URL = '/api/unlocked-result';
       const clickStartedAt = interactionStart(event);
       if (busy) return;
       const text = input.value;
-      if (!text.trim() && attachedFiles.length === 0) return;
+      if (!text.trim() && attachedFiles.length === 0) {
+        window.FLTelemetry?.taskValidationError?.('input_material');
+        return;
+      }
       generationEpoch += 1;
       downloadAccess = null;
       downloadGrant = null;
@@ -1433,6 +1436,7 @@ const FULL_RESULT_URL = '/api/unlocked-result';
       startLoadingFacts();
       resultBox.classList.remove('is-ready');
       sendUiSample('clickLatency', clickStartedAt);
+      window.FLTelemetry?.taskSubmit?.('Script generation', 'generating_script');
 
       const fd = new FormData();
       fd.append('text', text);
@@ -1519,6 +1523,7 @@ const FULL_RESULT_URL = '/api/unlocked-result';
               stopLoadingFacts();
               loadingOverlay.classList.remove('is-loading');
               showResult(event.data || {});
+              window.FLTelemetry?.taskComplete?.('Script generation');
               if (event.data?.skipped?.length) metaB.textContent = `Skipped (unsupported): ${event.data.skipped.join(', ')}`;
             }
           };
@@ -1548,10 +1553,12 @@ const FULL_RESULT_URL = '/api/unlocked-result';
         loadingOverlay.classList.remove('is-loading');
         stopLoadingFacts();
         showResult(data);
+        window.FLTelemetry?.taskComplete?.('Script generation');
         if (data.skipped && data.skipped.length) {
           metaB.textContent = `Skipped (unsupported): ${data.skipped.join(', ')}`;
         }
       } catch (err) {
+        window.FLTelemetry?.taskError?.('Script generation', err?.message);
         stopScriptProgress();
         stopLoadingFacts();
         loadingOverlay.classList.remove('is-loading');
